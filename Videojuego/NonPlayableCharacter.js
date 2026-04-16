@@ -1,27 +1,15 @@
-class NPC extends Character {
-    
-    constructor() {
-        this.name = "";
-        this.dialogue = "";
-    }
+import { attributes } from "./GlobalVariables"; 
 
-    constructor(name, dialogue) {
-        this.name = name;
+class NPC extends Character {
+    constructor(dialogue) {
         this.dialogue = dialogue;
     }
 }
 
-class enemy extends Character {
-
-    constructor() {
-        this.name = "";
-        this.health = 0;
-        this.damage = 0;
-    }
-
-    constructor(name, health, damage) {
-        this.name = name;
-        this.health = health;
-        this.damage = damage;
+class Enemy extends Character {
+    constructor(physicalDamage, magicDamage, isBoss) {
+        this.physicalDamage = physicalDamage;
+        this.magicDamage = magicDamage;
+        this.isBoss = isBoss;
     }
 }
