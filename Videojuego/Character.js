@@ -4,7 +4,7 @@ import {BASE_ATTRIBUTES} from "./GlobalVariables";
 
 export default class Character extends GameObject {
     constructor(
-        name, 
+        name = "", 
         maxHealth = 100, 
         health = maxHealth, 
         maxStamina = 100, 

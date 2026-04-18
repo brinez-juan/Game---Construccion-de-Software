@@ -22,9 +22,10 @@ Action Types:
   additional effects.
 */
 export const ACTION_TYPES = {
-    ATTACK: "attack",
-    DEFEND: "defend",
-    SPELL: "spell",
+    ATTACK_PHYSIC: "attack_physic",
+    ATTACK_MAGIC: "attack_magic",
+    DEFEND_PHYSIC: "defend_physic",
+    DEFEND_MAGIC: "defend_magic",
 }
 
 
