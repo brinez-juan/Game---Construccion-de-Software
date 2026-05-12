@@ -1,36 +1,31 @@
-import GameObject from "./gameObject.js";
-import {BASE_ATTRIBUTES} from "./GlobalVariables";
+import GameObject from "./GameObject.js";
+import { BASE_ATTRIBUTES } from "./GlobalVariables.js";
 
 
 export default class Character extends GameObject {
     constructor(
-        name = "", 
-        maxHealth = 100, 
-        health = maxHealth, 
-        maxStamina = 100, 
-        stamina = maxStamina, 
-        attributes = {...BASE_ATTRIBUTES},
+        name = "",
+        maxHealth = 100,
+        health = maxHealth,
+        maxStamina = 100,
+        stamina = maxStamina,
+        attributes = {},
         x = 0,
         y = 0,
         width = 0,
         height = 0
-     ) {
+    ) {
+        super(x, y, width, height);
         this.name = name;
         this.maxHealth = maxHealth;
         this.health = health;
         this.maxStamina = maxStamina;
         this.stamina = stamina;
-        this.attributes = {...BASE_ATTRIBUTES, ...attributes};
-        super(x, y, width, height);
+        this.attributes = { ...BASE_ATTRIBUTES, ...attributes };
     }
 
     isAlive() {
-        if (this.health > 0) {
-            return true;
-        } 
-        else {
-            return false;
-        }  
+        return this.health > 0;
     }
 
     takesDamage(damage) {
@@ -53,5 +48,4 @@ export default class Character extends GameObject {
             this.stamina = this.maxStamina;
         }
     }
-
 }

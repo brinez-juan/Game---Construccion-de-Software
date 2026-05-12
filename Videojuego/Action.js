@@ -1,16 +1,16 @@
-import { ACTION_TYPES, BASE_ATTRIBUTES } from "./GlobalVariables";
+import { ACTION_TYPES } from "./GlobalVariables.js";
 
 export default class Action {
     constructor(
-        name = "", 
-        description = "", 
-        actionType = ACTION_TYPES.ATTACK,
-        staminaCost = 0, 
-        baseDamage = 0, 
+        name = "",
+        description = "",
+        actionType = ACTION_TYPES.ATTACK_PHYSIC,
+        staminaCost = 0,
+        baseDamage = 0,
         baseDefense = 0,
         baseMagicDamage = 0,
         baseMagicDefense = 0,
-        scalingAttribute = BASE_ATTRIBUTES.STRENGTH, 
+        scalingAttribute = "STRENGTH",
         scaleFactor = 1.0,
         target = null
     ) {
