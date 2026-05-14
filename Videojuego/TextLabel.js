@@ -15,14 +15,25 @@ class TextLabel {
         this.font = font;
         this.color = color;
         this.open = open; 
-        this.text = text; 
+        this.text = text;
+        this.click = click; 
+        this.hovered; 
     }
 
     draw(ctx) {
         ctx.font = this.font;
         ctx.fillStyle = this.color;
         ctx.textAlign = 'center'
+        this.width = ctx.measureText(this.text).width
+        this.height = ctx.measureText(this.text).actualBoundingBoxAscent +ctx.measureText(this.text).actualBoundingBoxDescent
         ctx.fillText(this.text, this.x, this.y);
+    }
 
+    mouseCollition(mouseX, mouseY){
+        let left = this.x - this.width/2
+        let right = this.x + this.width/2
+        let top = this.y
+        let bottom = this.y + this.height
+        this.hovered = left <= mouseX && mouseX <= right && mouseY <= bottom && top <= mouseY        
     }
 }

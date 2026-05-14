@@ -8,12 +8,12 @@ let game;
 // Variable to define oldTime
 let oldTime = 0
  
+const canvas = document.getElementById('canvas');
 
 class Game{
-    constructor(canva){
+    constructor(){
         this.canvasWidth = 800; 
-        this.canvasHeight = 600; 
-        this.canvas = canva
+        this.canvasHeight = 600;
         this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, this.canvas)
         this.addEventListeners();
     }
@@ -27,16 +27,13 @@ class Game{
     }
 
     update(deltaTime){
-
+        this.currentMenu.update(deltaTime)
     }
 }
 
 function main(){
-    // Get a reference to the object with id 'canvas' in the page
-    const canvas = document.getElementById('canvas');
-
     // Create the game object
-    game = new Game(canvas)
+    game = new Game()
     // Resize the element
     canvas.width = game.canvasWidth;
     canvas.height = game.canvasHeight;
@@ -63,3 +60,5 @@ function drawScene(newTime, canvasWidth, canvasHeight) {
     oldTime = newTime;
     requestAnimationFrame(drawScene);
 }
+
+main()
