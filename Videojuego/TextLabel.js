@@ -32,8 +32,8 @@ class TextLabel {
     mouseCollition(mouseX, mouseY){
         let left = this.x - this.width/2
         let right = this.x + this.width/2
-        let top = this.y
-        let bottom = this.y + this.height
+        let top = this.y - this.height/2
+        let bottom = this.y + this.height/2
         this.hovered = left <= mouseX && mouseX <= right && mouseY <= bottom && top <= mouseY        
     }
 }

@@ -33,10 +33,6 @@ body {
     align-items: center;
 }
 
-h1{
-    margin: 0px;
-}
-
 canvas {
     /* width: 75vw; */
     /* height: 75vh; */
@@ -51,29 +47,10 @@ canvas {
     grid-area: main;
 }
 
-.lil-gui.autoPlace{
-    top: 15vh;
-    right: 5vw;
-}
 
 #backButton {
     margin: 10px;
 }
 
 
-#examplesContainer{
-    margin: 1em;
-    display:flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-}
 
-.exampleGroup{
-    margin: 0.5em;
-    padding: 1em;
-    max-width: 40vw;
-    border: 3px solid black;
-    border-radius: 20px;
-    background-color: #FFFFFF;
-    filter: drop-shadow(gray 5px 5px 3px);
-}
