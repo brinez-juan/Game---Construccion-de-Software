@@ -57,18 +57,24 @@ class mainMenu extends Menus{
     update(deltaTime){
         for(let element of this.textElements){
             if(element.hovered){
-                console.log("sexo")
+                this.imgElements[this.imgElements.length - 1] = new GameObject(element.x - element.width, element.y - element.height/2, 560, 330)
+                this.imgElements[this.imgElements.length - 1].setSprite("../Assets/Sprites/Selector.png")
             }
         }
     }
 
     initElements(){
+
+        //Adding static elements for the main menu
         let buttons = ['New Game', 'Continue', 'Options', 'Credits']
         this.addElement('img', this.canvasWidth/2, this.canvasHeight/2 -60, 1024, 575, true,  '', false, '../Assets/Sprites/Logo.png')
+        this.addElement('img')
         for(let button of buttons){
             this.addElement('text', this.canvasWidth/2, this.textY, this.buttonSize, this.buttonSize, true, button, true, undefined)
             this.textY += this.buttonSize + 10
         }
+
+        //Event listener to hear for hovers in the main menu
         canvas.addEventListener('mousemove', (e)=>{
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
