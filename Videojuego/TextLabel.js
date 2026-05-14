@@ -17,7 +17,7 @@ class TextLabel {
         this.open = open; 
         this.text = text;
         this.click = click; 
-        this.hovered; 
+        this.hovered = false; 
     }
 
     draw(ctx) {

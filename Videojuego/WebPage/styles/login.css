@@ -1,0 +1,15 @@
+.login-menu{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.in-field{
+    width: 40vw;
+    height: 5vh;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 1rem;
+}
