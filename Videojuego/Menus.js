@@ -1,14 +1,13 @@
 "use strict"; 
 
 class Menus{
-    constructor(background = '', canvasWidth = 0, canvasHeight = 0, canva){
+    constructor(background = '', canvasWidth = 0, canvasHeight = 0){
         this.canvasWidth = canvasWidth
         this.canvasHeight = canvasHeight
         this.background = new GameObject(this.canvasWidth/2, this.canvasHeight/2, this.canvasWidth, this.canvasHeight)
         this.background.setSprite(background)
         this.textElements = []
         this.imgElements = []
-        this.canvas = canva
     }
 
     //To add text and image elements to menu
@@ -30,7 +29,6 @@ class Menus{
         this.background.draw(ctx)
         for(let element of this.textElements){
             element.draw(ctx)
-            
         }
 
         for(let element of this.imgElements){
@@ -45,10 +43,6 @@ class Menus{
     initElements(){
 
     }
-
-    mouseCollider(element){
-        const rect = this.canvas.getBoundingClientRect();
-    }
 }
 
 class mainMenu extends Menus{
@@ -61,7 +55,11 @@ class mainMenu extends Menus{
     }
 
     update(deltaTime){
-        
+        for(let element of this.textElements){
+            if(element.hovered){
+                console.log("sexo")
+            }
+        }
     }
 
     initElements(){
@@ -71,5 +69,13 @@ class mainMenu extends Menus{
             this.addElement('text', this.canvasWidth/2, this.textY, this.buttonSize, this.buttonSize, true, button, true, undefined)
             this.textY += this.buttonSize + 10
         }
+        canvas.addEventListener('mousemove', (e)=>{
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            for(let element of this.textElements){
+                element.mouseCollition(mouseX, mouseY)
+            }
+        })
     }
 }
