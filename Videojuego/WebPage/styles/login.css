@@ -12,4 +12,10 @@
     margin-top: 1rem;
     margin-bottom: 1rem;
     border-radius: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.login-menu p a{
+    text-decoration: none;
 }
