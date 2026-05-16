@@ -10,18 +10,15 @@ class GameObject {
 
         // Sprite properties
         this.spriteImage = undefined;
-        this.spriteRect = undefined;
 
         this.open = open_
         this.clickcable = click
+        this.hovered; 
     }
 
-    setSprite(imagePath, rect) {
+    setSprite(imagePath) {
         this.spriteImage = new Image();
         this.spriteImage.src = imagePath;
-        if (rect) {
-            this.spriteRect = rect;
-        }
     }
 
     draw(ctx) {
@@ -33,5 +30,13 @@ class GameObject {
                           this.width * this.scale,
                           this.height * this.scale);
         }
+    }
+
+    mouseCollition(mouseX, mouseY){
+        let left = this.x - this.width/2
+        let right = this.x + this.width/2
+        let top = this.y - this.height/2
+        let bottom = this.y + this.height/2
+        this.hovered = left <= mouseX && mouseX <= right && mouseY <= bottom && top <= mouseY        
     }
 }

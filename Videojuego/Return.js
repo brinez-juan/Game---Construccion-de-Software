@@ -10,11 +10,16 @@ let oldTime = 0
  
 const canvas = document.getElementById('canvas');
 
+//TODO: Replace with information gotten from the database
+//Make it an instance attribute of game
+const playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}]
+
 class Game{
     constructor(){
         this.canvasWidth = 800; 
         this.canvasHeight = 600;
-        this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, this.canvas)
+        //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
+        this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles)
         this.addEventListeners();
     }
 
