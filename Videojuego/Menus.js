@@ -285,8 +285,9 @@ class selectionMenu extends Menus{
 class creditScreen extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0){
         super(background, canvasWidth, canvasHeight)
-        this.returnButton = this.returnButton = new GameObject(this.canvasWidth/11,this.canvasHeight/11, 150, 65, undefined, true, true)
+        this.returnButton = this.returnButton = new GameObject(this.canvasWidth/10,this.canvasHeight/7, 150, 65, undefined, true, true)
         this.returnButton.setSprite('../Assets/Sprites/return_button.png')
+        this.initElements()
     }
 
     initElements(){
@@ -319,4 +320,8 @@ class creditScreen extends Menus{
             this.returnButton.setSprite('../Assets/Sprites/return_button.png')
         }
     }
+}
+
+class loadingScreen extends Menus{
+    
 }
