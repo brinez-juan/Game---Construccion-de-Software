@@ -16,19 +16,33 @@ class GameObject {
         this.hovered; 
     }
 
-    setSprite(imagePath) {
+    setSprite(imagePath, rect) {
         this.spriteImage = new Image();
         this.spriteImage.src = imagePath;
+        if(rect) this.spriteRect = rect; 
     }
 
     draw(ctx) {
-        if (this.spriteImage) {
+        if (this.spriteRect) {
+                ctx.drawImage(this.spriteImage,
+                              // The coordiantes within the image file to show
+                              this.spriteRect.x,
+                              this.spriteRect.y,
+                              this.spriteRect.width,
+                              this.spriteRect.height,
+                              // The position to draw the image
+                              (this.x - this.width/2 * this.scale),
+                              (this.y - this.height/2 * this.scale),
+                              this.width * this.scale,
+                              this.height * this.scale);
+        }
+        else{
             ctx.drawImage(this.spriteImage,
-                          // The position to draw the image
-                          (this.x - this.width/2 * this.scale),
-                          (this.y - this.height/2 * this.scale),
-                          this.width * this.scale,
-                          this.height * this.scale);
+                      // The position to draw the image
+                      (this.x - this.width/2 * this.scale),
+                      (this.y - this.height/2 * this.scale),
+                      this.width * this.scale,
+                      this.height * this.scale);
         }
     }
 
