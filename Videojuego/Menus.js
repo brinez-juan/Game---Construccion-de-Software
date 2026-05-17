@@ -183,6 +183,7 @@ class selectionMenu extends Menus{
 
         canvas.addEventListener('click', (e) =>{
             this.checkElementSelected()
+            this.elementFieldSelection()
         })
     }
 
@@ -206,15 +207,15 @@ class selectionMenu extends Menus{
 
     update(deltaTime){
         for(let element of this.fields){
-            if(element.hovered && !this.elementSelected){
+            if(element.hovered && !this.selectionField.frame){
                 element.setSprite('../Assets/Sprites/selection2.png')
             }
             else{
                 element.setSprite('../Assets/Sprites/selection1.jpg')
             }
         }
-
-        if(this.returnButton.hovered && !this.elementSelected){
+        console.log(this.selectionField.frame)
+        if(this.returnButton.hovered && !this.selectionField.frame){
             this.returnButton.setSprite('../Assets/Sprites/return_2.png')
         }
         else{
@@ -242,13 +243,13 @@ class selectionMenu extends Menus{
                         }
                     }
                     else{
-                        this.selectionField.frame = new GameObject(this.canvasWidth/2, this.canvasHeight/2, 300, 300, undefined, undefined, undefined)
-                        this.selectionField.frame.setSprite('../Assets/Sprites/selection1.jpg')
                         if(this.menuType === 'new'){
                             //Modify this when adding states in game
                             this.state = 0; 
                         }
                         else{
+                            this.selectionField.frame = new GameObject(this.canvasWidth/2, this.canvasHeight/2, 300, 300, undefined, undefined, undefined)
+                            this.selectionField.frame.setSprite('../Assets/Sprites/selection1.jpg')
                             this.selectionField.question = new TextLabel(this.canvasWidth/2, this.canvasHeight/2, '30px Academia', 'black', undefined, 'Can\'t continue', true)
                             this.selectionField.ok = new TextLabel(this.canvasWidth/2, this.canvasHeight/2 + this.selectionField.frame.height/3, '25px Academia', 'black', undefined, 'ok', true)
                         }
@@ -256,5 +257,21 @@ class selectionMenu extends Menus{
                 }
             }
         }
+    }
+
+    elementFieldSelection(){
+        Object.entries(this.selectionField).forEach(([key,value]) =>{
+                if(value && value.hovered){
+                    if(key === 'yes'){
+                        //add logic to overwrite data
+                        this.elementSelected = undefined
+                        this.selectionField = Object.fromEntries(Object.keys(this.selectionField).map(key => [key, null]));
+                    }
+                    else if(key === 'no' || key === 'ok'){
+                        this.elementSelected = undefined
+                        this.selectionField = Object.fromEntries(Object.keys(this.selectionField).map(key => [key, null]));
+                    }
+                }
+            })
     }
 }
