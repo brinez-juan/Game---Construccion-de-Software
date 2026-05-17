@@ -302,7 +302,6 @@ class creditScreen extends Menus{
             if(this.returnButton.hovered){
                 //Change this when adding states
                 this.state = 0
-                console.log('sex')
             }
         })
     }
@@ -323,5 +322,28 @@ class creditScreen extends Menus{
 }
 
 class loadingScreen extends Menus{
-    
+    constructor(background = '', canvasWidth = 0, canvasHeight = 0){
+        super(background, canvasWidth, canvasHeight)
+        this.loading = new GameObject(this.canvasWidth/2, this.canvasHeight/3 + 20, 100, 100, undefined, undefined, undefined)
+        this.loadingWidth = 1024
+        this.loadingHeight = 1024
+        this.loading.setSprite('../Assets/Sprites/loading_animation.png', {x: 0, y: 0, width:this.loadingWidth/4, height: this.loadingHeight/4})
+    }
+
+    draw(ctx){
+        this.background.draw(ctx)
+        this.loading.draw(ctx)
+    }
+
+    update(deltaTime){
+        this.loading.spriteRect.x += this.loading.spriteRect.width
+        if(this.loading.spriteRect.x >= this.loadingWidth){
+            this.loading.spriteRect.x = 0
+            this.loading.spriteRect.y += this.loading.spriteRect.height
+        }
+        if(this.loading.spriteRect.y >= this.loadingHeight){
+            this.loading.spriteRect.x = 0
+            this.loading.spriteRect.y = 0
+        }
+    }
 }
