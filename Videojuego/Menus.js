@@ -1,5 +1,6 @@
 "use strict"; 
 
+//Change Menus name to screens because it will be the base class for all the screens in the game
 class Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0){
         this.canvasWidth = canvasWidth
@@ -173,17 +174,23 @@ class selectionMenu extends Menus{
             }
             this.returnButton.mouseCollition(mouseX, mouseY)
             if(this.elementSelected && this.selectionField.frame){
-            Object.entries(this.selectionField).forEach(([key,value]) =>{
-                if(key === 'no' || key === 'yes' || key === 'ok' && value){
-                    value.mouseCollition(mouseX, mouseY)
-                }
-            })
-        }
+                Object.entries(this.selectionField).forEach(([key,value]) =>{
+                    if(value && (key === 'no' || key === 'yes' || key === 'ok')){
+                        value.mouseCollition(mouseX, mouseY)
+                    }
+                })
+            }
         })
 
         canvas.addEventListener('click', (e) =>{
-            this.checkElementSelected()
-            this.elementFieldSelection()
+            if(!this.elementSelected){
+                this.checkElementSelected()
+            }else{
+                this.elementFieldSelection()
+            }
+            if(this.returnButton.hovered && !this.elementSelected){
+                //console.log('sexo')
+            }
         })
     }
 
@@ -214,7 +221,6 @@ class selectionMenu extends Menus{
                 element.setSprite('../Assets/Sprites/selection1.jpg')
             }
         }
-        console.log(this.selectionField.frame)
         if(this.returnButton.hovered && !this.selectionField.frame){
             this.returnButton.setSprite('../Assets/Sprites/return_2.png')
         }
@@ -227,9 +233,7 @@ class selectionMenu extends Menus{
         for(let element of this.fields){
             if(element.hovered){
                 this.elementSelected= element
-                for(let data of this.fieldData){
-                    if(data['field'] === this.fields.indexOf(this.elementSelected)){
-                        
+                    if(this.fieldData.find(data => data.field === this.fields.indexOf(this.elementSelected))){
                         if(this.menuType === 'new'){
                             this.selectionField.frame = new GameObject(this.canvasWidth/2, this.canvasHeight/2, 300, 300, undefined, undefined, undefined)
                             this.selectionField.frame.setSprite('../Assets/Sprites/selection1.jpg')
@@ -243,6 +247,7 @@ class selectionMenu extends Menus{
                         }
                     }
                     else{
+                        console.log('hola')
                         if(this.menuType === 'new'){
                             //Modify this when adding states in game
                             this.state = 0; 
@@ -254,24 +259,23 @@ class selectionMenu extends Menus{
                             this.selectionField.ok = new TextLabel(this.canvasWidth/2, this.canvasHeight/2 + this.selectionField.frame.height/3, '25px Academia', 'black', undefined, 'ok', true)
                         }
                     }
-                }
             }
         }
     }
 
     elementFieldSelection(){
         Object.entries(this.selectionField).forEach(([key,value]) =>{
-                if(value && value.hovered){
-                    if(key === 'yes'){
-                        //add logic to overwrite data
-                        this.elementSelected = undefined
-                        this.selectionField = Object.fromEntries(Object.keys(this.selectionField).map(key => [key, null]));
-                    }
-                    else if(key === 'no' || key === 'ok'){
-                        this.elementSelected = undefined
-                        this.selectionField = Object.fromEntries(Object.keys(this.selectionField).map(key => [key, null]));
-                    }
+            if(value && value.hovered){
+                if(key === 'yes'){
+                    //add logic to overwrite data
+                    this.elementSelected = undefined
+                    this.selectionField = Object.fromEntries(Object.keys(this.selectionField).map(key => [key, null]));
                 }
-            })
+                else if(key === 'no' || key === 'ok'){                   
+                    this.elementSelected = undefined
+                    this.selectionField = Object.fromEntries(Object.keys(this.selectionField).map(key => [key, null]));
+                }
+            }
+        })
     }
 }
