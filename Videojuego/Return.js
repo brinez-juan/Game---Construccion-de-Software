@@ -19,7 +19,7 @@ class Game{
         this.canvasWidth = 800; 
         this.canvasHeight = 600;
         //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
-        this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles)
+        this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'new')
         this.addEventListeners();
     }
 

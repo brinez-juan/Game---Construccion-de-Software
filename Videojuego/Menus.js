@@ -103,6 +103,8 @@ class selectionMenu extends Menus{
         //TODO: Replace with player data gotten from the database
         this.fieldData = playerData
         this.initElements()
+        this.selectionField = {frame: undefined, yes: undefined, no: undefined, question: undefined, ok:undefined}
+        this.elementSelected= undefined
     }
 
     initElements(){
@@ -170,10 +172,17 @@ class selectionMenu extends Menus{
                 element.mouseCollition(mouseX, mouseY)
             }
             this.returnButton.mouseCollition(mouseX, mouseY)
+            if(this.elementSelected && this.selectionField.frame){
+            Object.entries(this.selectionField).forEach(([key,value]) =>{
+                if(key === 'no' || key === 'yes' || key === 'ok' && value){
+                    value.mouseCollition(mouseX, mouseY)
+                }
+            })
+        }
         })
 
         canvas.addEventListener('click', (e) =>{
-
+            this.checkElementSelected()
         })
     }
 
@@ -186,11 +195,18 @@ class selectionMenu extends Menus{
         for(let label of this.fieldLabels){
             label.draw(ctx)
         }
+        if(this.elementSelected && this.selectionField.frame){
+            Object.values(this.selectionField).forEach(value =>{
+                if(value){
+                    value.draw(ctx)
+                }
+            })
+        }
     }
 
     update(deltaTime){
         for(let element of this.fields){
-            if(element.hovered){
+            if(element.hovered && !this.elementSelected){
                 element.setSprite('../Assets/Sprites/selection2.png')
             }
             else{
@@ -198,11 +214,47 @@ class selectionMenu extends Menus{
             }
         }
 
-        if(this.returnButton.hovered){
+        if(this.returnButton.hovered && !this.elementSelected){
             this.returnButton.setSprite('../Assets/Sprites/return_2.png')
         }
         else{
             this.returnButton.setSprite('../Assets/Sprites/return_button.png')
+        }
+    }
+
+    checkElementSelected(){
+        for(let element of this.fields){
+            if(element.hovered){
+                this.elementSelected= element
+                for(let data of this.fieldData){
+                    if(data['field'] === this.fields.indexOf(this.elementSelected)){
+                        
+                        if(this.menuType === 'new'){
+                            this.selectionField.frame = new GameObject(this.canvasWidth/2, this.canvasHeight/2, 300, 300, undefined, undefined, undefined)
+                            this.selectionField.frame.setSprite('../Assets/Sprites/selection1.jpg')
+                            this.selectionField.yes = new TextLabel(this.canvasWidth/2 - this.selectionField.frame.width/3, this.canvasHeight/2 + this.selectionField.frame.height/3, '25px Academia', 'black', undefined, 'yes', true) 
+                            this.selectionField.no = new TextLabel(this.canvasWidth/2 + this.selectionField.frame.width/3, this.canvasHeight/2 + this.selectionField.frame.height/3, '25px Academia', 'black', undefined, 'no', true) 
+                            this.selectionField.question = new TextLabel(this.canvasWidth/2, this.canvasHeight/2, '30px Academia', 'black', undefined, 'Overwrite?', true)
+                        }
+                        else{
+                            //Modify this when adding states in game
+                            this.state = 0; 
+                        }
+                    }
+                    else{
+                        this.selectionField.frame = new GameObject(this.canvasWidth/2, this.canvasHeight/2, 300, 300, undefined, undefined, undefined)
+                        this.selectionField.frame.setSprite('../Assets/Sprites/selection1.jpg')
+                        if(this.menuType === 'new'){
+                            //Modify this when adding states in game
+                            this.state = 0; 
+                        }
+                        else{
+                            this.selectionField.question = new TextLabel(this.canvasWidth/2, this.canvasHeight/2, '30px Academia', 'black', undefined, 'Can\'t continue', true)
+                            this.selectionField.ok = new TextLabel(this.canvasWidth/2, this.canvasHeight/2 + this.selectionField.frame.height/3, '25px Academia', 'black', undefined, 'ok', true)
+                        }
+                    }
+                }
+            }
         }
     }
 }
