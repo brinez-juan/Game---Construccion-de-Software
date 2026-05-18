@@ -26,12 +26,13 @@ class Menus{
 }
 
 class mainMenu extends Menus{
-    constructor(background = '', canvasWidth = 0, canvasHeight = 0, btnSize){
+    constructor(background = '', canvasWidth = 0, canvasHeight = 0, btnSize, playerProfiles){
         super(background, canvasWidth, canvasHeight, canvas)
         this.textY = this.canvasHeight/2 + 100
         this.buttonSize = btnSize
         this.textElements = []
         this.imgElements = []
+        this.playerData = playerProfiles; 
         this.initElements()
         
     }
@@ -65,6 +66,10 @@ class mainMenu extends Menus{
                 element.mouseCollition(mouseX, mouseY)
             }
         })
+
+        canvas.addEventListener('click', (e) =>{
+            this.selectionChecker(); 
+        })
     }
     //To add text and image elements to menu
     addElement(elementType = '', x, y, width, height, open = undefined, text = '', click, sprite = ''){
@@ -89,6 +94,26 @@ class mainMenu extends Menus{
 
         for(let element of this.imgElements){
             element.draw(ctx)
+        }
+    }
+
+    selectionChecker(){
+        for(let element of this.textElements){
+            if(element.hovered){
+                if(element.text === 'New Game'){
+                    this.state = 1
+                }
+                else if(element.text === 'Continue' && this.playerData.length != 0){
+                    this.state = 2
+                    console.log(this.playerData)
+                }
+                else if(element.text === 'Options'){
+                    this.state = 3
+                }
+                else if(element.text === 'Credits'){
+                    this.state = 4
+                }
+            }
         }
     }
 }
@@ -191,7 +216,7 @@ class selectionMenu extends Menus{
                 this.elementFieldSelection()
             }
             if(this.returnButton.hovered && !this.elementSelected){
-                //console.log('sexo')
+                this.state = 0
             }
         })
     }
@@ -249,7 +274,6 @@ class selectionMenu extends Menus{
                         }
                     }
                     else{
-                        console.log('hola')
                         if(this.menuType === 'new'){
                             //Modify this when adding states in game
                             this.state = 0; 
