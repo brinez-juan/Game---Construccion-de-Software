@@ -18,11 +18,15 @@ class Game{
     constructor(){
         this.canvasWidth = 800; 
         this.canvasHeight = 600;
-        //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
-        //this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'new')
+        this.currentState = 0; 
+        this.isLoading = false; 
+        this.menuStack = []; 
+        this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, playerProfiles)
+        this.menuStack.push(this.currentMenu)
+        //this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'continue')
         //this.currentMenu = new creditScreen('../Assets/backgrounds/credits.png', this.canvasWidth, this.canvasHeight)
         //this.currentMenu = new loadingScreen('../Assets/Sprites/loading.png', this.canvasWidth, this.canvasHeight)
-        this.currentMenu = new optionsMenu('../Assets/backgrounds/options_background.png', this.canvasWidth, this.canvasHeight)
+        //this.currentMenu = new optionsMenu('../Assets/backgrounds/options_background.png', this.canvasWidth, this.canvasHeight, 'pause')
         this.addEventListeners();
     }
 
@@ -35,7 +39,38 @@ class Game{
     }
 
     update(deltaTime){
+        if (this.currentState != this.currentMenu.state){
+            this.currentState = this.currentMenu.state
+            this.screenManager(this.currentMenu.state)
+        }
+        if(this.menuStack.length > 3){
+            this.menuStack.shift()
+        }
         this.currentMenu.update(deltaTime)
+    }
+
+    screenManager(state){
+        if(state === 0){
+            this.currentMenu = this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, playerProfiles)
+        }
+        else if(state === 1){
+            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'new')
+        }
+        else if(state === 2){
+            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'continue')
+        }
+        else if(state === 3){
+            this.currentMenu = new optionsMenu('../Assets/backgrounds/options_background.png', this.canvasWidth, this.canvasHeight, 'pause')
+        }
+        else if(state === 4){
+            this.currentMenu = new creditScreen('../Assets/backgrounds/credits.png', this.canvasWidth, this.canvasHeight)
+        }
+        else if(state === 5){
+            this.currentMenu = this.menuStack[this.menuStack.indexOf(this.currentMenu) - 1]
+            this.currentMenu.pop()
+        }
+        console.log('hola')
+        this.menuStack.push(this.currentMenu)
     }
 }
 
