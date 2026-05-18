@@ -358,13 +358,17 @@ class optionsMenu extends Menus{
     }
 
     initElements(){
-        this.generalVolumeField = {text: '', bar: '', slideElement: ''};
         this.returnButton = new GameObject(this.canvasWidth/10,this.canvasHeight/7, 150, 65, undefined, true, true)
         this.returnButton.setSprite('../Assets/Sprites/return_button.png')
-        this.sfxField = new GameObject(this.canvasWidth/4, 2*this.canvasHeight/4, 180, 80, 'on', undefined, undefined);
-        this.soundField = new GameObject(this.canvasWidth/4, 3*this.canvasHeight/4, 180, 80, 'on', undefined, undefined);
+        let offsetY = 30
+        this.sfxField = new GameObject(this.canvasWidth/2, 2*this.canvasHeight/4, 180, 80, 'on', undefined, undefined);
+        this.soundField = new GameObject(this.canvasWidth/2, this.sfxField.y + this.sfxField.height + offsetY, 180, 80, 'on', undefined, undefined);
         this.sfxField.setSprite('../Assets/Sprites/sfx_on.png')
         this.soundField.setSprite('../Assets/Sprites/music_on.png')
+        if(this.type === 'pause'){
+            this.exitField = new GameObject(this.canvasWidth/2, this.soundField.y + this.soundField.height + offsetY, 180, 80, undefined, undefined, undefined);
+            this.exitField.setSprite('../Assets/Sprites/exit_button.png')
+        }
         canvas.addEventListener('mousemove', (e)=>{
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
@@ -388,6 +392,9 @@ class optionsMenu extends Menus{
         this.sfxField.draw(ctx)
         this.soundField.draw(ctx)
         this.returnButton.draw(ctx)
+        if(this.exitField){
+            this.exitField.draw(ctx)
+        }
     }
 
     update(deltaTime){
@@ -414,6 +421,12 @@ class optionsMenu extends Menus{
             this.soundField.setSprite('../Assets/Sprites/music_on.png')
             this.soundField.type = 'on'
             //Add logic to set volume
+        }
+        if(this.exitField && this.exitField.hovered){
+            this.state = 0
+        }
+        if(this.returnButton.hovered){
+            this.state = 0
         }
     }
 }
