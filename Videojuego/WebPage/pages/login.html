@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Login/Sign in page</title>
+        <link rel="stylesheet" href="../styles/global.css">
+        <link rel="stylesheet" href="../styles/login.css">
+        <script src="../../login.js" defer></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    </head>
+
+    <body class="main">
+        <nav class="Nav-bar">
+            <a href="game.html" class="nav-logo">Return</a>
+            <ul>
+                <a href="index.html" class="Nav-Button">
+                    <li>Home</li>
+                </a>
+                <a href="login.html" class="Nav-Button">
+                    <li>Game</li>
+                </a>
+                <a href="" class="Nav-Button">
+                    <li>Tutorial</li>
+                </a>
+                <a href="" class="Nav-Button">
+                    <li>Made by</li>
+                </a>
+            </ul>
+        </nav>
+
+        <div class="login-menu">
+            <h2 class="Login-title">Login</h2>
+            <input type="text" id="mail" class="in-field" placeholder="Email">
+            <input type="password" id="password" class="in-field" placeholder="Password">
+            <p>Don't have an account? <button id="sign-button">Sign in here</button></p>
+        </div>
+
+        <div class="sign-menu">
+            <h2 class="Sign-title">Sign In</h2>
+            <input type="text" id="sign-mail" class="in-field" placeholder="Email">
+            <input type="text" id="username" class="in-field" placeholder="Username">
+            <input type="password" id="sign-password" class="in-field" placeholder="Password">
+            <p>Already have an account? <button id="log-button">Log in here</button></p>
+        </div>
+    </body>
+</html>
