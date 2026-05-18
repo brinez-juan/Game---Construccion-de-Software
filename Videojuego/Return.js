@@ -21,7 +21,8 @@ class Game{
         //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
         //this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'new')
         //this.currentMenu = new creditScreen('../Assets/backgrounds/credits.png', this.canvasWidth, this.canvasHeight)
-        this.currentMenu = new loadingScreen('../Assets/Sprites/loading.png', this.canvasWidth, this.canvasHeight)
+        //this.currentMenu = new loadingScreen('../Assets/Sprites/loading.png', this.canvasWidth, this.canvasHeight)
+        this.currentMenu = new optionsMenu('../Assets/backgrounds/options_background.png', this.canvasWidth, this.canvasHeight)
         this.addEventListeners();
     }
 
