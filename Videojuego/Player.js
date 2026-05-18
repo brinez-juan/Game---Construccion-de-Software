@@ -1,29 +1,30 @@
 import Character from "./Character.js";
-import {BASE_ATTRIBUTES, MAX_DECK_SIZE} from "./GlobalVariables"; 
+import { MAX_DECK_SIZE } from "./GlobalVariables.js";
 
 export default class Player extends Character {
     constructor(
-        maxHealth = 100, 
+        maxHealth = 100,
         health = maxHealth,
-        maxStamina = 100, 
+        maxStamina = 100,
         stamina = maxStamina,
-        level = 1, 
-        experience = 0, 
+        attributes = {},
+        level = 1,
+        experience = 0,
         experienceToNextLevel = 100,
-        inventory = [], 
+        inventory = [],
         activeDeck = []
     ) {
+        super("Player", maxHealth, health, maxStamina, stamina, attributes);
         this.level = level;
         this.experience = experience;
         this.experienceToNextLevel = experienceToNextLevel;
         this.inventory = inventory;
         this.activeDeck = activeDeck;
-        super("Player", maxHealth, health, maxStamina, stamina, {...BASE_ATTRIBUTES});
     }
 
     gainExperience(amount) {
         this.experience += amount;
-        }
+    }
 
     levelUp() {
         if (this.experience >= this.experienceToNextLevel) {
@@ -33,17 +34,14 @@ export default class Player extends Character {
             return true;
         }
         return false;
-        }
-    
+    }
+
     upgradeAttribute(attribute) {
-        let upgradePoints = 0;
-         if (levelUp()) {
-            upgradePoints++;
-            if (upgradePoints > 0) {
-                this.attributes[attribute]++;
-                upgradePoints--;
-            }
+        if (this.levelUp()) {
+            this.attributes[attribute]++;
+            return true;
         }
+        return false;
     }
 
     addCardToInventory(card) {
@@ -59,12 +57,9 @@ export default class Player extends Character {
     resetRun() {
         this.health = this.maxHealth;
         this.stamina = this.maxStamina;
-        this.xp = 0;
+        this.experience = 0;
         this.level = 1;
         this.inventory = [];
         this.activeDeck = [];
     }
 }
-
-    
-
