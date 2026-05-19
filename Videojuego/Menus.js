@@ -358,6 +358,8 @@ class battleScreen extends Menus{
         ]
         this.playerKnight = new GameObject(180, 380, 278, 422)
         this.playerKnight.setSprite('../Assets/backgrounds/player_knight.png')
+        this.enemySprite = new GameObject(620, 380, 306, 422)
+        this.enemySprite.setSprite('../Assets/Sprites/Enemie_caballero.png')
         this.player = {health: 100, maxHealth: 100, stamina: 100, maxStamina: 100}
         this.enemy = {health: 100, maxHealth: 100, stamina: 100, maxStamina: 100}
         this.initElements()
@@ -409,6 +411,7 @@ class battleScreen extends Menus{
     draw(ctx){
         this.background.draw(ctx)
         this.playerKnight.draw(ctx)
+        this.enemySprite.draw(ctx)
         // Health bar (top left, MK style)
         let barX = 20
         let barY = 20

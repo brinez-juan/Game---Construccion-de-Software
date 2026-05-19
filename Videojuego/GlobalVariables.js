@@ -59,3 +59,41 @@ export const PARRY_RESULTS = {
 Max deck size: the maximum number of cards a player can have in their active deck (5)
 */
 export const MAX_DECK_SIZE = 5;
+
+// archetypes for character selection
+export const ARCHETYPES = {
+    SOLDIER: {
+        id: "soldier",
+        attributes: { STRENGTH: 3, AGILITY: 1, INTELLIGENCE: 0, VIGOR: 2, ENDURANCE: 2 },
+        startingCards: ["heavy_strike", "shield_block", "basic_attack", "basic_attack", "recover"]
+    },
+    ARCHER: {
+        id: "archer",
+        attributes: { STRENGTH: 1, AGILITY: 3, INTELLIGENCE: 0, VIGOR: 1, ENDURANCE: 2 },
+        startingCards: ["precise_shot", "dodge_roll", "basic_attack", "basic_attack", "recover"]
+    },
+    MAGE: {
+        id: "mage",
+        attributes: { STRENGTH: 0, AGILITY: 1, INTELLIGENCE: 3, VIGOR: 1, ENDURANCE: 2 },
+        startingCards: ["fireball", "magic_shield", "basic_attack", "basic_attack", "recover"]
+    }
+};
+
+// wich atribut powers wich action
+export const ATTRIBUTE_SCALING = {
+    STRENGTH: [ACTION_TYPES.ATTACK_PHYSIC, ACTION_TYPES.DEFEND_PHYSIC],
+    INTELLIGENCE: [ACTION_TYPES.ATTACK_MAGIC, ACTION_TYPES.DEFEND_MAGIC],
+    AGILITY: [],
+    VIGOR: [],
+    ENDURANCE: []
+};
+
+// card requirements by id
+export const CARD_REQUIREMENTS = {
+    heavy_strike: { STRENGTH: 3 },
+    precise_shot: { AGILITY: 3 },
+    fireball: { INTELLIGENCE: 3 },
+    shield_block: { STRENGTH: 2 },
+    dodge_roll: { AGILITY: 2 },
+    magic_shield: { INTELLIGENCE: 2 }
+};
