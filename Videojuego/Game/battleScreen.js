@@ -5,4 +5,8 @@ class battleScreen extends Menus{
         this.enemies = enemies; 
     }
 
+    draw(ctx){
+        this.background.draw(ctx)
+    }
+
 }
