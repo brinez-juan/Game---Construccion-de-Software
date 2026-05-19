@@ -1,41 +1,53 @@
 "use strict";
-// Context of the Canvas
+
+import {
+    mainMenu,
+    selectionMenu,
+    creditScreen,
+    archetypeMenu,
+    lobbyScreen,
+    battleScreen,
+    loadingScreen,
+    optionsMenu
+} from "./Menus.js";
+
+// Session guard: any unauthenticated visitor lands on the login screen.
+// Token comes from login.js (localStorage.authToken set after /auth/login).
+const authToken = localStorage.getItem('authToken');
+if (!authToken) {
+    window.location.replace('login.html');
+    throw new Error('Not authenticated, redirecting to login.');
+}
+
 let ctx;
-
-// A variable to store the game object
 let game;
+let oldTime = 0;
 
-// Variable to define oldTime
-let oldTime = 0
- 
 const canvas = document.getElementById('canvas');
 
-//TODO: Replace with information gotten from the database
-//Make it an instance attribute of game
-const playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}]
+// TODO: replace with data fetched from the DB once /slots endpoint exists.
+const playerProfiles = [
+    { field: 0, name: 'smv', level: 2, floor: 2, last_session: '03-04' },
+    { field: 2, name: 'smv', level: 2, floor: 2, last_session: '03-04' }
+];
 
-class Game{
+class Game {
     constructor(){
-        this.canvasWidth = 800; 
+        this.canvasWidth = 800;
         this.canvasHeight = 600;
-        this.currentState = 0; 
-            this.isLoading = true; 
+        this.currentState = 0;
+        this.isLoading = true;
         this.loadTimer = 0;
-        this.menuStack = []; 
-        this.currentMenu = new loadingScreen('../Assets/Sprites/loading.png', this.canvasWidth, this.canvasHeight)
-        this.menuStack.push(this.currentMenu)
-        //this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'continue')
-        //this.currentMenu = new creditScreen('../Assets/backgrounds/credits.png', this.canvasWidth, this.canvasHeight)
-        //this.currentMenu = new optionsMenu('../Assets/backgrounds/options_background.png', this.canvasWidth, this.canvasHeight, 'pause')
+        this.menuStack = [];
+        this.currentMenu = new loadingScreen('../Assets/Sprites/loading.png', this.canvasWidth, this.canvasHeight);
+        this.menuStack.push(this.currentMenu);
         this.addEventListeners();
     }
 
-    addEventListeners(){
-
-    }
+    addEventListeners(){}
 
     draw(ctx){
-        this.currentMenu.draw(ctx)
+        this.currentMenu.draw(ctx);
     }
 
     update(deltaTime){
@@ -49,59 +61,59 @@ class Game{
             }
         }
         else if (this.currentState != this.currentMenu.state){
-            this.currentState = this.currentMenu.state
-            this.screenManager(this.currentMenu.state)
+            this.currentState = this.currentMenu.state;
+            this.screenManager(this.currentMenu.state);
         }
         if(this.menuStack.length > 3){
-            this.menuStack.shift()
+            this.menuStack.shift();
         }
-        this.currentMenu.update(deltaTime)
+        this.currentMenu.update(deltaTime);
     }
 
     screenManager(state){
         if(state === 0){
-            this.currentMenu = this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, playerProfiles)
+            this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, playerProfiles);
         }
         else if(state === 1){
-            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'new')
+            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'new');
         }
         else if(state === 2){
-            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'continue')
+            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'continue');
         }
         else if(state === 3){
-            this.currentMenu = new optionsMenu('../Assets/backgrounds/options_background.png', this.canvasWidth, this.canvasHeight, 'pause')
+            this.currentMenu = new optionsMenu('../Assets/backgrounds/options_background.png', this.canvasWidth, this.canvasHeight, 'pause');
         }
         else if(state === 4){
-            this.currentMenu = new creditScreen('../Assets/backgrounds/credits.png', this.canvasWidth, this.canvasHeight)
+            this.currentMenu = new creditScreen('../Assets/backgrounds/credits.png', this.canvasWidth, this.canvasHeight);
         }
         else if(state === 5){
-            this.currentMenu = this.menuStack[this.menuStack.indexOf(this.currentMenu) - 1]
-            this.currentMenu.pop()
+            this.currentMenu = this.menuStack[this.menuStack.indexOf(this.currentMenu) - 1];
+            this.currentMenu.pop();
         }
         else if(state === 6){
-            this.currentMenu = new loadingScreen('../Assets/Sprites/loading.png', this.canvasWidth, this.canvasHeight)
+            this.currentMenu = new loadingScreen('../Assets/Sprites/loading.png', this.canvasWidth, this.canvasHeight);
             this.isLoading = true;
             this.loadTimer = 0;
         }
         else if(state === 7){
-            this.currentMenu = new battleScreen('../Assets/backgrounds/battle_background.jpg', this.canvasWidth, this.canvasHeight)
+            this.currentMenu = new battleScreen('../Assets/backgrounds/battle_background.jpg', this.canvasWidth, this.canvasHeight);
         }
-        console.log('hola')
-        this.menuStack.push(this.currentMenu)
+        else if(state === 8){
+            this.currentMenu = new archetypeMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight);
+        }
+        else if(state === 9){
+            this.currentMenu = new lobbyScreen('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight);
+        }
+        this.menuStack.push(this.currentMenu);
     }
 }
 
 function main(){
-    // Create the game object
-    game = new Game()
-    // Resize the element
+    game = new Game();
     canvas.width = game.canvasWidth;
     canvas.height = game.canvasHeight;
-    // Get the context for drawing in 2D
     ctx = canvas.getContext('2d');
-
-
-    drawScene(0, game.canvasWidth, game.canvasHeight);   
+    drawScene(0, game.canvasWidth, game.canvasHeight);
 }
 
 function drawScene(newTime, canvasWidth, canvasHeight) {
@@ -109,16 +121,11 @@ function drawScene(newTime, canvasWidth, canvasHeight) {
         oldTime = newTime;
     }
     let deltaTime = newTime - oldTime;
-
-    // Clean the canvas so we can draw everything again
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
     game.update(deltaTime);
-
     game.draw(ctx);
-
     oldTime = newTime;
     requestAnimationFrame(drawScene);
 }
 
-main()
+main();

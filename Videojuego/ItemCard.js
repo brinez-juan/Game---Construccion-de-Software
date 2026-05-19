@@ -41,6 +41,8 @@ export default class ItemCard extends GameObject {
                 return this.action.calculateDefense(playerAttributes);
             case ACTION_TYPES.DEFEND_MAGIC:
                 return this.action.calculateMagicDefense(playerAttributes);
+            case ACTION_TYPES.HEALING:
+                return this.action.calculateHealing(playerAttributes);
             default:
                 return 0;
         }

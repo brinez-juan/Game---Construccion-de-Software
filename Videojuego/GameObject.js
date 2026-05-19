@@ -51,6 +51,8 @@ class GameObject {
         let right = this.x + this.width/2
         let top = this.y - this.height/2
         let bottom = this.y + this.height/2
-        this.hovered = left <= mouseX && mouseX <= right && mouseY <= bottom && top <= mouseY        
+        this.hovered = left <= mouseX && mouseX <= right && mouseY <= bottom && top <= mouseY
     }
 }
+
+export default GameObject;
