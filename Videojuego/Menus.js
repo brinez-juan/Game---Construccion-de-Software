@@ -379,13 +379,14 @@ class battleScreen extends Menus{
         this.parryIndicatorDir = 1
         this.parrySpeed = 1.2
         this.parryActive = false
-        // placeholder cards (5)
+        // placeholder cards (5) -- TODO: fetch from player.inventory later
         this.cards = [
             {name: 'Basic Attack', staminaCost: 25, actionType: 'attack_physic', baseDamage: 15, scaleFactor: 1.0, color: 'red'},
             {name: 'Fireball', staminaCost: 35, actionType: 'attack_magic', baseDamage: 20, scaleFactor: 1.2, color: 'purple'},
             {name: 'Shield Block', staminaCost: 8, actionType: 'defend_physic', baseDamage: 0, scaleFactor: 0, color: 'blue'},
             {name: 'Magic Shield', staminaCost: 8, actionType: 'defend_magic', baseDamage: 0, scaleFactor: 0, color: 'cyan'},
             {name: 'Heavy Strike', staminaCost: 50, actionType: 'attack_physic', baseDamage: 30, scaleFactor: 1.5, color: 'orange'}
+            // TODO: add heal card here
         ]
         this.cardSlots = []
         this.hoveredCardIndex = -1
@@ -478,7 +479,7 @@ class battleScreen extends Menus{
 
     _playCard(card){
         this.player.stamina -= card.staminaCost
-        if(this.player.stamina < 0) this.player.stamina = 0
+        // TODO: clamp stamina later
         var damage = 0
         if(card.actionType == 'attack_physic'){
             damage = card.baseDamage + (this.player.attributes.STRENGTH * card.scaleFactor)
@@ -505,13 +506,14 @@ class battleScreen extends Menus{
         else if(card.actionType == 'defend_physic' || card.actionType == 'defend_magic'){
             this.playerGuard = true
             this.player.stamina += 15
-            if(this.player.stamina > this.player.maxStamina) this.player.stamina = this.player.maxStamina
+            // stamina can go over max for now, fix later
             console.log("player guards")
         }
         // clear guards after player acts
         this.enemyGuard = false
         this.enemyGuardType = null
         this.playerGuard = false
+        // TODO: check for game over properly
         if(this.enemy.health <= 0){
             this.enemy.health = 0
             this.turn = 'victory'
@@ -534,6 +536,8 @@ class battleScreen extends Menus{
         if(Math.random() < 0.2 && options.length > 0){
             return options[Math.floor(Math.random() * options.length)]
         }
+        // TODO: boss logic not implemented yet
+        // if(this.enemy.isBoss) return 'attack_physic'
         // state based
         if(ratio > 0.6){
             // aggressive
@@ -614,10 +618,11 @@ class battleScreen extends Menus{
             dmg = baseDmg
             staminaRec = 0
         }
+        // TODO: add crit chance here?
+        // if(Math.random() < 0.1) dmg *= 2
         this.player.health -= dmg
         this.player.stamina += staminaRec
-        if(this.player.stamina > this.player.maxStamina) this.player.stamina = this.player.maxStamina
-        if(this.player.health < 0) this.player.health = 0
+        // health and stamina not clamped yet -- TODO fix
         console.log("parry: " + this.parryResult + " dmg: " + dmg + " stamina rec: " + staminaRec)
         this.playerGuard = false
         if(this.player.health <= 0){
@@ -812,7 +817,7 @@ class battleScreen extends Menus{
         if(this.turn == 'enemy'){
             this._enemyTurn()
         }
-        // parry indicator movement
+        // parry indicator movement -- TODO: fix bouncing bug when deltaTime is high
         if(this.parryActive){
             this.parryIndicatorX += this.parryIndicatorDir * this.parrySpeed * deltaTime
             if(this.parryIndicatorX >= this.parryBar.x + this.parryBar.w){
