@@ -19,13 +19,13 @@ class Game{
         this.canvasWidth = 800; 
         this.canvasHeight = 600;
         this.currentState = 0; 
-        this.isLoading = false; 
+            this.isLoading = true; 
+        this.loadTimer = 0;
         this.menuStack = []; 
-        this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, playerProfiles)
+        this.currentMenu = new loadingScreen('../Assets/Sprites/loading.png', this.canvasWidth, this.canvasHeight)
         this.menuStack.push(this.currentMenu)
         //this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'continue')
         //this.currentMenu = new creditScreen('../Assets/backgrounds/credits.png', this.canvasWidth, this.canvasHeight)
-        //this.currentMenu = new loadingScreen('../Assets/Sprites/loading.png', this.canvasWidth, this.canvasHeight)
         //this.currentMenu = new optionsMenu('../Assets/backgrounds/options_background.png', this.canvasWidth, this.canvasHeight, 'pause')
         this.addEventListeners();
     }
@@ -39,7 +39,16 @@ class Game{
     }
 
     update(deltaTime){
-        if (this.currentState != this.currentMenu.state){
+        if(this.isLoading){
+            this.loadTimer += deltaTime;
+            if(this.loadTimer > 2000){
+                this.isLoading = false;
+                this.loadTimer = 0;
+                this.currentState = 0;
+                this.screenManager(0);
+            }
+        }
+        else if (this.currentState != this.currentMenu.state){
             this.currentState = this.currentMenu.state
             this.screenManager(this.currentMenu.state)
         }
@@ -68,6 +77,14 @@ class Game{
         else if(state === 5){
             this.currentMenu = this.menuStack[this.menuStack.indexOf(this.currentMenu) - 1]
             this.currentMenu.pop()
+        }
+        else if(state === 6){
+            this.currentMenu = new loadingScreen('../Assets/Sprites/loading.png', this.canvasWidth, this.canvasHeight)
+            this.isLoading = true;
+            this.loadTimer = 0;
+        }
+        else if(state === 7){
+            this.currentMenu = new battleScreen('../Assets/backgrounds/battle_background.jpg', this.canvasWidth, this.canvasHeight)
         }
         console.log('hola')
         this.menuStack.push(this.currentMenu)

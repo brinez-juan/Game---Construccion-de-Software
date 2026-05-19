@@ -270,13 +270,13 @@ class selectionMenu extends Menus{
                         }
                         else{
                             //Modify this when adding states in game
-                            this.state = 0; 
+                            this.state = 7; 
                         }
                     }
                     else{
                         if(this.menuType === 'new'){
                             //Modify this when adding states in game
-                            this.state = 0; 
+                            this.state = 7; 
                         }
                         else{
                             this.selectionField.frame = new GameObject(this.canvasWidth/2, this.canvasHeight/2, 300, 300, undefined, undefined, undefined)
@@ -294,6 +294,7 @@ class selectionMenu extends Menus{
             if(value && value.hovered){
                 if(key === 'yes'){
                     //add logic to overwrite data
+                    this.state = 7
                     this.elementSelected = undefined
                     this.selectionField = Object.fromEntries(Object.keys(this.selectionField).map(key => [key, null]));
                 }
@@ -341,6 +342,143 @@ class creditScreen extends Menus{
         }
         else{
             this.returnButton.setSprite('../Assets/Sprites/return_button.png')
+        }
+    }
+}
+
+class battleScreen extends Menus{
+    constructor(background = '', canvasWidth = 0, canvasHeight = 0){
+        super(background, canvasWidth, canvasHeight)
+        this.menuOpen = false
+        this.menuBtn = {x: this.canvasWidth/2, y: 30, w: 30, h: 30}
+        this.menuHovered = false
+        this.menuOptions = [
+            new TextLabel(this.canvasWidth/2, this.canvasHeight/2 - 30, '30px Academia', 'white', true, 'Continue', true),
+            new TextLabel(this.canvasWidth/2, this.canvasHeight/2 + 30, '30px Academia', 'white', true, 'Quit Battle', true)
+        ]
+        this.playerKnight = new GameObject(180, 380, 278, 422)
+        this.playerKnight.setSprite('../Assets/backgrounds/player_knight.png')
+        this.player = {health: 100, maxHealth: 100, stamina: 100, maxStamina: 100}
+        this.enemy = {health: 100, maxHealth: 100, stamina: 100, maxStamina: 100}
+        this.initElements()
+    }
+
+    initElements(){
+        canvas.addEventListener('mousemove', (e)=>{
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            this.checkMenuHover(mouseX, mouseY)
+            if(this.menuOpen){
+                for(let option of this.menuOptions){
+                    option.mouseCollition(mouseX, mouseY)
+                }
+            }
+        })
+
+        canvas.addEventListener('click', (e)=>{
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            if(this.menuOpen){
+                for(let option of this.menuOptions){
+                    if(option.hovered){
+                        if(option.text === 'Continue'){
+                            this.menuOpen = false
+                        }
+                        else if(option.text === 'Quit Battle'){
+                            this.state = 0
+                        }
+                    }
+                }
+            }
+            else if(this.menuHovered){
+                this.menuOpen = true
+            }
+        })
+    }
+
+    checkMenuHover(mouseX, mouseY){
+        let left = this.menuBtn.x - this.menuBtn.w/2
+        let right = this.menuBtn.x + this.menuBtn.w/2
+        let top = this.menuBtn.y - this.menuBtn.h/2
+        let bottom = this.menuBtn.y + this.menuBtn.h/2
+        this.menuHovered = left <= mouseX && mouseX <= right && mouseY <= bottom && top <= mouseY        
+    }
+
+    draw(ctx){
+        this.background.draw(ctx)
+        this.playerKnight.draw(ctx)
+        // Health bar (top left, MK style)
+        let barX = 20
+        let barY = 20
+        let barW = 300
+        let barH = 20
+        ctx.fillStyle = 'black'
+        ctx.fillRect(barX, barY, barW, barH)
+        ctx.fillStyle = 'red'
+        ctx.fillRect(barX + 2, barY + 2, (barW - 4) * (this.player.health / this.player.maxHealth), barH - 4)
+        ctx.fillStyle = 'white'
+        ctx.font = '14px Academia'
+        ctx.textAlign = 'left'
+        ctx.fillText(this.player.health + ' / ' + this.player.maxHealth, barX + barW + 10, barY + 15)
+        // Stamina bar
+        barY += 26
+        ctx.fillStyle = 'black'
+        ctx.fillRect(barX, barY, barW, barH)
+        ctx.fillStyle = '#00ccff'
+        ctx.fillRect(barX + 2, barY + 2, (barW - 4) * (this.player.stamina / this.player.maxStamina), barH - 4)
+        ctx.fillStyle = 'white'
+        ctx.font = '14px Academia'
+        ctx.fillText(this.player.stamina + ' / ' + this.player.maxStamina, barX + barW + 10, barY + 15)
+        // Pause button (two vertical lines) in the center
+        ctx.fillStyle = this.menuHovered ? 'yellow' : 'white';
+        let pauseX = this.menuBtn.x;
+        let pauseY = this.menuBtn.y;
+        let lineW = 6;
+        let lineH = 24;
+        let gap = 8;
+        ctx.fillRect(pauseX - gap/2 - lineW, pauseY - lineH/2, lineW, lineH);
+        ctx.fillRect(pauseX + gap/2, pauseY - lineH/2, lineW, lineH);
+
+        // Enemy bars (top right)
+        barX = this.canvasWidth - 20 - barW
+        barY = 20
+        ctx.fillStyle = 'black'
+        ctx.fillRect(barX, barY, barW, barH)
+        ctx.fillStyle = 'red'
+        ctx.fillRect(barX + 2, barY + 2, (barW - 4) * (this.enemy.health / this.enemy.maxHealth), barH - 4)
+        ctx.fillStyle = 'white'
+        ctx.font = '14px Academia'
+        ctx.textAlign = 'right'
+        ctx.fillText(this.enemy.health + ' / ' + this.enemy.maxHealth, barX - 10, barY + 15)
+        barY += 26
+        ctx.fillStyle = 'black'
+        ctx.fillRect(barX, barY, barW, barH)
+        ctx.fillStyle = '#00ccff'
+        ctx.fillRect(barX + 2, barY + 2, (barW - 4) * (this.enemy.stamina / this.enemy.maxStamina), barH - 4)
+        ctx.fillStyle = 'white'
+        ctx.font = '14px Academia'
+        ctx.fillText(this.enemy.stamina + ' / ' + this.enemy.maxStamina, barX - 10, barY + 15)
+        ctx.textAlign = 'center'
+
+        if(this.menuOpen){
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+            for(let option of this.menuOptions){
+                option.draw(ctx)
+            }
+        }
+    }
+
+    update(deltaTime){
+        for(let option of this.menuOptions){
+            if(option.hovered){
+                option.color = 'yellow'
+            }
+            else{
+                option.color = 'white'
+            }
         }
     }
 }
