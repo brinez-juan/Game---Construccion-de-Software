@@ -4,10 +4,7 @@
         <title>Game page</title>
         <link rel="stylesheet" href="../styles/global.css">
         <link rel="stylesheet" href="../styles/game.css">
-        <script src="../../Menus.js"></script>
-        <script src="../../gameObject.js"></script>
-        <script src="../../TextLabel.js"></script>
-        <script src="../../Return.js" defer></script>
+        <script type="module" src="../../Return.js"></script>
     </head>
 
     <body class="main">
@@ -28,8 +25,9 @@
                 </a>
             </ul>
         </nav>
-        <div class="Canva-container"">
+        <div class="Canva-container">
             <canvas id="canvas"></canvas>
         </div>
+        <div id="lobby-container" style="display:none"></div>
     </body>
 </html>
