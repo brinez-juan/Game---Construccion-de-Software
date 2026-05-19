@@ -21,12 +21,9 @@ class Game{
         this.currentState = 0; 
         this.isLoading = false; 
         this.menuStack = []; 
-        this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, playerProfiles)
+        //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, playerProfiles)
+        this.currentMenu = new battleScreen('../Assets/backgrounds/background_1.png', this.canvasWidth, this.canvasHeight, undefined, undefined)
         this.menuStack.push(this.currentMenu)
-        //this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'continue')
-        //this.currentMenu = new creditScreen('../Assets/backgrounds/credits.png', this.canvasWidth, this.canvasHeight)
-        //this.currentMenu = new loadingScreen('../Assets/Sprites/loading.png', this.canvasWidth, this.canvasHeight)
-        //this.currentMenu = new optionsMenu('../Assets/backgrounds/options_background.png', this.canvasWidth, this.canvasHeight, 'pause')
         this.addEventListeners();
     }
 
@@ -39,13 +36,13 @@ class Game{
     }
 
     update(deltaTime){
-        if (this.currentState != this.currentMenu.state){
+        /*if (this.currentState != this.currentMenu.state){
             this.currentState = this.currentMenu.state
             this.screenManager(this.currentMenu.state)
         }
         if(this.menuStack.length > 3){
             this.menuStack.shift()
-        }
+        }*/
         this.currentMenu.update(deltaTime)
     }
 
