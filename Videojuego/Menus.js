@@ -360,21 +360,52 @@ class battleScreen extends Menus{
         this.playerKnight.setSprite('../Assets/backgrounds/player_knight.png')
         this.enemySprite = new GameObject(620, 380, 306, 422)
         this.enemySprite.setSprite('../Assets/Sprites/Enemie_caballero.png')
-        this.player = {health: 100, maxHealth: 100, stamina: 100, maxStamina: 100}
-        this.enemy = {health: 100, maxHealth: 100, stamina: 100, maxStamina: 100}
+        // player and enemy stats
+        this.player = {health: 100, maxHealth: 100, stamina: 100, maxStamina: 100, attributes: {STRENGTH: 2, INTELLIGENCE: 1}, experience: 0, experienceToNextLevel: 100}
+        this.enemy = {health: 80, maxHealth: 80, stamina: 50, maxStamina: 50, physicalDamage: 25, magicDamage: 20, physicalDefense: 5, magicDefense: 3, experienceReward: 50}
+        // combat state
+        this.turn = 'player'
+        this.playerGuard = false
+        this.enemyGuard = false
+        this.enemyGuardType = null
+        this.selectedCard = null
+        this.parryResult = null
+        this.enemyAction = null
+        this.enemyMessage = ''
+        this.enemyMessageTimer = 0
+        // parry bar stuff
+        this.parryBar = {x: 200, y: 280, w: 400, h: 30}
+        this.parryIndicatorX = 200
+        this.parryIndicatorDir = 1
+        this.parrySpeed = 1.2
+        this.parryActive = false
+        // placeholder cards (5)
+        this.cards = [
+            {name: 'Basic Attack', staminaCost: 25, actionType: 'attack_physic', baseDamage: 15, scaleFactor: 1.0, color: 'red'},
+            {name: 'Fireball', staminaCost: 35, actionType: 'attack_magic', baseDamage: 20, scaleFactor: 1.2, color: 'purple'},
+            {name: 'Shield Block', staminaCost: 8, actionType: 'defend_physic', baseDamage: 0, scaleFactor: 0, color: 'blue'},
+            {name: 'Magic Shield', staminaCost: 8, actionType: 'defend_magic', baseDamage: 0, scaleFactor: 0, color: 'cyan'},
+            {name: 'Heavy Strike', staminaCost: 50, actionType: 'attack_physic', baseDamage: 30, scaleFactor: 1.5, color: 'orange'}
+        ]
+        this.cardSlots = []
+        this.hoveredCardIndex = -1
         this.initElements()
     }
 
     initElements(){
+        var self = this
         canvas.addEventListener('mousemove', (e)=>{
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
-            this.checkMenuHover(mouseX, mouseY)
-            if(this.menuOpen){
-                for(let option of this.menuOptions){
+            self.checkMenuHover(mouseX, mouseY)
+            if(self.menuOpen){
+                for(let option of self.menuOptions){
                     option.mouseCollition(mouseX, mouseY)
                 }
+            }
+            else if(self.turn == 'player' || self.turn == 'victory' || self.turn == 'gameover'){
+                self._checkCardHover(mouseX, mouseY)
             }
         })
 
@@ -382,20 +413,33 @@ class battleScreen extends Menus{
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
-            if(this.menuOpen){
-                for(let option of this.menuOptions){
+            if(self.menuOpen){
+                for(let option of self.menuOptions){
                     if(option.hovered){
                         if(option.text === 'Continue'){
-                            this.menuOpen = false
+                            self.menuOpen = false
                         }
                         else if(option.text === 'Quit Battle'){
-                            this.state = 0
+                            self.state = 0
                         }
                     }
                 }
             }
-            else if(this.menuHovered){
-                this.menuOpen = true
+            else if(self.menuHovered){
+                self.menuOpen = true
+            }
+            else if(self.turn == 'player'){
+                self._handleCardClick(mouseX, mouseY)
+            }
+            else if(self.turn == 'victory' || self.turn == 'gameover'){
+                self.state = 0
+            }
+        })
+
+        // spacebar for parry
+        window.addEventListener('keydown', function(e){
+            if(e.code == 'Space' && self.turn == 'parry' && self.parryActive){
+                self._resolveParry()
             }
         })
     }
@@ -406,6 +450,182 @@ class battleScreen extends Menus{
         let top = this.menuBtn.y - this.menuBtn.h/2
         let bottom = this.menuBtn.y + this.menuBtn.h/2
         this.menuHovered = left <= mouseX && mouseX <= right && mouseY <= bottom && top <= mouseY        
+    }
+
+    _checkCardHover(mouseX, mouseY){
+        this.hoveredCardIndex = -1
+        for(var i = 0; i < this.cardSlots.length; i++){
+            var slot = this.cardSlots[i]
+            if(mouseX >= slot.x && mouseX <= slot.x + slot.w && mouseY >= slot.y && mouseY <= slot.y + slot.h){
+                this.hoveredCardIndex = i
+            }
+        }
+    }
+
+    _handleCardClick(mouseX, mouseY){
+        for(var i = 0; i < this.cardSlots.length; i++){
+            var slot = this.cardSlots[i]
+            if(mouseX >= slot.x && mouseX <= slot.x + slot.w && mouseY >= slot.y && mouseY <= slot.y + slot.h){
+                var card = this.cards[i]
+                if(this.player.stamina < card.staminaCost){
+                    console.log("not enough stamina")
+                    return
+                }
+                this._playCard(card)
+            }
+        }
+    }
+
+    _playCard(card){
+        this.player.stamina -= card.staminaCost
+        if(this.player.stamina < 0) this.player.stamina = 0
+        var damage = 0
+        if(card.actionType == 'attack_physic'){
+            damage = card.baseDamage + (this.player.attributes.STRENGTH * card.scaleFactor)
+            // check enemy guard
+            if(this.enemyGuard && this.enemyGuardType == 'defend_physic'){
+                damage = Math.floor(damage / 2)
+                this.enemyMessage = 'Enemy blocked physical!'
+                console.log("enemy guard reduced damage")
+            }
+            this.enemy.health -= damage
+            console.log("player dealt " + damage + " phys damage")
+        }
+        else if(card.actionType == 'attack_magic'){
+            damage = card.baseDamage + (this.player.attributes.INTELLIGENCE * card.scaleFactor)
+            // check enemy guard
+            if(this.enemyGuard && this.enemyGuardType == 'defend_magic'){
+                damage = Math.floor(damage / 2)
+                this.enemyMessage = 'Enemy blocked magic!'
+                console.log("enemy guard reduced damage")
+            }
+            this.enemy.health -= damage
+            console.log("player dealt " + damage + " magic damage")
+        }
+        else if(card.actionType == 'defend_physic' || card.actionType == 'defend_magic'){
+            this.playerGuard = true
+            this.player.stamina += 15
+            if(this.player.stamina > this.player.maxStamina) this.player.stamina = this.player.maxStamina
+            console.log("player guards")
+        }
+        // clear guards after player acts
+        this.enemyGuard = false
+        this.enemyGuardType = null
+        this.playerGuard = false
+        if(this.enemy.health <= 0){
+            this.enemy.health = 0
+            this.turn = 'victory'
+            this.player.experience += this.enemy.experienceReward
+            console.log("victory! xp gained: " + this.enemy.experienceReward)
+            return
+        }
+        this.turn = 'enemy'
+        this.enemyAction = this._decideEnemyAction()
+    }
+
+    _decideEnemyAction(){
+        var ratio = this.enemy.health / this.enemy.maxHealth
+        var options = []
+        if(this.enemy.physicalDamage > 0) options.push('attack_physic')
+        if(this.enemy.magicDamage > 0) options.push('attack_magic')
+        if(this.enemy.physicalDefense > 0) options.push('defend_physic')
+        if(this.enemy.magicDefense > 0) options.push('defend_magic')
+        // 20% random
+        if(Math.random() < 0.2 && options.length > 0){
+            return options[Math.floor(Math.random() * options.length)]
+        }
+        // state based
+        if(ratio > 0.6){
+            // aggressive
+            if(this.enemy.physicalDamage > this.enemy.magicDamage) return 'attack_physic'
+            return 'attack_magic'
+        }
+        else if(ratio > 0.3){
+            // neutral
+            return options[Math.floor(Math.random() * options.length)]
+        }
+        else {
+            // defensive
+            if(this.enemy.physicalDefense > 0) return 'defend_physic'
+            if(this.enemy.magicDefense > 0) return 'defend_magic'
+            return options[0]
+        }
+    }
+
+    _enemyTurn(){
+        if(this.enemyAction == 'attack_physic' || this.enemyAction == 'attack_magic'){
+            this.enemyMessage = 'Enemy attacks!'
+            this.enemyMessageTimer = 1500
+            this.turn = 'parry'
+            this.parryActive = true
+            this.parryIndicatorX = this.parryBar.x
+            this.parryIndicatorDir = 1
+        }
+        else {
+            // enemy defends
+            this.enemyGuard = true
+            this.enemyGuardType = this.enemyAction
+            this.enemyMessage = 'Enemy defends!'
+            this.enemyMessageTimer = 1500
+            console.log("enemy defends")
+            this.turn = 'player'
+        }
+    }
+
+    _resolveParry(){
+        this.parryActive = false
+        var bar = this.parryBar
+        var greenW = bar.w * (this.player.stamina / this.player.maxStamina) * 0.12
+        if(greenW < 15) greenW = 15
+        var greenCenter = bar.x + bar.w/2
+        var greenLeft = greenCenter - greenW/2
+        var greenRight = greenCenter + greenW/2
+        var yellowW = 18
+        var yellowLeft = greenLeft - yellowW
+        var yellowRight = greenRight + yellowW
+        // guard override: shield guarantees NORMAL (half dmg), not PERFECT (0 dmg)
+        if(this.playerGuard){
+            this.parryResult = 'normal'
+        }
+        else if(this.parryIndicatorX >= greenLeft && this.parryIndicatorX <= greenRight){
+            this.parryResult = 'perfect'
+        }
+        else if(this.parryIndicatorX >= yellowLeft && this.parryIndicatorX <= yellowRight){
+            this.parryResult = 'normal'
+        }
+        else {
+            this.parryResult = 'poor'
+        }
+        // apply damage based on parry
+        var baseDmg = 0
+        if(this.enemyAction == 'attack_physic') baseDmg = this.enemy.physicalDamage
+        else baseDmg = this.enemy.magicDamage
+        var dmg = baseDmg
+        var staminaRec = 0
+        if(this.parryResult == 'perfect'){
+            dmg = 0
+            staminaRec = 15
+        }
+        else if(this.parryResult == 'normal'){
+            dmg = Math.floor(baseDmg / 2)
+            staminaRec = 5
+        }
+        else {
+            dmg = baseDmg
+            staminaRec = 0
+        }
+        this.player.health -= dmg
+        this.player.stamina += staminaRec
+        if(this.player.stamina > this.player.maxStamina) this.player.stamina = this.player.maxStamina
+        if(this.player.health < 0) this.player.health = 0
+        console.log("parry: " + this.parryResult + " dmg: " + dmg + " stamina rec: " + staminaRec)
+        this.playerGuard = false
+        if(this.player.health <= 0){
+            this.turn = 'gameover'
+            console.log("game over")
+            return
+        }
+        this.turn = 'player'
     }
 
     draw(ctx){
@@ -421,19 +641,12 @@ class battleScreen extends Menus{
         ctx.fillRect(barX, barY, barW, barH)
         ctx.fillStyle = 'red'
         ctx.fillRect(barX + 2, barY + 2, (barW - 4) * (this.player.health / this.player.maxHealth), barH - 4)
-        ctx.fillStyle = 'white'
-        ctx.font = '14px Academia'
-        ctx.textAlign = 'left'
-        ctx.fillText(this.player.health + ' / ' + this.player.maxHealth, barX + barW + 10, barY + 15)
         // Stamina bar
         barY += 26
         ctx.fillStyle = 'black'
         ctx.fillRect(barX, barY, barW, barH)
         ctx.fillStyle = '#00ccff'
         ctx.fillRect(barX + 2, barY + 2, (barW - 4) * (this.player.stamina / this.player.maxStamina), barH - 4)
-        ctx.fillStyle = 'white'
-        ctx.font = '14px Academia'
-        ctx.fillText(this.player.stamina + ' / ' + this.player.maxStamina, barX + barW + 10, barY + 15)
         // Pause button (two vertical lines) in the center
         ctx.fillStyle = this.menuHovered ? 'yellow' : 'white';
         let pauseX = this.menuBtn.x;
@@ -451,19 +664,58 @@ class battleScreen extends Menus{
         ctx.fillRect(barX, barY, barW, barH)
         ctx.fillStyle = 'red'
         ctx.fillRect(barX + 2, barY + 2, (barW - 4) * (this.enemy.health / this.enemy.maxHealth), barH - 4)
-        ctx.fillStyle = 'white'
-        ctx.font = '14px Academia'
-        ctx.textAlign = 'right'
-        ctx.fillText(this.enemy.health + ' / ' + this.enemy.maxHealth, barX - 10, barY + 15)
         barY += 26
         ctx.fillStyle = 'black'
         ctx.fillRect(barX, barY, barW, barH)
         ctx.fillStyle = '#00ccff'
         ctx.fillRect(barX + 2, barY + 2, (barW - 4) * (this.enemy.stamina / this.enemy.maxStamina), barH - 4)
-        ctx.fillStyle = 'white'
-        ctx.font = '14px Academia'
-        ctx.fillText(this.enemy.stamina + ' / ' + this.enemy.maxStamina, barX - 10, barY + 15)
         ctx.textAlign = 'center'
+
+        // draw cards at bottom
+        this._drawCards(ctx)
+
+        // draw parry bar if active
+        if(this.parryActive){
+            this._drawParryBar(ctx)
+        }
+
+        // draw turn indicator
+        ctx.fillStyle = 'white'
+        ctx.font = '20px Academia'
+        ctx.textAlign = 'center'
+        var turnText = this.turn.toUpperCase() + " TURN"
+        if(this.turn == 'parry') turnText = "PARRY!"
+        if(this.turn == 'victory') turnText = "VICTORY!"
+        if(this.turn == 'gameover') turnText = "GAME OVER"
+        ctx.fillText(turnText, this.canvasWidth/2, 100)
+        // draw enemy action message
+        if(this.enemyMessageTimer > 0){
+            ctx.fillStyle = 'yellow'
+            ctx.font = '24px Academia'
+            ctx.fillText(this.enemyMessage, this.canvasWidth/2, 140)
+        }
+
+        // victory / gameover overlay
+        if(this.turn == 'victory'){
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'
+            ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight)
+            ctx.fillStyle = 'gold'
+            ctx.font = '50px Academia'
+            ctx.fillText("VICTORY!", this.canvasWidth/2, this.canvasHeight/2)
+            ctx.fillStyle = 'white'
+            ctx.font = '20px Academia'
+            ctx.fillText("Click to continue", this.canvasWidth/2, this.canvasHeight/2 + 50)
+        }
+        if(this.turn == 'gameover'){
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'
+            ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight)
+            ctx.fillStyle = 'red'
+            ctx.font = '50px Academia'
+            ctx.fillText("GAME OVER", this.canvasWidth/2, this.canvasHeight/2)
+            ctx.fillStyle = 'white'
+            ctx.font = '20px Academia'
+            ctx.fillText("Click to retry", this.canvasWidth/2, this.canvasHeight/2 + 50)
+        }
 
         if(this.menuOpen){
             ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
@@ -474,6 +726,79 @@ class battleScreen extends Menus{
         }
     }
 
+    _drawCards(ctx){
+        var cardW = 100
+        var cardH = 60
+        var gap = 15
+        var startX = this.canvasWidth/2 - ((cardW + gap) * 5)/2 + gap/2
+        var startY = this.canvasHeight - 80
+        this.cardSlots = []
+        for(var i = 0; i < this.cards.length; i++){
+            var card = this.cards[i]
+            var x = startX + i * (cardW + gap)
+            var y = startY
+            this.cardSlots.push({x: x, y: y, w: cardW, h: cardH})
+            // card background
+            if(this.player.stamina < card.staminaCost){
+                ctx.fillStyle = '#444'
+            }
+            else if(this.hoveredCardIndex == i){
+                ctx.fillStyle = '#666'
+            }
+            else {
+                ctx.fillStyle = '#222'
+            }
+            ctx.fillRect(x, y, cardW, cardH)
+            // border
+            ctx.strokeStyle = card.color
+            ctx.lineWidth = 2
+            ctx.strokeRect(x, y, cardW, cardH)
+            // name
+            ctx.fillStyle = 'white'
+            ctx.font = '12px Academia'
+            ctx.textAlign = 'center'
+            ctx.fillText(card.name, x + cardW/2, y + 20)
+            // cost
+            ctx.fillStyle = '#00ccff'
+            ctx.font = '10px Academia'
+            ctx.fillText(card.staminaCost + " SP", x + cardW/2, y + 40)
+        }
+    }
+
+    _drawParryBar(ctx){
+        var bar = this.parryBar
+        // background
+        ctx.fillStyle = '#333'
+        ctx.fillRect(bar.x, bar.y, bar.w, bar.h)
+        // zones
+        var greenW = bar.w * (this.player.stamina / this.player.maxStamina) * 0.12
+        if(greenW < 15) greenW = 15
+        var greenCenter = bar.x + bar.w/2
+        var greenLeft = greenCenter - greenW/2
+        var yellowW = 18
+        var yellowLeft = greenLeft - yellowW
+        var yellowRight = greenCenter + greenW/2 + yellowW
+        // red zones (outer)
+        ctx.fillStyle = 'red'
+        ctx.fillRect(bar.x, bar.y, yellowLeft - bar.x, bar.h)
+        ctx.fillRect(yellowRight, bar.y, bar.x + bar.w - yellowRight, bar.h)
+        // yellow zones
+        ctx.fillStyle = 'yellow'
+        ctx.fillRect(yellowLeft, bar.y, greenLeft - yellowLeft, bar.h)
+        ctx.fillRect(greenCenter + greenW/2, bar.y, yellowRight - (greenCenter + greenW/2), bar.h)
+        // green zone
+        ctx.fillStyle = 'green'
+        ctx.fillRect(greenLeft, bar.y, greenW, bar.h)
+        // indicator
+        ctx.fillStyle = 'white'
+        ctx.fillRect(this.parryIndicatorX - 3, bar.y - 5, 6, bar.h + 10)
+        // instruction
+        ctx.fillStyle = 'white'
+        ctx.font = '16px Academia'
+        ctx.textAlign = 'center'
+        ctx.fillText("PRESS SPACEBAR!", this.canvasWidth/2, bar.y - 15)
+    }
+
     update(deltaTime){
         for(let option of this.menuOptions){
             if(option.hovered){
@@ -482,6 +807,25 @@ class battleScreen extends Menus{
             else{
                 option.color = 'white'
             }
+        }
+        // enemy turn trigger
+        if(this.turn == 'enemy'){
+            this._enemyTurn()
+        }
+        // parry indicator movement
+        if(this.parryActive){
+            this.parryIndicatorX += this.parryIndicatorDir * this.parrySpeed * deltaTime
+            if(this.parryIndicatorX >= this.parryBar.x + this.parryBar.w){
+                this.parryIndicatorDir = -1
+            }
+            if(this.parryIndicatorX <= this.parryBar.x){
+                this.parryIndicatorDir = 1
+            }
+        }
+        // enemy message timer
+        if(this.enemyMessageTimer > 0){
+            this.enemyMessageTimer -= deltaTime
+            if(this.enemyMessageTimer < 0) this.enemyMessageTimer = 0
         }
     }
 }
