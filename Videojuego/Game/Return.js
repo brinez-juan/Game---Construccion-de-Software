@@ -69,7 +69,6 @@ class Game{
             this.currentMenu = this.menuStack[this.menuStack.indexOf(this.currentMenu) - 1]
             this.currentMenu.pop()
         }
-        console.log('hola')
         this.menuStack.push(this.currentMenu)
     }
 }
