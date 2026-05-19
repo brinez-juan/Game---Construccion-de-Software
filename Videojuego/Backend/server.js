@@ -21,13 +21,21 @@ app.use(express.json());
 app.use(registerRouter);
 app.use(loginRouter);
 
+// Keep .env, dbconfig and auth source out of the public surface.
+app.use('/Backend', (req, res) => res.status(404).send('Not found'));
+
 app.use('/styles', express.static(path.join(webPageDir, 'styles')));
 app.use('/Assets', express.static(path.join(webPageDir, 'Assets')));
 app.use('/pages', express.static(path.join(webPageDir, 'pages')));
-app.use('/login.js', express.static(path.join(videojuegoDir, 'login.js')));
 
+// Serve every ES module under Videojuego/ (Return.js, Menus.js, Player.js, …)
+// so the browser can resolve the import graph used by game.html.
+app.use(express.static(videojuegoDir, { index: false }));
+
+// Redirect so the browser URL becomes /pages/index.html — this keeps the
+// relative <a href="game.html"> links in the nav resolving to /pages/game.html.
 app.get('/', (req, res) => {
-  res.sendFile(path.join(webPageDir, 'pages', 'index.html'));
+  res.redirect('/pages/index.html');
 });
 
 app.listen(PORT, () => {
