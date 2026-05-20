@@ -1,4 +1,10 @@
 "use strict";
+import battleScreen from './battleScreen.js';
+import mainMenu from './mainMenu.js';
+import selectionMenu from './selectionMenu.js';
+import optionsMenu from './optionsMenu.js';
+import creditScreen from './creditScreen.js';
+
 // Context of the Canvas
 let ctx;
 
@@ -24,6 +30,7 @@ class Game{
         //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, playerProfiles)
         this.currentMenu = new battleScreen('../Assets/backgrounds/background_1.png', this.canvasWidth, this.canvasHeight, undefined, undefined)
         this.menuStack.push(this.currentMenu)
+        this.player = 
         this.addEventListeners();
     }
 
@@ -36,13 +43,13 @@ class Game{
     }
 
     update(deltaTime){
-        /*if (this.currentState != this.currentMenu.state){
+        if (this.currentState != this.currentMenu.state){
             this.currentState = this.currentMenu.state
             this.screenManager(this.currentMenu.state)
         }
         if(this.menuStack.length > 3){
             this.menuStack.shift()
-        }*/
+        }
         this.currentMenu.update(deltaTime)
     }
 

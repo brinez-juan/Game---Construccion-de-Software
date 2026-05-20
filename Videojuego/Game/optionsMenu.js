@@ -1,4 +1,7 @@
-class optionsMenu extends Menus{
+import Menus from './Menus.js';
+import GameObject from './GameObject.js';
+
+export default class optionsMenu extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0, menuType){
         super(background, canvasWidth, canvasHeight)
         this.type = menuType 

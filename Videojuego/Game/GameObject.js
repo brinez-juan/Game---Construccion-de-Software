@@ -1,5 +1,5 @@
 
-class GameObject {
+export default class GameObject {
     constructor(x = 0, y = 0, width = 0, height = 0, type = undefined, open_ = undefined, click = undefined) {
         this.x = x;
         this.y = y;

@@ -1,5 +1,9 @@
+import Menus from './Menus.js';
+import GameObject from './GameObject.js';
+import TextLabel from './TextLabel.js';
+
 //You guys can modify ui aspects if you want to but ensure UI keeps clean after
-class selectionMenu extends Menus{
+export default class selectionMenu extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, menu){
         super(background, canvasWidth, canvasHeight)
         this.fields = []
