@@ -1,14 +1,14 @@
 /*
 Attributes:
 - Strength: Affects physical damage 
-- Agility: Affects the parry window and stamina regeneration
+- Dexterity: Affects the parry window and stamina regeneration
 - Intelligence: Affects magic damage 
 - Vigor: Affects health points
 - Endurance: Affects stamina points
 */
 export const BASE_ATTRIBUTES = {
     STRENGTH: 0, 
-    AGILITY: 0, 
+    DEXTERITY: 0, 
     INTELLIGENCE: 0, 
     VIGOR: 0, 
     ENDURANCE: 0
@@ -17,7 +17,7 @@ export const BASE_ATTRIBUTES = {
 /*
 Action Types:
 - Attack: A basic physical attack that deals damage based on the character's strength.
-- Defend: Reduces incoming damage for a turn, with effectiveness based on agility and endurance.
+- Defend: Reduces incoming damage for a turn, with effectiveness based on dexterity and endurance.
 - Spell: A magical attack that deals or reduces damage based on intelligence and can have
   additional effects.
 - Healing: Restores health. Scales with VIGOR.
@@ -66,28 +66,28 @@ export const MAX_DECK_SIZE = 5;
 export const ARCHETYPES = {
     SOLDIER: {
         id: "soldier",
-        attributes: { STRENGTH: 3, AGILITY: 1, INTELLIGENCE: 0, VIGOR: 2, ENDURANCE: 2 },
+        attributes: { STRENGTH: 3, DEXTERITY: 1, INTELLIGENCE: 0, VIGOR: 2, ENDURANCE: 2 },
         startingCards: ["heavy_strike", "shield_block", "basic_attack", "basic_attack", "recover"]
     },
     ARCHER: {
         id: "archer",
-        attributes: { STRENGTH: 1, AGILITY: 3, INTELLIGENCE: 0, VIGOR: 1, ENDURANCE: 2 },
+        attributes: { STRENGTH: 1, DEXTERITY: 3, INTELLIGENCE: 0, VIGOR: 1, ENDURANCE: 2 },
         startingCards: ["precise_shot", "dodge_roll", "basic_attack", "basic_attack", "recover"]
     },
     MAGE: {
         id: "mage",
-        attributes: { STRENGTH: 0, AGILITY: 1, INTELLIGENCE: 3, VIGOR: 1, ENDURANCE: 2 },
+        attributes: { STRENGTH: 0, DEXTERITY: 1, INTELLIGENCE: 3, VIGOR: 1, ENDURANCE: 2 },
         startingCards: ["fireball", "magic_shield", "basic_attack", "basic_attack", "recover"]
     }
 };
 
 // Which attribute scales which card action.
-// AGILITY governs parry window (handled in battle), ENDURANCE expands max stamina,
+// DEXTERITY governs parry window (handled in battle), ENDURANCE expands max stamina,
 // VIGOR expands max HP and additionally scales HEALING cards.
 export const ATTRIBUTE_SCALING = {
     STRENGTH: [ACTION_TYPES.ATTACK_PHYSIC, ACTION_TYPES.DEFEND_PHYSIC],
     INTELLIGENCE: [ACTION_TYPES.ATTACK_MAGIC, ACTION_TYPES.DEFEND_MAGIC],
-    AGILITY: [],
+    DEXTERITY: [],
     VIGOR: [ACTION_TYPES.HEALING],
     ENDURANCE: []
 };
@@ -95,10 +95,10 @@ export const ATTRIBUTE_SCALING = {
 // card requirements by id
 export const CARD_REQUIREMENTS = {
     heavy_strike: { STRENGTH: 3 },
-    precise_shot: { AGILITY: 3 },
+    precise_shot: { DEXTERITY: 3 },
     fireball: { INTELLIGENCE: 3 },
     shield_block: { STRENGTH: 2 },
-    dodge_roll: { AGILITY: 2 },
+    dodge_roll: { DEXTERITY: 2 },
     magic_shield: { INTELLIGENCE: 2 }
 };
 
