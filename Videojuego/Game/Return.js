@@ -29,10 +29,10 @@ class Game{
         this.menuStack = [];
         this.playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}]; 
         //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
-        this.currentMenu = new battleScreen('../Assets/backgrounds/background_1.png', this.canvasWidth, this.canvasHeight, undefined, undefined)
         this.menuStack.push(this.currentMenu)
-        this.player = new Player(); 
+        this.player = new Player(this.canvasWidth/4, 2*this.canvasHeight/3, 100, 300); 
         this.player.setSprite('../Assets/Sprites/player.png')
+        this.currentMenu = new battleScreen('../Assets/backgrounds/background_1.png', this.canvasWidth, this.canvasHeight, this.player, undefined)
         this.currentEnemyPool = []; 
         this.addEventListeners();
     }
