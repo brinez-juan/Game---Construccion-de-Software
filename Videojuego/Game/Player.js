@@ -1,5 +1,7 @@
 import Character from "./Character.js";
+import Bar from "./Bar.js";
 import { MAX_DECK_SIZE } from "./GlobalVariables.js";
+import { canvas } from "./Return.js";
 
 export default class Player extends Character {
     constructor(
@@ -20,6 +22,8 @@ export default class Player extends Character {
         this.experienceToNextLevel = experienceToNextLevel;
         this.inventory = inventory;
         this.activeDeck = activeDeck;
+        this.healthBar = new Bar(canvas.width/4, 20, 200, 20, '../Assets/Sprites/health_bar.png');
+        this.staminaBar = new Bar(canvas.width/4, 50, 200, 20, '../Assets/Sprites/stamina_bar.png');
     }
 
     gainExperience(amount) {
