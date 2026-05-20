@@ -30,10 +30,10 @@ class Game{
         this.playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}]; 
         //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
         this.menuStack.push(this.currentMenu)
-        this.player = new Player(this.canvasWidth/4, 2*this.canvasHeight/3, 100, 300); 
-        this.player.setSprite('../Assets/Sprites/player.png')
-        this.currentMenu = new battleScreen('../Assets/backgrounds/background_1.png', this.canvasWidth, this.canvasHeight, this.player, undefined)
-        this.currentEnemyPool = []; 
+        this.player = {maxHealth: 100, health: 100, maxStamina: 100, stamina: 100, attributes: {strength: 10, dexterity: 10, intelligence: 10}, 
+        level: 1, experience: 0, experienceToNextLevel: 100, inventory: [], activeDeck: []}
+        this.currentEnemyPool = [{name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}]; 
+        this.currentMenu = new battleScreen('../Assets/backgrounds/background_1.png', this.canvasWidth, this.canvasHeight, this.player, this.currentEnemyPool)
         this.addEventListeners();
     }
 
@@ -77,10 +77,6 @@ class Game{
             this.currentMenu.pop()
         }
         this.menuStack.push(this.currentMenu)
-    }
-
-    playerSetup(){
-
     }
 }
 

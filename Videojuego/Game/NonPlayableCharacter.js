@@ -20,9 +20,15 @@ export class NPC extends Character {
 
 export class Enemy extends Character {
     constructor(
+        x = 0,
+        y = 0,
+        width = 100,
+        height = 300,
         name = "",
         health = 100,
+        maxHealth = health,
         stamina = 50,
+        maxStamina = stamina,
         attributes = {},
         physicalDamage = 10,
         magicDamage = 10,
@@ -30,9 +36,9 @@ export class Enemy extends Character {
         magicDefense = 5,
         experienceReward = 50,
         cardReward = null,
-        isBoss = false
+        isBoss = false,
     ) {
-        super(name, health, health, stamina, stamina, attributes);
+        super(name, maxHealth, health, maxStamina, stamina, attributes, x, y, width, height);
         this.physicalDamage = physicalDamage;
         this.magicDamage = magicDamage;
         this.physicalDefense = physicalDefense;
@@ -40,6 +46,7 @@ export class Enemy extends Character {
         this.experienceReward = experienceReward;
         this.cardReward = cardReward;
         this.isBoss = isBoss;
+        this.setSprite(`../Assets/Sprites/${name}.png`)
     }
 
     decideAction(player) {
@@ -74,7 +81,7 @@ export class Enemy extends Character {
 
         // 20% de probabilidad de tomar una acción aleatoria entre las viables
         if (Math.random() < 0.2 && options.length > 0) {
-            return options[Math.floor(Math.random() * options.length)];
+            return options[Math.floor(Math.random() * (options.length-1))];
         }
 
         // DEFENSIVE STATE
