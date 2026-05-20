@@ -5,6 +5,10 @@ import { canvas } from "./Return.js";
 
 export default class Player extends Character {
     constructor(
+        x,
+        y,
+        width,
+        height,
         maxHealth = 100,
         health = maxHealth,
         maxStamina = 100,
@@ -16,14 +20,14 @@ export default class Player extends Character {
         inventory = [],
         activeDeck = []
     ) {
-        super("Player", maxHealth, health, maxStamina, stamina, attributes);
+        super("Player", maxHealth, health, maxStamina, stamina, attributes, x, y, width, height);
         this.level = level;
         this.experience = experience;
         this.experienceToNextLevel = experienceToNextLevel;
         this.inventory = inventory;
         this.activeDeck = activeDeck;
-        this.healthBar = new Bar(canvas.width/4, 20, 200, 20, '../Assets/Sprites/health_bar.png');
-        this.staminaBar = new Bar(canvas.width/4, 50, 200, 20, '../Assets/Sprites/stamina_bar.png');
+        this.healthBar = new Bar(this.x, 20, 300, 20, '../Assets/Sprites/health_bar.png');
+        this.staminaBar = new Bar(this.x, 50, 300, 20, '../Assets/Sprites/stamina_bar.png');
     }
 
     gainExperience(amount) {

@@ -1,4 +1,3 @@
-import { stat } from 'fs';
 import GameObject from './GameObject.js';
 
 export default class Bar{
@@ -10,12 +9,18 @@ export default class Bar{
         this.stat = stat;
     }
 
-    calculateCurrentIndicator(substractionValue){
+    calculateCurrentIndicatorSubstraction(substractionValue){
         let percentage = substractionValue/this.stat; 
         this.indicatorBar.width -= this.missingAttributeBar.width * percentage
         if(this.indicatorBar.width < 0) this.indicatorBar.width = 0;
     }
 
+    calculateCurrentIndicatorAddition(additionValue){
+        let percentage = additionValue/this.stat; 
+        this.indicatorBar.width += this.missingAttributeBar.width * percentage
+        if(this.indicatorBar.width > this.missingAttributeBar.width) this.indicatorBar.width = this.missingAttributeBar.width;
+    }
+    
     draw(ctx){
         this.missingAttributeBar.draw(ctx)
         this.indicatorBar.draw(ctx)

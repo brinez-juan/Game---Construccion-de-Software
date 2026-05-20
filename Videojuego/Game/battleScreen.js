@@ -5,10 +5,18 @@ export default class battleScreen extends Menus{
         super(background, canvasWidth, canvasHeight)
         this.player = player; 
         this.enemies = enemies; 
+        this.turn = 'player';
     }
 
     draw(ctx){
         this.background.draw(ctx)
+        this.player.draw(ctx)
+        this.player.healthBar.draw(ctx)
+        this.player.staminaBar.draw(ctx)
+    }
+
+    update(deltaTime){
+
     }
 
 }
