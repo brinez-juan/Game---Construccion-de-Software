@@ -1,46 +1,38 @@
 "use strict";
+import battleScreen from './battleScreen.js';
+import mainMenu from './mainMenu.js';
+import selectionMenu from './selectionMenu.js';
+import optionsMenu from './optionsMenu.js';
+import creditScreen from './creditScreen.js';
+import Player from './Player.js';
 
-import {
-    mainMenu,
-    selectionMenu,
-    creditScreen,
-    archetypeMenu,
-    lobbyScreen,
-    battleScreen,
-    loadingScreen,
-    optionsMenu
-} from "./Menus.js";
-
-// Session guard: any unauthenticated visitor lands on the login screen.
-// Token comes from login.js (localStorage.authToken set after /auth/login).
-const authToken = localStorage.getItem('authToken');
-if (!authToken) {
-    window.location.replace('login.html');
-    throw new Error('Not authenticated, redirecting to login.');
-}
-
+// Context of the Canvas
 let ctx;
 let game;
 let oldTime = 0;
 
-const canvas = document.getElementById('canvas');
+// Variable to define oldTime
+let oldTime = 0
+ 
+export const canvas = document.getElementById('canvas');
 
-// TODO: replace with data fetched from the DB once /slots endpoint exists.
-const playerProfiles = [
-    { field: 0, name: 'smv', level: 2, floor: 2, last_session: '03-04' },
-    { field: 2, name: 'smv', level: 2, floor: 2, last_session: '03-04' }
-];
+//TODO: Replace with information gotten from the database
+//Make it an instance attribute of game
 
 class Game {
     constructor(){
         this.canvasWidth = 800;
         this.canvasHeight = 600;
-        this.currentState = 0;
-        this.isLoading = true;
-        this.loadTimer = 0;
+        this.currentState = 0; 
+        this.isLoading = false; 
         this.menuStack = [];
-        this.currentMenu = new loadingScreen('../Assets/Sprites/loading.png', this.canvasWidth, this.canvasHeight);
-        this.menuStack.push(this.currentMenu);
+        this.playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}]; 
+        //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
+        this.menuStack.push(this.currentMenu)
+        this.player = {maxHealth: 100, health: 100, maxStamina: 100, stamina: 100, attributes: {strength: 10, dexterity: 10, intelligence: 10}, 
+        level: 1, experience: 0, experienceToNextLevel: 100, inventory: [], activeDeck: []}
+        this.currentEnemyPool = [{name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}]; 
+        this.currentMenu = new battleScreen('../Assets/backgrounds/background_1.png', this.canvasWidth, this.canvasHeight, this.player, this.currentEnemyPool)
         this.addEventListeners();
     }
 
@@ -72,10 +64,10 @@ class Game {
 
     screenManager(state){
         if(state === 0){
-            this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, playerProfiles);
+           this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
         }
         else if(state === 1){
-            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'new');
+            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, this.playerProfiles, 'new')
         }
         else if(state === 2){
             this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'continue');
@@ -90,21 +82,7 @@ class Game {
             this.currentMenu = this.menuStack[this.menuStack.indexOf(this.currentMenu) - 1];
             this.currentMenu.pop();
         }
-        else if(state === 6){
-            this.currentMenu = new loadingScreen('../Assets/Sprites/loading.png', this.canvasWidth, this.canvasHeight);
-            this.isLoading = true;
-            this.loadTimer = 0;
-        }
-        else if(state === 7){
-            this.currentMenu = new battleScreen('../Assets/backgrounds/battle_background.jpg', this.canvasWidth, this.canvasHeight);
-        }
-        else if(state === 8){
-            this.currentMenu = new archetypeMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight);
-        }
-        else if(state === 9){
-            this.currentMenu = new lobbyScreen('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight);
-        }
-        this.menuStack.push(this.currentMenu);
+        this.menuStack.push(this.currentMenu)
     }
 }
 
