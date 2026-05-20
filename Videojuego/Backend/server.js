@@ -9,6 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 const { default: registerRouter } = await import('./Auth/register.js');
 const { default: loginRouter } = await import('./Auth/loginLogic.js');
+const { default: savedGamesRouter } = await import('./SavedGames/savedGamesRoutes.js');
 
 const webPageDir = path.resolve(__dirname, '..', 'WebPage');
 const videojuegoDir = path.resolve(__dirname, '..');
@@ -20,6 +21,7 @@ app.use(express.json());
 
 app.use(registerRouter);
 app.use(loginRouter);
+app.use(savedGamesRouter);
 
 // Keep .env, dbconfig and auth source out of the public surface.
 app.use('/Backend', (req, res) => res.status(404).send('Not found'));
