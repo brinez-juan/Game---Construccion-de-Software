@@ -19,11 +19,14 @@ export default class battleScreen extends Menus{
         for(let enemy of this.enemies){
            enemy.draw(ctx)
             enemy.healthBar.draw(ctx)
+            enemy.indicator.draw(ctx)
         }
     }
 
     update(deltaTime){
-
+        for(let enemy of this.enemies){
+            enemy.update(deltaTime)
+        }
     }
 
     playerMaker(playerData){
@@ -44,7 +47,7 @@ export default class battleScreen extends Menus{
             }
         }
         else{
-            let enemyInstance = new Enemy(3*this.canvasWidth/4, this.player.y, 100, 300,enemyData[0].name, enemyData[0].health, enemyData[0].maxHealth, enemyData[0].stamina, enemyData[0].maxStamina, enemyData[0].attributes)
+            let enemyInstance = new Enemy(3*this.canvasWidth/4, this.player.y, 200, 300,enemyData[0].name, enemyData[0].health, enemyData[0].maxHealth, enemyData[0].stamina, enemyData[0].maxStamina, enemyData[0].attributes)
             this.enemies.push(enemyInstance)
         }
     }
