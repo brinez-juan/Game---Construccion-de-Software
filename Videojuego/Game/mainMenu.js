@@ -3,13 +3,12 @@ import GameObject from './GameObject.js';
 import TextLabel from './TextLabel.js';
 
 export default class mainMenu extends Menus{
-    constructor(background = '', canvasWidth = 0, canvasHeight = 0, btnSize, playerProfiles){
+    constructor(background = '', canvasWidth = 0, canvasHeight = 0, btnSize){
         super(background, canvasWidth, canvasHeight, canvas)
         this.textY = this.canvasHeight/2 + 100
         this.buttonSize = btnSize
         this.textElements = []
         this.imgElements = []
-        this.playerData = playerProfiles; 
         this.initElements()
         
     }

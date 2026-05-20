@@ -4,6 +4,7 @@ import mainMenu from './mainMenu.js';
 import selectionMenu from './selectionMenu.js';
 import optionsMenu from './optionsMenu.js';
 import creditScreen from './creditScreen.js';
+import Player from './Player.js';
 
 // Context of the Canvas
 let ctx;
@@ -14,11 +15,10 @@ let game;
 // Variable to define oldTime
 let oldTime = 0
  
-const canvas = document.getElementById('canvas');
+export const canvas = document.getElementById('canvas');
 
 //TODO: Replace with information gotten from the database
 //Make it an instance attribute of game
-const playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}]
 
 class Game{
     constructor(){
@@ -26,11 +26,14 @@ class Game{
         this.canvasHeight = 600;
         this.currentState = 0; 
         this.isLoading = false; 
-        this.menuStack = []; 
-        //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, playerProfiles)
+        this.menuStack = [];
+        this.playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}]; 
+        //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
         this.currentMenu = new battleScreen('../Assets/backgrounds/background_1.png', this.canvasWidth, this.canvasHeight, undefined, undefined)
         this.menuStack.push(this.currentMenu)
-        this.player = 
+        this.player = new Player(); 
+        this.player.setSprite('../Assets/Sprites/player.png')
+        this.currentEnemyPool = []; 
         this.addEventListeners();
     }
 
@@ -55,10 +58,10 @@ class Game{
 
     screenManager(state){
         if(state === 0){
-            this.currentMenu = this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, playerProfiles)
+           this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
         }
         else if(state === 1){
-            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'new')
+            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, this.playerProfiles, 'new')
         }
         else if(state === 2){
             this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'continue')
@@ -74,6 +77,10 @@ class Game{
             this.currentMenu.pop()
         }
         this.menuStack.push(this.currentMenu)
+    }
+
+    playerSetup(){
+
     }
 }
 
