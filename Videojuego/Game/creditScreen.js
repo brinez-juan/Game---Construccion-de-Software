@@ -1,4 +1,7 @@
-class creditScreen extends Menus{
+import Menus from './Menus.js';
+import GameObject from './GameObject.js';
+
+export default class creditScreen extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0){
         super(background, canvasWidth, canvasHeight)
         this.returnButton = this.returnButton = new GameObject(this.canvasWidth/10,this.canvasHeight/7, 150, 65, undefined, true, true)

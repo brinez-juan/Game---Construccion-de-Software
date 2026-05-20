@@ -1,4 +1,8 @@
-class mainMenu extends Menus{
+import Menus from './Menus.js';
+import GameObject from './GameObject.js';
+import TextLabel from './TextLabel.js';
+
+export default class mainMenu extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0, btnSize, playerProfiles){
         super(background, canvasWidth, canvasHeight, canvas)
         this.textY = this.canvasHeight/2 + 100
