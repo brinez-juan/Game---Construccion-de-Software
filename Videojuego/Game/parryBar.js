@@ -1,4 +1,5 @@
-import GameObject from "./GameObject";
+import GameObject from './GameObject.js';
+import { canvas } from './Return.js';
 
 export default class ParryBar{
     constructor(canvasWidth, CanvasHeight, stamina, maxStamina){ 
@@ -11,9 +12,22 @@ export default class ParryBar{
         this.perfectParryIndicator.setSprite('../Assets/Sprites/perfect_parry.png')
         this.normalParryIndicator.setSprite('../Assets/Sprites/normal_parry.png')
         this.missParryIndicator.setSprite('../Assets/Sprites/miss_parry.png')
-        this.parryIcon = new GameObject(canvasWidth/2 - 50, CanvasHeight/2 - 20, 30, 30); 
+        this.parryIcon = new GameObject(canvasWidth/2 - 50, CanvasHeight/2 + 30, 30, 30); 
         this.parryIcon.setSprite('../Assets/Sprites/parry_icon.png')
-        this.state = undefined; 
+        this.state = null; 
+
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+        window.addEventListener('keydown', this.handleKeyDown);
+    }
+
+    handleKeyDown(event) {
+        if (event.code === 'Space') {
+            this.checkState();  
+        }
+    }
+
+    dispose() {
+        window.removeEventListener('keydown', this.handleKeyDown);
     }
 
     calculateDamagePlayer(player, damageDone){
@@ -44,18 +58,19 @@ export default class ParryBar{
     }
 
     draw(ctx){
-        this.perfectParryIndicator.draw(ctx)
-        this.normalParryIndicator.draw(ctx)
         this.missParryIndicator.draw(ctx)
+        this.normalParryIndicator.draw(ctx)
+        this.perfectParryIndicator.draw(ctx)
         this.parryIcon.draw(ctx)
     }
 
     update(deltaTime){
         if(!this.state){
-            this.parryIcon.x += 0.2*(this.maxStamina/this.stamina)
+            this.parryIcon.x += 1*(this.maxStamina/this.stamina)
         }
         if(this.parryIcon.x > this.missParryIndicator.x + this.missParryIndicator.width/2){
             this.state = 'miss'
+            this.parryIcon.x = this.missParryIndicator.x + this.missParryIndicator.width/2
         }
     }
 
