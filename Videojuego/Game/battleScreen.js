@@ -1,11 +1,14 @@
 import Menus from './Menus.js';
 import Player from './Player.js';
 import { Enemy } from './NonPlayableCharacter.js';
+import ParryBar from './parryBar.js';
+import ItemCard from './ItemCard.js';
 
 export default class battleScreen extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, enemies){
         super(background, canvasWidth, canvasHeight)
         this.enemies = []
+        this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, playerData.stamina, playerData.maxStamina)
         this.playerMaker(playerData)
         this.enemyMaker(enemies)
         this.turn = 'player';
@@ -19,11 +22,22 @@ export default class battleScreen extends Menus{
         for(let enemy of this.enemies){
            enemy.draw(ctx)
             enemy.healthBar.draw(ctx)
+            enemy.indicator.draw(ctx)
+        }
+        if(this.turn === 'enemy'){
+            this.ParryBar.draw(ctx)
         }
     }
 
     update(deltaTime){
-
+        if(this.turn === 'player'){
+            for(let enemy of this.enemies){
+                enemy.update(deltaTime)
+            }
+        }
+        else if(this.turn === 'enemy'){
+            this.ParryBar.update(deltaTime)
+        }
     }
 
     playerMaker(playerData){
@@ -44,7 +58,7 @@ export default class battleScreen extends Menus{
             }
         }
         else{
-            let enemyInstance = new Enemy(3*this.canvasWidth/4, this.player.y, 100, 300,enemyData[0].name, enemyData[0].health, enemyData[0].maxHealth, enemyData[0].stamina, enemyData[0].maxStamina, enemyData[0].attributes)
+            let enemyInstance = new Enemy(3*this.canvasWidth/4, this.player.y, 200, 300,enemyData[0].name, enemyData[0].health, enemyData[0].maxHealth, enemyData[0].stamina, enemyData[0].maxStamina, enemyData[0].attributes)
             this.enemies.push(enemyInstance)
         }
     }

@@ -1,9 +1,13 @@
-import GameObject from "./GameObject.js";
+import GameObject from './GameObject.js';
 import { CARD_RARITY, ACTION_TYPES } from "./GlobalVariables.js";
 import Action from "./Action.js";
 
 export default class ItemCard extends GameObject {
     constructor(
+        x = 0,
+        y = 0,
+        width = 100,
+        height = 150,
         name = "",
         description = "",
         image = null,
@@ -13,7 +17,7 @@ export default class ItemCard extends GameObject {
         staminaCost = 0,
         isPermanent = false
     ) {
-        super();
+        super(x, y, width, height);
         this.name = name;
         this.description = description;
         this.image = image;
