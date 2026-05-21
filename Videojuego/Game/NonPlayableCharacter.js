@@ -1,5 +1,7 @@
 import Character from "./Character.js";
 import { ACTION_TYPES } from "./GlobalVariables.js";
+import Bar from "./Bar.js";
+import GameObject from "./GameObject.js";
 
 export class NPC extends Character {
     constructor(name = "", dialogue = []) {
@@ -47,6 +49,19 @@ export class Enemy extends Character {
         this.cardReward = cardReward;
         this.isBoss = isBoss;
         this.setSprite(`../Assets/Sprites/${name}.png`)
+        this.healthBar = new Bar(this.x, this.y -this.height/2 - 20, this.width, 20, '../Assets/Sprites/health_bar.png');
+        this.indicator = new GameObject(this.x, this.y - this.height/2 - 50, 30, 30);
+        this.indicator.setSprite('')
+        this.addEventListeners();
+    }
+
+    addEventListeners() {
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            this.mouseCollition(mouseX, mouseY)
+        });
     }
 
     decideAction(player) {
@@ -124,6 +139,16 @@ export class Enemy extends Character {
     bossRewards() {
         if (this.isBoss) {
             this.experienceReward *= 3;
+        }
+    }
+    
+    update(deltaTime){
+        if(this.hovered){
+            this.indicator.setSprite('../Assets/Sprites/indicator.png')
+        }
+        else{
+            this.indicator.setSprite('')
+
         }
     }
 }
