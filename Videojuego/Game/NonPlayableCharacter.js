@@ -1,5 +1,7 @@
 import Character from "./Character.js";
 import { ACTION_TYPES } from "./GlobalVariables.js";
+import Bar from "./Bar.js";
+import GameObject from "./GameObject.js";
 
 export class NPC extends Character {
     constructor(name = "", dialogue = []) {
@@ -20,9 +22,15 @@ export class NPC extends Character {
 
 export class Enemy extends Character {
     constructor(
+        x = 0,
+        y = 0,
+        width = 100,
+        height = 300,
         name = "",
         health = 100,
+        maxHealth = health,
         stamina = 50,
+        maxStamina = stamina,
         attributes = {},
         physicalDamage = 10,
         magicDamage = 10,
@@ -30,9 +38,9 @@ export class Enemy extends Character {
         magicDefense = 5,
         experienceReward = 50,
         cardReward = null,
-        isBoss = false
+        isBoss = false,
     ) {
-        super(name, health, health, stamina, stamina, attributes);
+        super(name, maxHealth, health, maxStamina, stamina, attributes, x, y, width, height);
         this.physicalDamage = physicalDamage;
         this.magicDamage = magicDamage;
         this.physicalDefense = physicalDefense;
@@ -40,6 +48,20 @@ export class Enemy extends Character {
         this.experienceReward = experienceReward;
         this.cardReward = cardReward;
         this.isBoss = isBoss;
+        this.setSprite(`../Assets/Sprites/${name}.png`)
+        this.healthBar = new Bar(this.x, this.y -this.height/2 - 20, this.width, 20, '../Assets/Sprites/health_bar.png');
+        this.indicator = new GameObject(this.x, this.y - this.height/2 - 50, 30, 30);
+        this.indicator.setSprite('')
+        this.addEventListeners();
+    }
+
+    addEventListeners() {
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            this.mouseCollition(mouseX, mouseY)
+        });
     }
 
     decideAction(player) {
@@ -74,7 +96,7 @@ export class Enemy extends Character {
 
         // 20% de probabilidad de tomar una acción aleatoria entre las viables
         if (Math.random() < 0.2 && options.length > 0) {
-            return options[Math.floor(Math.random() * options.length)];
+            return options[Math.floor(Math.random() * (options.length-1))];
         }
 
         // DEFENSIVE STATE
@@ -117,6 +139,16 @@ export class Enemy extends Character {
     bossRewards() {
         if (this.isBoss) {
             this.experienceReward *= 3;
+        }
+    }
+    
+    update(deltaTime){
+        if(this.hovered){
+            this.indicator.setSprite('../Assets/Sprites/indicator.png')
+        }
+        else{
+            this.indicator.setSprite('')
+
         }
     }
 }

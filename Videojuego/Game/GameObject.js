@@ -1,5 +1,4 @@
-
-class GameObject {
+export default class GameObject {
     constructor(x = 0, y = 0, width = 0, height = 0, type = undefined, open_ = undefined, click = undefined) {
         this.x = x;
         this.y = y;
@@ -52,5 +51,11 @@ class GameObject {
         let top = this.y - this.height/2
         let bottom = this.y + this.height/2
         this.hovered = left <= mouseX && mouseX <= right && mouseY <= bottom && top <= mouseY        
+    }
+
+    xAxisCollition(object){
+        let left = this.x - this.width/2
+        let right = this.x + this.width/2
+        return left <= object.x && object.x <= right
     }
 }
