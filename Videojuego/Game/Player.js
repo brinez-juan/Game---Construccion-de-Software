@@ -3,6 +3,7 @@ import Bar from "./Bar.js";
 import { MAX_DECK_SIZE } from "./GlobalVariables.js";
 import { canvas } from "./Return.js";
 import ItemCard from "./ItemCard.js";
+import Action from "./Action.js";
 
 export default class Player extends Character {
     constructor(
@@ -73,7 +74,8 @@ export default class Player extends Character {
     deckMaker(activeDeck, positionX, positionY, cardWidth, cardHeight, offSetX){
         console.log(activeDeck )
         for(let card of activeDeck){
-            let cardInstance = new ItemCard(positionX, positionY, cardWidth, cardHeight, card.name, card.description, card.image, card.staminaCost, card.isPermanent)
+            let action = new Action(card.action_type, card.base_damage, card.scales_with, card.scaling_factor)
+            let cardInstance = new ItemCard(positionX, positionY, cardWidth, cardHeight, card.name, card.description, card.staminaCost, card.isPermanent)
             cardInstance.setSprite(`../Assets/Sprites/${card.name}.png`)
             this.deck.push(cardInstance)
             positionX += cardWidth + offSetX
