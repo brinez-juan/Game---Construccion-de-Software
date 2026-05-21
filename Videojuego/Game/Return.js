@@ -1,4 +1,11 @@
 "use strict";
+import battleScreen from './battleScreen.js';
+import mainMenu from './mainMenu.js';
+import selectionMenu from './selectionMenu.js';
+import optionsMenu from './optionsMenu.js';
+import creditScreen from './creditScreen.js';
+import Player from './Player.js';
+
 // Context of the Canvas
 let ctx;
 
@@ -8,17 +15,17 @@ let game;
 // Variable to define oldTime
 let oldTime = 0
  
-const canvas = document.getElementById('canvas');
+export const canvas = document.getElementById('canvas');
 
 //TODO: Replace with information gotten from the database
 //Make it an instance attribute of game
-const playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}]
 
 class Game{
     constructor(){
         this.canvasWidth = 800; 
         this.canvasHeight = 600;
         this.currentState = 0; 
+<<<<<<< HEAD:Videojuego/Return.js
             this.isLoading = true; 
         this.loadTimer = 0;
         this.menuStack = []; 
@@ -27,6 +34,22 @@ class Game{
         //this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'continue')
         //this.currentMenu = new creditScreen('../Assets/backgrounds/credits.png', this.canvasWidth, this.canvasHeight)
         //this.currentMenu = new optionsMenu('../Assets/backgrounds/options_background.png', this.canvasWidth, this.canvasHeight, 'pause')
+=======
+        this.isLoading = false; 
+        this.menuStack = [];
+        this.playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}]; 
+        //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
+        this.menuStack.push(this.currentMenu)
+        this.player = {maxHealth: 100, health: 100, maxStamina: 100, stamina: 100, attributes: {strength: 10, dexterity: 10, intelligence: 10}, 
+        level: 1, experience: 0, experienceToNextLevel: 100, inventory: [], 
+        activeDeck: [{name: 'test_card', description: 'this is a test card', image: null, staminaCost: 20, isPermanent: false}, 
+                    {name: 'test_card', description: 'this is a test card', image: null, staminaCost: 20, isPermanent: false}, 
+                    {name: 'test_card', description: 'this is a test card', image: null, staminaCost: 20, isPermanent: false},  
+                    {name: 'test_card', description: 'this is a test card', image: null, staminaCost: 20, isPermanent: false}, 
+                    {name: 'test_card', description: 'this is a test card', image: null, staminaCost: 20, isPermanent: false}]};
+        this.currentEnemyPool = [{name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}]; 
+        this.currentMenu = new battleScreen('../Assets/backgrounds/background_1.png', this.canvasWidth, this.canvasHeight, this.player, this.currentEnemyPool)
+>>>>>>> be16623721ec24a315b82d391fffe14a368d0c93:Videojuego/Game/Return.js
         this.addEventListeners();
     }
 
@@ -60,10 +83,10 @@ class Game{
 
     screenManager(state){
         if(state === 0){
-            this.currentMenu = this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, playerProfiles)
+           this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
         }
         else if(state === 1){
-            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'new')
+            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, this.playerProfiles, 'new')
         }
         else if(state === 2){
             this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'continue')
@@ -78,6 +101,7 @@ class Game{
             this.currentMenu = this.menuStack[this.menuStack.indexOf(this.currentMenu) - 1]
             this.currentMenu.pop()
         }
+<<<<<<< HEAD:Videojuego/Return.js
         else if(state === 6){
             this.currentMenu = new loadingScreen('../Assets/Sprites/loading.png', this.canvasWidth, this.canvasHeight)
             this.isLoading = true;
@@ -87,6 +111,8 @@ class Game{
             this.currentMenu = new battleScreen('../Assets/backgrounds/battle_background.jpg', this.canvasWidth, this.canvasHeight)
         }
         console.log('hola')
+=======
+>>>>>>> be16623721ec24a315b82d391fffe14a368d0c93:Videojuego/Game/Return.js
         this.menuStack.push(this.currentMenu)
     }
 }
