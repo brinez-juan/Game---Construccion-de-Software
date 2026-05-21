@@ -10,6 +10,7 @@ export default class battleScreen extends Menus{
         this.enemies = []
         this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, playerData.stamina, playerData.maxStamina)
         this.playerMaker(playerData)
+        //this.player.deckMaker(playerData.activeDeck, this.canvasWidth/2, 4*this.canvasHeight/5, 100, 150, 15)
         this.enemyMaker(enemies)
         this.turn = 'player';
     }
