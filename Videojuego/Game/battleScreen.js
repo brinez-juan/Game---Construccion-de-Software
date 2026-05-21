@@ -7,9 +7,10 @@ export default class battleScreen extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, enemies){
         super(background, canvasWidth, canvasHeight)
         this.enemies = []
+        this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, playerData.stamina, playerData.maxStamina)
         this.playerMaker(playerData)
         this.enemyMaker(enemies)
-        this.turn = 'player';
+        this.turn = '';
     }
 
     draw(ctx){
@@ -22,11 +23,17 @@ export default class battleScreen extends Menus{
             enemy.healthBar.draw(ctx)
             enemy.indicator.draw(ctx)
         }
+        this.ParryBar.draw(ctx)
     }
 
     update(deltaTime){
-        for(let enemy of this.enemies){
-            enemy.update(deltaTime)
+        if(this.turn === 'player'){
+            for(let enemy of this.enemies){
+                enemy.update(deltaTime)
+            }
+        }
+        else{
+            this.ParryBar.update(deltaTime)
         }
     }
 
