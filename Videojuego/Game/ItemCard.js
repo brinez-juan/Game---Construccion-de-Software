@@ -10,7 +10,6 @@ export default class ItemCard extends GameObject {
         height = 150,
         name = "",
         description = "",
-        image = null,
         action = new Action(),
         requirements = {},
         rarity = CARD_RARITY.COMMON,
@@ -20,7 +19,6 @@ export default class ItemCard extends GameObject {
         super(x, y, width, height);
         this.name = name;
         this.description = description;
-        this.image = image;
         this.action = action;
         this.requirements = requirements;
         this.rarity = rarity;
