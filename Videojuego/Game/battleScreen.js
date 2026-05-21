@@ -1,6 +1,7 @@
 import Menus from './Menus.js';
 import Player from './Player.js';
 import { Enemy } from './NonPlayableCharacter.js';
+import ParryBar from './parryBar.js';
 
 export default class battleScreen extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, enemies){

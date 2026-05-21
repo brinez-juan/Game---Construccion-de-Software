@@ -39,7 +39,7 @@ export default class ParryBar{
         }
         else{
             let thisStaminaReturn = -this.maxStamina*0.1
-            return thisStaminaReturn < this.stamina ? -this.stamina : thisStaminaReturn;
+            return thisStaminaReturn > this.stamina ? -this.stamina : thisStaminaReturn;
         }
     }
 
