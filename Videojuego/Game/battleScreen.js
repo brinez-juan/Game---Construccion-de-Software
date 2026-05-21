@@ -45,28 +45,28 @@ export default class battleScreen extends Menus{
         this.player.setSprite('../Assets/Sprites/player.png')
         }
     enemyMaker(enemyData){
-    const count = Math.floor(1 + Math.random() * 2) + 1; // 1 to 3
-    const selected = [];
-    for(let i = 0; i < count; i++){
-        const randomIndex = Math.floor(Math.random() * enemyData.length);
-        selected.push(enemyData[randomIndex]);
+        const count = Math.floor(1 + Math.random() * 2) + 1; // 1 to 3
+        const selected = [];
+        for(let i = 0; i < count; i++){
+            const randomIndex = Math.floor(Math.random() * enemyData.length);
+            selected.push(enemyData[randomIndex]);
         }
 
-    if(selected.length > 1){
-        let positionY = this.canvasHeight/2
-        let positionX = 2*this.canvasWidth/3
-        let offSetX = 100
-        let offSetY = 50
-        for(let enemy of selected){
-            let enemyInstance = new Enemy(positionX, positionY, 100, 300, enemy.name, enemy.health, enemy.maxHealth, enemy.stamina, enemy.maxStamina, enemy.attributes)
-            this.enemies.push(enemyInstance)
-            positionX += offSetX
-            positionY += offSetY
+        if(selected.length > 1){
+            let positionY = this.canvasHeight/2
+            let positionX = 2*this.canvasWidth/3
+            let offSetX = 100
+            let offSetY = 50
+            for(let enemy of selected){
+                let enemyInstance = new Enemy(positionX, positionY, 100, 300, enemy.name, enemy.health, enemy.maxHealth, enemy.stamina, enemy.maxStamina, enemy.attributes)
+                this.enemies.push(enemyInstance)
+                positionX += offSetX
+                positionY += offSetY
             }
         }
-    else{
-        let enemyInstance = new Enemy(3*this.canvasWidth/4, this.player.y, 200, 300, selected[0].name, selected[0].health, selected[0].maxHealth, selected[0].stamina, selected[0].maxStamina, selected[0].attributes)
-        this.enemies.push(enemyInstance)
+        else{
+            let enemyInstance = new Enemy(3*this.canvasWidth/4, this.player.y, 200, 300, selected[0].name, selected[0].health, selected[0].maxHealth, selected[0].stamina, selected[0].maxStamina, selected[0].attributes)
+            this.enemies.push(enemyInstance)
         }
     }
 
