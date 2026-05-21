@@ -52,4 +52,10 @@ export default class GameObject {
         let bottom = this.y + this.height/2
         this.hovered = left <= mouseX && mouseX <= right && mouseY <= bottom && top <= mouseY        
     }
+
+    xAxisCollition(object){
+        let left = this.x - this.width/2
+        let right = this.x + this.width/2
+        return left <= object.x && object.x <= right
+    }
 }

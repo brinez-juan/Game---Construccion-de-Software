@@ -1,13 +1,46 @@
 import GameObject from "./GameObject";
 
 export default class ParryBar{
-    constructor(stamina){
-        this.perfectParryIndicator; 
-        this.normalParryIndicator;
-        this.missParryIndicator;
-        this.parryIcon; 
-        this.state; 
+    constructor(canvasWidth, CanvasHeight, stamina, maxStamina){ 
         this.stamina = stamina;
+        this.maxStamina = maxStamina;
+        let widthAdjuster = (this.stamina/this.maxStamina);
+        this.perfectParryIndicator = new GameObject(canvasWidth/2, CanvasHeight/2, 30 * widthAdjuster, 20);
+        this.normalParryIndicator = new GameObject(canvasWidth/2, CanvasHeight/2, 50 * widthAdjuster, 20);
+        this.missParryIndicator = new GameObject(canvasWidth/2, CanvasHeight/2, 100, 20);
+        this.perfectParryIndicator.setSprite('../Assets/Sprites/perfect_parry.png')
+        this.normalParryIndicator.setSprite('../Assets/Sprites/normal_parry.png')
+        this.missParryIndicator.setSprite('../Assets/Sprites/miss_parry.png')
+        this.parryIcon = new GameObject(canvasWidth/2 - 50, CanvasHeight/2 - 20, 30, 30); 
+        this.parryIcon.setSprite('../Assets/Sprites/parry_icon.png')
+        this.state = undefined; 
+    }
+
+    calculateDamagePlayer(player, damageDone){
+        if(this.state === 'perfect'){
+            return 0
+        }
+        else if(this.state === 'normal'){
+            return damageDone*0.3 ;
+        }
+        else{
+            return damageDone;
+        }
+    }
+
+    calculateStamina(player){
+        if(this.state === 'perfect'){
+            let thisStaminaReturn = this.maxStamina*0.3
+            return thisStaminaReturn > this.maxStamina - this.stamina ? thisStaminaReturn - (this.maxStamina - this.stamina) : thisStaminaReturn;
+        }
+        else if(this.state === 'normal'){
+            let thisStaminaReturn = this.maxStamina*0.1
+            return thisStaminaReturn > this.maxStamina - this.stamina ? thisStaminaReturn - (this.maxStamina - this.stamina) : thisStaminaReturn;
+        }
+        else{
+            let thisStaminaReturn = -this.maxStamina*0.1
+            return thisStaminaReturn < this.stamina ? -this.stamina : thisStaminaReturn;
+        }
     }
 
     draw(ctx){
@@ -18,6 +51,23 @@ export default class ParryBar{
     }
 
     update(deltaTime){
-        
+        if(!this.state){
+            this.parryIcon.x += 0.2*(this.maxStamina/this.stamina)
+        }
+        if(this.parryIcon.x > this.missParryIndicator.x + this.missParryIndicator.width/2){
+            this.state = 'miss'
+        }
+    }
+
+    checkState(){
+        if(this.perfectParryIndicator.xAxisCollition(this.parryIcon)){
+            this.state = 'perfect'
+        }
+        else if(this.normalParryIndicator.xAxisCollition(this.parryIcon)){
+            this.state = 'normal'
+        }
+        else if(this.missParryIndicator.xAxisCollition(this.parryIcon)){
+            this.state = 'miss'
+        }
     }
 }
