@@ -2,6 +2,7 @@ import Menus from './Menus.js';
 import Player from './Player.js';
 import { Enemy } from './NonPlayableCharacter.js';
 import ParryBar from './parryBar.js';
+import ItemCard from './ItemCard.js';
 
 export default class battleScreen extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, enemies){
@@ -10,7 +11,7 @@ export default class battleScreen extends Menus{
         this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, playerData.stamina, playerData.maxStamina)
         this.playerMaker(playerData)
         this.enemyMaker(enemies)
-        this.turn = '';
+        this.turn = 'player';
     }
 
     draw(ctx){
@@ -23,7 +24,9 @@ export default class battleScreen extends Menus{
             enemy.healthBar.draw(ctx)
             enemy.indicator.draw(ctx)
         }
-        this.ParryBar.draw(ctx)
+        if(this.turn === 'enemy'){
+            this.ParryBar.draw(ctx)
+        }
     }
 
     update(deltaTime){
@@ -32,7 +35,7 @@ export default class battleScreen extends Menus{
                 enemy.update(deltaTime)
             }
         }
-        else{
+        else if(this.turn === 'enemy'){
             this.ParryBar.update(deltaTime)
         }
     }

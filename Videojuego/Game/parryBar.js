@@ -5,14 +5,14 @@ export default class ParryBar{
     constructor(canvasWidth, CanvasHeight, stamina, maxStamina){ 
         this.stamina = stamina;
         this.maxStamina = maxStamina;
-        let widthAdjuster = (this.stamina/this.maxStamina);
-        this.perfectParryIndicator = new GameObject(canvasWidth/2, CanvasHeight/2, 30 * widthAdjuster, 20);
-        this.normalParryIndicator = new GameObject(canvasWidth/2, CanvasHeight/2, 50 * widthAdjuster, 20);
-        this.missParryIndicator = new GameObject(canvasWidth/2, CanvasHeight/2, 100, 20);
+         let widthAdjuster = (this.stamina / this.maxStamina);
+        this.perfectParryIndicator = new GameObject(canvasWidth/2, CanvasHeight/2, 60 * widthAdjuster, 30);
+        this.normalParryIndicator = new GameObject(canvasWidth/2, CanvasHeight/2, 120 * widthAdjuster, 30);
+        this.missParryIndicator = new GameObject(canvasWidth/2, CanvasHeight/2, 240, 30);
         this.perfectParryIndicator.setSprite('../Assets/Sprites/perfect_parry.png')
         this.normalParryIndicator.setSprite('../Assets/Sprites/normal_parry.png')
         this.missParryIndicator.setSprite('../Assets/Sprites/miss_parry.png')
-        this.parryIcon = new GameObject(canvasWidth/2 - 50, CanvasHeight/2 + 30, 30, 30); 
+        this.parryIcon = new GameObject(canvasWidth/2 - 120, CanvasHeight/2 + 45, 45, 45);
         this.parryIcon.setSprite('../Assets/Sprites/parry_icon.png')
         this.state = null; 
 
@@ -22,7 +22,7 @@ export default class ParryBar{
 
     handleKeyDown(event) {
         if (event.code === 'Space') {
-            this.checkState();  
+            this.checkState();
         }
     }
 
@@ -64,9 +64,9 @@ export default class ParryBar{
         this.parryIcon.draw(ctx)
     }
 
-    update(deltaTime){
+    update(deltaTime, playerDexterity = 0){
         if(!this.state){
-            this.parryIcon.x += 1*(this.maxStamina/this.stamina)
+            this.parryIcon.x += (1*(this.maxStamina/this.stamina) - 0.3*playerDexterity)
         }
         if(this.parryIcon.x > this.missParryIndicator.x + this.missParryIndicator.width/2){
             this.state = 'miss'
