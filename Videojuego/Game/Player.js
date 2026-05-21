@@ -70,4 +70,19 @@ export default class Player extends Character {
         this.inventory = [];
         this.activeDeck = [];
     }
+
+    deckMaker(activeDeck, positionX, positionY, cardWidth, cardHeight, offSetX){
+        let cardWidth = 100
+        let cardHeight = 150
+        let offSetX = 15
+        let posX = this.canvasWidth/2 - 2*(cardWidth + offSetX)
+        let posY = 4*this.canvasHeight/5
+
+        for(let card of activeDeck){
+            let cardInstance = new ItemCard(posX, posY, cardWidth, cardHeight, card.name, card.description, card.image, card.staminaCost, card.isPermanent)
+            cardInstance.setSprite(`../Assets/Sprites/${card.name}.png`)
+            this.player.activeDeck.push(cardInstance)
+            posX += cardWidth + offSetX
+        }
+    }
 }
