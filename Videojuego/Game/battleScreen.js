@@ -13,23 +13,7 @@ export default class battleScreen extends Menus{
         this.player.deckMaker(playerData.activeDeck, this.canvasWidth/2, 4*this.canvasHeight/5, 100*0.75, 100, 15)
         this.enemyMaker(enemies)
         this.turn = 'player';
-
-        addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            for(let card of this.player.deck){
-                card.mouseCollition(mouseX, mouseY)
-            }
-        })
-
-        addEventListener('click', (e) => {
-            for(let card of this.player.deck){
-                if(card.hovered){
-                    
-                }
-            }
-        })
+        this.cardInAction = null;
     }
 
     draw(ctx){
@@ -45,19 +29,68 @@ export default class battleScreen extends Menus{
         for(let card of this.player.deck){
             card.draw(ctx)
         }
-        if(this.turn === 'enemy'){
+        if(this.turn === 'enemy' && !this.ParryBar.state){
             this.ParryBar.draw(ctx)
         }
     }
+    addeventListeners(){
+        addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            for(let card of this.player.deck){
+                card.mouseCollition(mouseX, mouseY)
+            }
+            if(cardInAction){
+                for(let enemy of this.enemies){
+                    enemy.mouseCollition(mouseX, mouseY)
+                }
+            }
+        })
 
+        addEventListener('click', (e) => {
+            if(!cardInAction){
+                for(let card of this.player.deck){
+                    if(card.hovered){
+                        cardInAction = card
+                        cardInAction.y += 15
+                    }
+                }   
+            }
+            else if(cardInAction){
+                for(let card of this.player.deck){
+                    if(card.hovered && card !== cardInAction){
+                        cardInAction.y -= 15
+                        cardInAction = card
+                        cardInAction.y += 15
+                    }
+                }
+                for(let enemy of this.enemies){
+                    if(enemy.hovered){
+                        let damageDone = cardInAction.action.calculateDamage(this.player.attributes)
+                        enemy.health -= damageDone
+                        enemy.healthBar.calculateCurrentIndicatorSubstraction(damageDone)
+                        this.player.stamina -= cardInAction.staminaCost
+                        cardInAction.y -= 15
+                        cardInAction = null
+                    }
+                }
+            }
+        })
+    }
+    removeEventListeners(){
+        removeEventListener('mousemove', this.mouseCollition);
+        removeEventListener('click', this.mouseCollition);
+    }
     update(deltaTime){
         if(this.turn === 'player'){
+            addeventlisteners()
             for(let enemy of this.enemies){
                 enemy.update(deltaTime)
             }
         }
         else if(this.turn === 'enemy'){
-            this.ParryBar.update(deltaTime)
+            this.removeEventListeners()    
         }
     }
 
