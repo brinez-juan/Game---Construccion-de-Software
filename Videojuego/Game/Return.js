@@ -73,6 +73,10 @@ class Game{
             this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'continue')
         }
         else if(state === 3){
+            if(this.currentMenu instanceof battleScreen){
+                this.menuStack[this.menuStacl.length - 1].dispose()
+                this.menuStack.push(this.currentMenu)
+            }
             this.currentMenu = new optionsMenu('../Assets/backgrounds/options_background.png', this.canvasWidth, this.canvasHeight, 'pause')
         }
         else if(state === 4){
@@ -81,6 +85,9 @@ class Game{
         else if(state === 5){
             this.currentMenu = this.menuStack[this.menuStack.indexOf(this.currentMenu) - 1]
             this.currentMenu.pop()
+        }
+        else if(state === 6){
+            this.currentMenu = new battleScreen('../Assets/backgrounds/background_1.png', this.canvasWidth, this.canvasHeight, this.player, this.currentEnemyPool)
         }
         this.menuStack.push(this.currentMenu)
     }
