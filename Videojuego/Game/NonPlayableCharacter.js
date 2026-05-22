@@ -52,7 +52,6 @@ export class Enemy extends Character {
         this.healthBar = new Bar(this.x, this.y -this.height/2 - 20, this.width, 20, '../Assets/Sprites/health_bar.png');
         this.indicator = new GameObject(this.x, this.y - this.height/2 - 50, 30, 30);
         this.indicator.setSprite('')
-        this.addEventListeners();
     }
 
     addEventListeners() {
@@ -62,6 +61,10 @@ export class Enemy extends Character {
             const mouseY = e.clientY - rect.top;
             this.mouseCollition(mouseX, mouseY)
         });
+    }
+
+    removeEventListeners() {
+        canvas.removeEventListener('mousemove', this.mouseCollition);
     }
 
     decideAction(player) {

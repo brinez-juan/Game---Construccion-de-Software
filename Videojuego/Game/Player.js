@@ -72,13 +72,14 @@ export default class Player extends Character {
     }
 
     deckMaker(activeDeck, positionX, positionY, cardWidth, cardHeight, offSetX){
-        console.log(activeDeck )
+        
+        let posX = positionX - 2 * (cardWidth + offSetX)
         for(let card of activeDeck){
             let action = new Action(card.action_type, card.base_damage, card.scales_with, card.scaling_factor)
-            let cardInstance = new ItemCard(positionX, positionY, cardWidth, cardHeight, card.name, card.description, card.staminaCost, card.isPermanent)
-            cardInstance.setSprite(`../Assets/Sprites/${card.name}.png`)
+            let cardInstance = new ItemCard(posX, positionY, cardWidth, cardHeight, card.name, card.description, card.staminaCost, card.isPermanent)
+            cardInstance.setSprite(`../Assets/Sprites/${card.name}.jpeg`)
             this.deck.push(cardInstance)
-            positionX += cardWidth + offSetX
+            posX += cardWidth + offSetX
         }
     }
 }
