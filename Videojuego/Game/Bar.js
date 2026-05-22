@@ -12,6 +12,7 @@ export default class Bar{
     calculateCurrentIndicatorSubstraction(substractionValue){
         let percentage = substractionValue/this.stat; 
         this.indicatorBar.width -= this.missingAttributeBar.width * percentage
+        this.indicatorBar.x -= this.missingAttributeBar.width/2
         if(this.indicatorBar.width < 0) this.indicatorBar.width = 0;
     }
 

@@ -76,7 +76,7 @@ export default class Player extends Character {
         let posX = positionX - 2 * (cardWidth + offSetX)
         for(let card of activeDeck){
             let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0, card.scales_with, card.scaling_factor, null)
-            let cardInstance = new ItemCard(posX, positionY, cardWidth, cardHeight, card.name, card.description, action, card.required_value, card.rarity, card.staminaCost, card.isPermanent)
+            let cardInstance = new ItemCard(posX, positionY, cardWidth, cardHeight, card.name, card.description, action, card.required_value, card.rarity, card.stamina_cost, card.isPermanent)
             cardInstance.setSprite(`../Assets/Sprites/${card.name}.jpeg`)
             this.deck.push(cardInstance)
             posX += cardWidth + offSetX
