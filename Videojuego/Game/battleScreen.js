@@ -10,9 +10,26 @@ export default class battleScreen extends Menus{
         this.enemies = []
         this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, playerData.stamina, playerData.maxStamina)
         this.playerMaker(playerData)
-        //this.player.deckMaker(playerData.activeDeck, this.canvasWidth/2, 4*this.canvasHeight/5, 100, 150, 15)
+        this.player.deckMaker(playerData.activeDeck, this.canvasWidth/2, 4*this.canvasHeight/5, 100*0.75, 100, 15)
         this.enemyMaker(enemies)
         this.turn = 'player';
+
+        addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            for(let card of this.player.deck){
+                card.mouseCollition(mouseX, mouseY)
+            }
+        })
+
+        addEventListener('click', (e) => {
+            for(let card of this.player.deck){
+                if(card.hovered){
+                    
+                }
+            }
+        })
     }
 
     draw(ctx){
@@ -24,6 +41,9 @@ export default class battleScreen extends Menus{
            enemy.draw(ctx)
             enemy.healthBar.draw(ctx)
             enemy.indicator.draw(ctx)
+        }
+        for(let card of this.player.deck){
+            card.draw(ctx)
         }
         if(this.turn === 'enemy'){
             this.ParryBar.draw(ctx)
@@ -42,17 +62,17 @@ export default class battleScreen extends Menus{
     }
 
     playerMaker(playerData){
-        this.player = new Player(this.canvasWidth/5, 2*this.canvasHeight/3, 100, 300, playerData.maxHealth, playerData.health, playerData.maxStamina, playerData.stamina, playerData.attributes, playerData.level, playerData.experience, playerData.experienceToNextLevel, playerData.inventory, playerData.activeDeck)
+        this.player = new Player(this.canvasWidth/5, this.canvasHeight/2 + 30, 120, 300, playerData.maxHealth, playerData.health, playerData.maxStamina, playerData.stamina, playerData.attributes, playerData.level, playerData.experience, playerData.experienceToNextLevel, playerData.inventory, playerData.activeDeck)
         this.player.setSprite('../Assets/Sprites/player.png')
     }
     enemyMaker(enemyData){
         if(enemyData.length > 1){
             let positionY = this.canvasHeight/2
-            let positionX = 2*this.canvasWidth/3
-            let offSetX = 100
+            let positionX = this.canvasWidth/2
+            let offSetX = 150
             let offSetY = 50
             for(let enemy of enemyData){
-                let enemyInstance = new Enemy(positionX, positionY, 100, 300,enemy.name, enemy.health, enemy.maxHealth, enemy.stamina, enemy.maxStamina, enemy.attributes)
+                let enemyInstance = new Enemy(positionX, positionY, 120, 300,enemy.name, enemy.health, enemy.maxHealth, enemy.stamina, enemy.maxStamina, enemy.attributes)
                 this.enemies.push(enemyInstance)
                 positionX += offSetX
                 positionY += offSetY

@@ -8,7 +8,6 @@ import Player from './Player.js';
 
 // Context of the Canvas
 let ctx;
-
 // A variable to store the game object
 let game;
 
