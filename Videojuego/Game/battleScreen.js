@@ -20,6 +20,7 @@ export default class battleScreen extends Menus{
         this.handleClick = this.handleClick.bind(this)
         this.listenersActive = false
         this.currentEnemyIndex = 0;
+        this.playerDefending = false;
     }
 
     handleMouseMove(e){
@@ -40,9 +41,18 @@ export default class battleScreen extends Menus{
         if(!this.cardInAction){
             for(let card of this.player.deck){
                 if(card.hovered){
-                    this.cardInAction = card
-                    this.cardInAction.y -= 15
-                    return
+                    if(card.action.actionType === 'defend_physic' || card.action.actionType === 'defend_magic'){
+                        this.playerDefending = true;
+                        this.player.stamina = this.player.stamina - card.staminaCost > 0 ? this.player.stamina - card.staminaCost : 0
+                        this.player.staminaBar.calculateCurrentIndicatorSubstraction(card.staminaCost)
+                        this.turn = 'enemy'
+                        return
+                    }
+                    else{
+                        this.cardInAction = card
+                        this.cardInAction.y -= 15
+                        return
+                    }
                 }
             }
             return
@@ -148,6 +158,10 @@ export default class battleScreen extends Menus{
             }
 
             if(damageDone > 0){
+                if(this.playerDefending){
+                    this.ParryBar.state = 'perfect'
+                    this.playerDefending = false;
+                }
                 const finalDamage = this.ParryBar.calculateDamagePlayer(this.player, damageDone)
                 if(finalDamage > 0){
                     this.player.health -= finalDamage

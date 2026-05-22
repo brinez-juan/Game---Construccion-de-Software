@@ -10,16 +10,25 @@ export default class Bar{
     }
 
     calculateCurrentIndicatorSubstraction(substractionValue){
-        let percentage = substractionValue/this.stat; 
-        this.indicatorBar.width -= this.missingAttributeBar.width * percentage
-        this.indicatorBar.x -= this.missingAttributeBar.width/2
-        if(this.indicatorBar.width < 0) this.indicatorBar.width = 0;
+        let percentage = substractionValue/this.stat;
+        const oldWidth = this.indicatorBar.width;
+        this.indicatorBar.width -= this.missingAttributeBar.width * percentage;
+        if(this.indicatorBar.width < 0) {
+            this.indicatorBar.width = 0;
+        }
+        const actualDelta = oldWidth - this.indicatorBar.width;
+        this.indicatorBar.x -= actualDelta / 2;
     }
 
     calculateCurrentIndicatorAddition(additionValue){
-        let percentage = additionValue/this.stat; 
-        this.indicatorBar.width += this.missingAttributeBar.width * percentage
-        if(this.indicatorBar.width > this.missingAttributeBar.width) this.indicatorBar.width = this.missingAttributeBar.width;
+        let percentage = additionValue/this.stat;
+        const oldWidth = this.indicatorBar.width;
+        this.indicatorBar.width += this.missingAttributeBar.width * percentage;
+        if(this.indicatorBar.width > this.missingAttributeBar.width) {
+            this.indicatorBar.width = this.missingAttributeBar.width;
+        }
+        const actualDelta = this.indicatorBar.width - oldWidth;
+        this.indicatorBar.x += actualDelta / 2;
     }
     
     draw(ctx){
