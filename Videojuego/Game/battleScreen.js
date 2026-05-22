@@ -59,11 +59,11 @@ export default class battleScreen extends Menus{
         for(let enemy of this.enemies){
             if(enemy.hovered){
                 let damageDone = this.cardInAction.action.calculateDamage(this.player.attributes)
-                console.log(damageDone)
                 enemy.health -= damageDone
-                console.log(damageDone)
                 enemy.healthBar.calculateCurrentIndicatorSubstraction(damageDone)
-                this.player.stamina -= this.cardInAction.staminaCost
+                this.player.stamina = this.player.stamina - this.cardInAction.staminaCost > 0 ? this.player.stamina - this.cardInAction.staminaCost : 0
+                this.player.staminaBar.calculateCurrentIndicatorSubstraction(this.cardInAction.staminaCost)
+                console.log(this.player.staminaBar.missingAttributeBar.width)
                 this.cardInAction.y += 15
                 this.cardInAction = null
                 this.turn = 'enemy'
