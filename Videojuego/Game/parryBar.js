@@ -65,7 +65,7 @@ export default class ParryBar{
 
     update(deltaTime, playerDexterity = 0){
         if(!this.state){
-            this.parryIcon.x += (1*(this.maxStamina/this.stamina) - 0.3*playerDexterity)
+            this.parryIcon.x += (1*(this.maxStamina/this.stamina) - 0.01*playerDexterity)
         }
         if(this.parryIcon.x > this.missParryIndicator.x + this.missParryIndicator.width/2){
             this.state = 'miss'

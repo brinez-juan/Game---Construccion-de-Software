@@ -16,9 +16,9 @@ export default class battleScreen extends Menus{
         this.turn = 'player';
         this.cardInAction = undefined;
         this.enemyAttacking = undefined;
-        this._handleMouseMove = this.handleMouseMove.bind(this)
-        this._handleClick = this.handleClick.bind(this)
-        this._listenersActive = false
+        this.handleMouseMove = this.handleMouseMove.bind(this)
+        this.handleClick = this.handleClick.bind(this)
+        this.listenersActive = false
         this.currentEnemyIndex = 0;
     }
 
@@ -53,14 +53,15 @@ export default class battleScreen extends Menus{
                 this.cardInAction.y += 15
                 this.cardInAction = card
                 this.cardInAction.y -= 15
-                return
             }
         }
 
         for(let enemy of this.enemies){
             if(enemy.hovered){
                 let damageDone = this.cardInAction.action.calculateDamage(this.player.attributes)
+                console.log(damageDone)
                 enemy.health -= damageDone
+                console.log(damageDone)
                 enemy.healthBar.calculateCurrentIndicatorSubstraction(damageDone)
                 this.player.stamina -= this.cardInAction.staminaCost
                 this.cardInAction.y += 15
@@ -89,17 +90,17 @@ export default class battleScreen extends Menus{
         }
     }
     addEventListeners(){
-        if(this._listenersActive) return
-        canvas.addEventListener('mousemove', this._handleMouseMove)
-        canvas.addEventListener('click', this._handleClick)
-        this._listenersActive = true
+        if(this.listenersActive) return
+        canvas.addEventListener('mousemove', this.handleMouseMove)
+        canvas.addEventListener('click', this.handleClick)
+        this.listenersActive = true
     }
 
     removeEventListeners(){
-        if(!this._listenersActive) return
-        canvas.removeEventListener('mousemove', this._handleMouseMove)
-        canvas.removeEventListener('click', this._handleClick)
-        this._listenersActive = false
+        if(!this.listenersActive) return
+        canvas.removeEventListener('mousemove', this.handleMouseMove)
+        canvas.removeEventListener('click', this.handleClick)
+        this.listenersActive = false
     }
     update(deltaTime){
         if(this.turn === 'player'){
@@ -111,6 +112,14 @@ export default class battleScreen extends Menus{
         else if(this.turn === 'enemy'){
             this.removeEventListeners()
             this.checkEnemyStatus()
+            this.ParryBar.stamina = this.player.stamina
+            this.ParryBar.maxStamina = this.player.maxStamina
+            if(!this.ParryBar.state){
+                this.ParryBar.update(deltaTime, this.player.attributes.dexterity)
+            }
+            else{
+                this.enemyTurn()
+            }
         }
     }
 
@@ -119,10 +128,42 @@ export default class battleScreen extends Menus{
     }
 
     enemyTurn(){
-        if(currentEnemyIndex < this.enemies.length){
+        if(this.currentEnemyIndex < this.enemies.length){
             this.enemyAttacking = this.enemies[this.currentEnemyIndex]
             let enemyDecision = this.enemyAttacking.decideAction(this.player)
-            this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, this.enemyAttacking.stamina, this.enemyAttacking.maxStamina)
+            let damageDone = 0;
+            if(enemyDecision === 'attack_physic'){
+                damageDone = this.enemyAttacking.physicalDamage
+            }
+            else if(enemyDecision === 'attack_magic'){
+                damageDone = this.enemyAttacking.magicDamage
+            }
+            else if(enemyDecision === 'defend_physic'){
+                damageDone = 0
+                this.enemyAttacking.physicalDefense += 5
+            }
+            else if(enemyDecision === 'defend_magic'){
+                damageDone = 0
+                this.enemyAttacking.magicDefense += 5
+            }
+
+            if(damageDone > 0){
+                const finalDamage = this.ParryBar.calculateDamagePlayer(this.player, damageDone)
+                if(finalDamage > 0){
+                    this.player.health -= finalDamage
+                    this.player.healthBar.calculateCurrentIndicatorSubstraction(finalDamage)
+                }
+                const staminaChange = this.ParryBar.calculateStamina(this.player)
+                if(staminaChange > 0){
+                    this.player.stamina = this.player.stamina + staminaChange > this.player.maxStamina ? this.player.maxStamina : this.player.stamina + staminaChange
+                    this.player.staminaBar.calculateCurrentIndicatorAddition(staminaChange)
+                } else if(staminaChange < 0){
+                    this.player.stamina = this.player.stamina - Math.abs(staminaChange) < 0? 0 : this.player.stamina - Math.abs(staminaChange)
+                    this.player.staminaBar.calculateCurrentIndicatorSubstraction(Math.abs(staminaChange))
+                }
+                this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, this.player.stamina, this.player.maxStamina)
+            }
+
             this.currentEnemyIndex++
         }
         else{
