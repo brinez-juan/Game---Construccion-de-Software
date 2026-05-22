@@ -26,8 +26,8 @@ export default class Player extends Character {
         this.experienceToNextLevel = experienceToNextLevel;
         this.inventory = [];
         this.deck = [];
-        this.healthBar = new Bar(this.x, 20, 300, 20, '../Assets/Sprites/health_bar.png');
-        this.staminaBar = new Bar(this.x, 50, 300, 20, '../Assets/Sprites/stamina_bar.png');
+        this.healthBar = new Bar(this.x, 20, 300, 20, '../Assets/Sprites/health_bar.png', this.maxHealth);
+        this.staminaBar = new Bar(this.x, 50, 300, 20, '../Assets/Sprites/stamina_bar.png', this.maxStamina);
     }
 
     gainExperience(amount) {
@@ -75,8 +75,8 @@ export default class Player extends Character {
         
         let posX = positionX - 2 * (cardWidth + offSetX)
         for(let card of activeDeck){
-            let action = new Action(card.action_type, card.base_damage, card.scales_with, card.scaling_factor)
-            let cardInstance = new ItemCard(posX, positionY, cardWidth, cardHeight, card.name, card.description, card.staminaCost, card.isPermanent)
+            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0, card.scales_with, card.scaling_factor, null)
+            let cardInstance = new ItemCard(posX, positionY, cardWidth, cardHeight, card.name, card.description, action, card.required_value, card.rarity, card.staminaCost, card.isPermanent)
             cardInstance.setSprite(`../Assets/Sprites/${card.name}.jpeg`)
             this.deck.push(cardInstance)
             posX += cardWidth + offSetX
