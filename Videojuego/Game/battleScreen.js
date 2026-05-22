@@ -3,6 +3,7 @@ import Player from './Player.js';
 import { Enemy } from './NonPlayableCharacter.js';
 import ParryBar from './parryBar.js';
 import ItemCard from './ItemCard.js';
+import {canvas} from './Return.js';
 
 export default class battleScreen extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, enemies){
@@ -13,7 +14,61 @@ export default class battleScreen extends Menus{
         this.player.deckMaker(playerData.activeDeck, this.canvasWidth/2, 4*this.canvasHeight/5, 100*0.75, 100, 15)
         this.enemyMaker(enemies)
         this.turn = 'player';
-        this.cardInAction = null;
+        this.cardInAction = undefined;
+        this.enemyAttacking = undefined;
+        this._handleMouseMove = this.handleMouseMove.bind(this)
+        this._handleClick = this.handleClick.bind(this)
+        this._listenersActive = false
+        this.currentEnemyIndex = 0;
+    }
+
+    handleMouseMove(e){
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        for(let card of this.player.deck){
+            card.mouseCollition(mouseX, mouseY)
+        }
+        if(this.cardInAction){
+            for(let enemy of this.enemies){
+                enemy.mouseCollition(mouseX, mouseY)
+            }
+        }
+    }
+
+    handleClick(e){
+        if(!this.cardInAction){
+            for(let card of this.player.deck){
+                if(card.hovered){
+                    this.cardInAction = card
+                    this.cardInAction.y -= 15
+                    return
+                }
+            }
+            return
+        }
+
+        for(let card of this.player.deck){
+            if(card.hovered && card !== this.cardInAction){
+                this.cardInAction.y += 15
+                this.cardInAction = card
+                this.cardInAction.y -= 15
+                return
+            }
+        }
+
+        for(let enemy of this.enemies){
+            if(enemy.hovered){
+                let damageDone = this.cardInAction.action.calculateDamage(this.player.attributes)
+                enemy.health -= damageDone
+                enemy.healthBar.calculateCurrentIndicatorSubstraction(damageDone)
+                this.player.stamina -= this.cardInAction.staminaCost
+                this.cardInAction.y += 15
+                this.cardInAction = null
+                this.turn = 'enemy'
+                return
+            }
+        }
     }
 
     draw(ctx){
@@ -33,64 +88,46 @@ export default class battleScreen extends Menus{
             this.ParryBar.draw(ctx)
         }
     }
-    addeventListeners(){
-        addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            for(let card of this.player.deck){
-                card.mouseCollition(mouseX, mouseY)
-            }
-            if(cardInAction){
-                for(let enemy of this.enemies){
-                    enemy.mouseCollition(mouseX, mouseY)
-                }
-            }
-        })
-
-        addEventListener('click', (e) => {
-            if(!cardInAction){
-                for(let card of this.player.deck){
-                    if(card.hovered){
-                        cardInAction = card
-                        cardInAction.y += 15
-                    }
-                }   
-            }
-            else if(cardInAction){
-                for(let card of this.player.deck){
-                    if(card.hovered && card !== cardInAction){
-                        cardInAction.y -= 15
-                        cardInAction = card
-                        cardInAction.y += 15
-                    }
-                }
-                for(let enemy of this.enemies){
-                    if(enemy.hovered){
-                        let damageDone = cardInAction.action.calculateDamage(this.player.attributes)
-                        enemy.health -= damageDone
-                        enemy.healthBar.calculateCurrentIndicatorSubstraction(damageDone)
-                        this.player.stamina -= cardInAction.staminaCost
-                        cardInAction.y -= 15
-                        cardInAction = null
-                    }
-                }
-            }
-        })
+    addEventListeners(){
+        if(this._listenersActive) return
+        canvas.addEventListener('mousemove', this._handleMouseMove)
+        canvas.addEventListener('click', this._handleClick)
+        this._listenersActive = true
     }
+
     removeEventListeners(){
-        removeEventListener('mousemove', this.mouseCollition);
-        removeEventListener('click', this.mouseCollition);
+        if(!this._listenersActive) return
+        canvas.removeEventListener('mousemove', this._handleMouseMove)
+        canvas.removeEventListener('click', this._handleClick)
+        this._listenersActive = false
     }
     update(deltaTime){
         if(this.turn === 'player'){
-            addeventlisteners()
+            this.addEventListeners()
             for(let enemy of this.enemies){
                 enemy.update(deltaTime)
             }
         }
         else if(this.turn === 'enemy'){
-            this.removeEventListeners()    
+            this.removeEventListeners()
+            this.checkEnemyStatus()
+        }
+    }
+
+    checkEnemyStatus(){
+        this.enemies = this.enemies.filter(enemy => enemy.health > 0)
+    }
+
+    enemyTurn(){
+        if(currentEnemyIndex < this.enemies.length){
+            this.enemyAttacking = this.enemies[this.currentEnemyIndex]
+            let enemyDecision = this.enemyAttacking.decideAction(this.player)
+            this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, this.enemyAttacking.stamina, this.enemyAttacking.maxStamina)
+            this.currentEnemyIndex++
+        }
+        else{
+            this.currentEnemyIndex = 0
+            this.turn = 'player'
         }
     }
 

@@ -15,7 +15,6 @@ export default class ParryBar{
         this.parryIcon = new GameObject(canvasWidth/2 - 120, CanvasHeight/2 + 45, 45, 45);
         this.parryIcon.setSprite('../Assets/Sprites/parry_icon.png')
         this.state = null; 
-
         this.handleKeyDown = this.handleKeyDown.bind(this);
         window.addEventListener('keydown', this.handleKeyDown);
     }
