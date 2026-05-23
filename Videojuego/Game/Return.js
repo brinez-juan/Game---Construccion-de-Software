@@ -19,6 +19,7 @@ export const canvas = document.getElementById('canvas');
 //TODO: Replace with information gotten from the database
 //Make it an instance attribute of game
 
+// Top-level controller that owns the canvas loop, the active screen and the screen stack
 class Game {
     constructor(){
         this.canvasWidth = 800;
@@ -49,6 +50,7 @@ class Game {
         this.currentMenu.draw(ctx);
     }
 
+    // Per-frame tick that propagates updates and swaps screens when the active state changes
     update(deltaTime){
         if(this.isLoading){
             this.loadTimer += deltaTime;
@@ -69,6 +71,7 @@ class Game {
         this.currentMenu.update(deltaTime);
     }
 
+    // Maps numeric state codes to concrete screen instances and pushes them to the stack
     screenManager(state){
         if(state === 0){
            this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
@@ -106,6 +109,7 @@ class Game {
     }
 }
 
+// Bootstrap that initializes the Game, sizes the canvas and starts the render loop
 function main(){
     game = new Game();
     canvas.width = game.canvasWidth;
@@ -114,6 +118,7 @@ function main(){
     drawScene(0, game.canvasWidth, game.canvasHeight);
 }
 
+// Animation frame callback that computes delta time and redraws the active screen
 function drawScene(newTime, canvasWidth, canvasHeight) {
     if (oldTime == undefined) {
         oldTime = newTime;

@@ -1,5 +1,6 @@
 import { ARCHETYPES } from "./GlobalVariables.js";
 
+// Applies an archetype loadout to the player and persists the choice on the backend
 export default class ArchetypeManager {
     constructor(player, db, cinematicController) {
         this.player = player;
@@ -7,6 +8,7 @@ export default class ArchetypeManager {
         this.cinematicController = cinematicController || {};
     }
 
+    // Entry point that wires attribute injection, card hydration, persistence and intro playback
     async onArchetypeSelected(archetypeId, saveSlotId) {
         var archetype = ARCHETYPES[archetypeId];
         if (!archetype) {

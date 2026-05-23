@@ -1,3 +1,4 @@
+// Express bootstrap that wires the auth and saved-game routers and serves the WebPage static assets
 import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';

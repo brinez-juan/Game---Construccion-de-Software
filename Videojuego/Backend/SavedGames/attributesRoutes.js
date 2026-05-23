@@ -1,3 +1,4 @@
+// Router that exposes per-profile attribute reads, profile creation and point spending
 import express from 'express';
 import pool from '../DB/dbconfig.js';
 import requireAuth from '../Auth/requireAuth.js';

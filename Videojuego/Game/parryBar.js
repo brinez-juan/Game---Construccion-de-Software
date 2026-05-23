@@ -1,8 +1,9 @@
 import GameObject from './GameObject.js';
 import { canvas } from './Return.js';
 
+// Timing-based defensive minigame that grants damage and stamina based on press accuracy
 export default class ParryBar{
-    constructor(canvasWidth, CanvasHeight, stamina, maxStamina){ 
+    constructor(canvasWidth, CanvasHeight, stamina, maxStamina){
         this.stamina = stamina;
         this.maxStamina = maxStamina;
          let widthAdjuster = (this.stamina / this.maxStamina);
@@ -19,16 +20,19 @@ export default class ParryBar{
         window.addEventListener('keydown', this.handleKeyDown);
     }
 
+    // Triggers the parry check when the player presses Space
     handleKeyDown(event) {
         if (event.code === 'Space') {
             this.checkState();
         }
     }
 
+    // Removes the keyboard listener so this bar stops reacting to input
     dispose() {
         window.removeEventListener('keydown', this.handleKeyDown);
     }
 
+    // Reduces or negates incoming damage according to the parry result
     calculateDamagePlayer(player, damageDone){
         if(this.state === 'perfect'){
             return 0
@@ -41,6 +45,7 @@ export default class ParryBar{
         }
     }
 
+    // Returns the stamina delta to apply after the parry attempt
     calculateStamina(player){
         if(this.state === 'perfect'){
             let thisStaminaReturn = this.maxStamina*0.3
@@ -63,6 +68,7 @@ export default class ParryBar{
         this.parryIcon.draw(ctx)
     }
 
+    // Moves the parry icon across the bar at a speed modulated by stamina and dexterity
     update(deltaTime, playerDexterity = 0){
         if(!this.state){
             this.parryIcon.x += (1*(this.maxStamina/this.stamina) - 0.01*playerDexterity)
@@ -73,6 +79,7 @@ export default class ParryBar{
         }
     }
 
+    // Resolves which parry zone the icon was in when the player pressed Space
     checkState(){
         if(this.perfectParryIndicator.xAxisCollition(this.parryIcon)){
             this.state = 'perfect'

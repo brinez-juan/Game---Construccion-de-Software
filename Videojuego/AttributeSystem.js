@@ -1,5 +1,6 @@
 import { ATTRIBUTE_SCALING, CARD_REQUIREMENTS } from "./GlobalVariables.js";
 
+// Pure helpers that resolve card scaling, availability and per-attribute stat bonuses
 export default class AttributeSystem {
     calculateScaledEffect(card, playerAttributes) {
         return card.calculateEffect(playerAttributes);
@@ -9,6 +10,7 @@ export default class AttributeSystem {
         return inventory.filter(card => card.action.scalingAttribute == attributeName);
     }
 
+    // Splits the inventory into cards the player can currently equip and the rest
     classifyCards(inventory, playerAttributes) {
         const available = [];
         const locked = [];
@@ -31,6 +33,7 @@ export default class AttributeSystem {
         return result;
     }
 
+    // Grants the static health and stamina bonuses tied to VIGOR or ENDURANCE upgrades
     applyStatBonuses(player, attr) {
         if (attr == "VIGOR") {
             player.maxHealth += 10;

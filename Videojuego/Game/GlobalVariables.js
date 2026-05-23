@@ -1,11 +1,4 @@
-/*
-Attributes:
-- Strength: Affects physical damage 
-- Dexterity: Affects the parry window and stamina regeneration
-- Intelligence: Affects magic damage 
-- Vigor: Affects health points
-- Endurance: Affects stamina points
-*/
+// Default attribute keys assigned to every Character at creation time
 export const BASE_ATTRIBUTES = {
     STRENGTH: 0, 
     DEXTERITY: 0, 
@@ -14,14 +7,7 @@ export const BASE_ATTRIBUTES = {
     ENDURANCE: 0
 };
 
-/*
-Action Types:
-- Attack: A basic physical attack that deals damage based on the character's strength.
-- Defend: Reduces incoming damage for a turn, with effectiveness based on dexterity and endurance.
-- Spell: A magical attack that deals or reduces damage based on intelligence and can have
-  additional effects.
-- Healing: Restores health. Scales with VIGOR.
-*/
+// String identifiers used by Action and ItemCard to route effect calculations
 export const ACTION_TYPES = {
     ATTACK_PHYSIC: "attack_physic",
     ATTACK_MAGIC: "attack_magic",
@@ -31,10 +17,7 @@ export const ACTION_TYPES = {
 }
 
 
-/*
-Card Rarity: classification method to determine how common the drop rate for cards should be.
-             Specifics to be determined later.
-*/
+// Rarity tiers used to bias card drop probabilities
 export const CARD_RARITY = {
     COMMON: "common",
     UNCOMMON: "uncommon",
@@ -44,25 +27,17 @@ export const CARD_RARITY = {
 }
 
 
-/*
-Parry results:
-- Perfect: The player parries at the optimal time, no damage taken and stamina recovered
-- Normal: The player parries within an acceptable time frame, little damage taken and little 
-          stamina recovered
-- Poor: The player parries too early or too late, full damage and no stamina recovered
-*/
+// Possible outcomes returned by the ParryBar timing check
 export const PARRY_RESULTS = {
     PERFECT: "perfect",
     NORMAL: "normal",
     POOR: "poor",
 }
 
-/*
-Max deck size: the maximum number of cards a player can have in their active deck (5)
-*/
+// Maximum number of cards the player can carry in the active deck
 export const MAX_DECK_SIZE = 5;
 
-// archetypes for character selection
+// Starter loadouts offered during character creation
 export const ARCHETYPES = {
     SOLDIER: {
         id: "soldier",
@@ -81,9 +56,7 @@ export const ARCHETYPES = {
     }
 };
 
-// Which attribute scales which card action.
-// DEXTERITY governs parry window (handled in battle), ENDURANCE expands max stamina,
-// VIGOR expands max HP and additionally scales HEALING cards.
+// Mapping of attribute keys to the action types they amplify
 export const ATTRIBUTE_SCALING = {
     STRENGTH: [ACTION_TYPES.ATTACK_PHYSIC, ACTION_TYPES.DEFEND_PHYSIC],
     INTELLIGENCE: [ACTION_TYPES.ATTACK_MAGIC, ACTION_TYPES.DEFEND_MAGIC],
@@ -92,7 +65,7 @@ export const ATTRIBUTE_SCALING = {
     ENDURANCE: []
 };
 
-// card requirements by id
+// Minimum attribute thresholds required to equip each card id
 export const CARD_REQUIREMENTS = {
     heavy_strike: { STRENGTH: 3 },
     precise_shot: { DEXTERITY: 3 },
@@ -102,8 +75,7 @@ export const CARD_REQUIREMENTS = {
     magic_shield: { INTELLIGENCE: 2 }
 };
 
-// Catalog of every card the game can spawn. GameSession builds the player's
-// inventory from archetype starting-card ids using this data (no DB yet).
+// Static catalog of every card available to spawn, used as the in-memory data source
 export const CARD_LIBRARY = {
     basic_attack: {
         name: "Basic Attack",

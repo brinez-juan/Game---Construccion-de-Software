@@ -1,8 +1,7 @@
 "use strict"; 
 import GameObject from './GameObject.js';
 
-//Move each of the classes to an independent file to make a cleaner structure
-//Change Menus name to screens because it will be the base class for all the screens in the game
+// Base class shared by every screen rendered on the canvas
 export default class Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0){
         this.canvasWidth = canvasWidth
@@ -14,7 +13,7 @@ export default class Menus{
 
     
 
-    //Base update and initElelemtns methods to avoid crashes
+    // Empty hooks subclasses override to add per-frame logic and rendering
     update(deltaTime){
     }
 

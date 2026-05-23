@@ -1,5 +1,6 @@
 import { MAX_DECK_SIZE } from "./GlobalVariables.js";
 
+// Drives the deck-builder UI flow including card flipping, validation and persistence triggers
 export default class BattleDeckManager {
     constructor(player, ui) {
         this.player = player;
@@ -7,6 +8,7 @@ export default class BattleDeckManager {
         this.flippedCard = null;
     }
 
+    // First click flips the card, second click on the same one commits it to the active deck
     handleCardClick(card, cardElement) {
         if (this.flippedCard && this.flippedCard != cardElement) {
             this._unflip(this.flippedCard);
@@ -42,6 +44,7 @@ export default class BattleDeckManager {
         this.ui.refreshBattleDeck();
     }
 
+    // Re-evaluates every rendered card and toggles the disabled style based on requirements
     refreshCardRequirements() {
         const container = this.ui.myDeckContainer;
         if (!container) return;

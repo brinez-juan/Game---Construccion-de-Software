@@ -1,6 +1,7 @@
 import Menus from './Menus.js';
 import TextLabel from './TextLabel.js';
 
+// End screen displayed when the player health drops to zero
 export default class gameOverScreen extends Menus{
     constructor(canvasWidth = 0, canvasHeight = 0){
         super('', canvasWidth, canvasHeight)

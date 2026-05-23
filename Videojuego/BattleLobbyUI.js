@@ -1,3 +1,4 @@
+// DOM renderer for the pre-battle lobby that exposes deck, inventory, attributes and continue button
 export default class BattleLobbyUI {
     constructor(container, player, callbacks) {
         this.container = container;
@@ -10,6 +11,7 @@ export default class BattleLobbyUI {
         this._render();
     }
 
+    // Builds the full lobby markup from player state and rebinds every event handler
     _render() {
         this.container.innerHTML = "";
         var html = '<div class="battle-lobby">';
@@ -86,6 +88,7 @@ export default class BattleLobbyUI {
         this.myDeckContainer = this.container.querySelector('.my-deck-grid');
     }
 
+    // Repaints the five battle deck slots after the active deck changes
     refreshBattleDeck() {
         var slots = this.battleDeckSlots.querySelectorAll('.deck-slot');
         var self = this;

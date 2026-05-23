@@ -2,6 +2,7 @@ import Menus from './Menus.js';
 import GameObject from './GameObject.js';
 import TextLabel from './TextLabel.js';
 
+// Title screen that exposes navigation entries for new game, continue, options and credits
 export default class mainMenu extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0, btnSize){
         super(background, canvasWidth, canvasHeight, canvas)
@@ -22,9 +23,10 @@ export default class mainMenu extends Menus{
         }
     }
 
+    // Builds the static UI tree and wires hover and click listeners on the canvas
     initElements(){
 
-        //Adding static elements for the main menu
+        // Add static elements for the main menu
         let buttons = ['New Game', 'Continue', 'Options', 'Credits']
         this.addElement('img', this.canvasWidth/2, this.canvasHeight/2 -60, 1024, 575, true,  '', false, '../Assets/Sprites/Logo.png')
         this.addElement('img')
@@ -47,7 +49,7 @@ export default class mainMenu extends Menus{
             this.selectionChecker(); 
         })
     }
-    //To add text and image elements to menu
+    // Helper used by initElements to push either a TextLabel or a GameObject into its bucket
     addElement(elementType = '', x, y, width, height, open = undefined, text = '', click, sprite = ''){
         let element; 
         if(elementType === 'text'){
@@ -61,7 +63,7 @@ export default class mainMenu extends Menus{
         }
     }
 
-    //Draw method for all menus
+    // Paints the background followed by every text and image element on top
     draw(ctx){
         this.background.draw(ctx)
         for(let element of this.textElements){
@@ -73,6 +75,7 @@ export default class mainMenu extends Menus{
         }
     }
 
+    // Sets the next state code based on which menu entry is currently hovered
     selectionChecker(){
         for(let element of this.textElements){
             if(element.hovered){

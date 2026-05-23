@@ -1,15 +1,7 @@
-// Browser-side adapter for the saved_games REST endpoints.
-// Carries the JWT that login.js stores under `authToken`; the server
-// scopes every query to that user, so the slot ids returned here are
-// already filtered to the current account.
-//
-// Slot shape returned by listSlots()/fetchSlot():
-//   { id, slotNumber, name, lastPlayedAt, createdAt,
-//     profile: { id, archetype, level, totalExperience, attributePoints } | null,
-//     run:     { id, floor, room, victory } | null }
-
+// Browser-side adapter for the saved-games REST endpoints scoped by the stored JWT
 const TOKEN_KEY = 'authToken';
 
+// Builds the request headers including the Bearer token when the user is logged in
 function authHeaders() {
   const token = localStorage.getItem(TOKEN_KEY);
   const headers = { 'Content-Type': 'application/json' };
@@ -17,6 +9,7 @@ function authHeaders() {
   return headers;
 }
 
+// Parses the JSON response and throws when the request or server-side validation failed
 async function parseOrThrow(response) {
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data.success === false) {
@@ -25,6 +18,7 @@ async function parseOrThrow(response) {
   return data;
 }
 
+// Thin client around every saved-games, profile, attribute, run and session endpoint
 export default class SavedGamesAPI {
   async listSlots() {
     const res = await fetch('/api/saved-games', { headers: authHeaders() });
@@ -32,9 +26,7 @@ export default class SavedGamesAPI {
     return data.slots;
   }
 
-  // SaveManager.newGame() calls this before the archetype is picked.
-  // The slot is created empty (profile_id NULL); ArchetypeManager will
-  // create the player_profile row and PUT its id back onto this slot.
+  // Creates an empty save slot to be linked to a profile once the archetype is picked
   async createSlot(initial = {}) {
     const res = await fetch('/api/saved-games', {
       method: 'POST',
@@ -62,9 +54,7 @@ export default class SavedGamesAPI {
     await parseOrThrow(res);
   }
 
-  // Patch any subset of { name, player_profile_id, current_run_id }.
-  // last_played_at is bumped server-side on every successful PUT, so
-  // the slot picker UI gets a "last session" sort for free.
+  // Patches a subset of slot fields and lets the server refresh the last-played timestamp
   async updateSlot(slotId, patch) {
     const res = await fetch(`/api/saved-games/${slotId}`, {
       method: 'PUT',
@@ -74,12 +64,7 @@ export default class SavedGamesAPI {
     await parseOrThrow(res);
   }
 
-  // --- Profile + attributes (US17 / issue #29) ---------------------
-
-  // ArchetypeManager calls this right after the user confirms their
-  // archetype. Pass the seeded attributes from ARCHETYPES (frontend is
-  // the source of truth for base stats). Server links the new profile
-  // back onto the slot via saved_games.player_profile_id.
+  // Persists the chosen archetype with its seeded attributes and links the profile to the slot
   async createProfile(slotId, { archetype, attributes = {}, attributePoints = 0 }) {
     const res = await fetch(`/api/saved-games/${slotId}/profile`, {
       method: 'POST',
@@ -99,7 +84,7 @@ export default class SavedGamesAPI {
     };
   }
 
-  // Battle Lobby pulls this to render the attribute chart.
+  // Returns the full attribute snapshot used by the Battle Lobby chart
   async getAttributes(slotId) {
     const res = await fetch(`/api/saved-games/${slotId}/attributes`, { headers: authHeaders() });
     const data = await parseOrThrow(res);
@@ -118,9 +103,7 @@ export default class SavedGamesAPI {
     };
   }
 
-  // '+' button in the Battle Lobby. `attribute` is one of STRENGTH,
-  // VIGOR, INTELLIGENCE, ENDURANCE, DEXTERITY. Resolves to the new
-  // attribute snapshot so the UI can refresh without a separate GET.
+  // Spends an attribute point and returns the refreshed snapshot for the UI
   async spendAttribute(slotId, attribute, amount = 1) {
     const res = await fetch(`/api/saved-games/${slotId}/attributes`, {
       method: 'PATCH',
@@ -140,10 +123,7 @@ export default class SavedGamesAPI {
     };
   }
 
-  // --- Runs / inventory / deck (US09 / issue #32) ------------------
-
-  // Called when the player leaves the map screen and enters a battle
-  // (or any time a fresh run begins). Server sets saved_games.current_run_id.
+  // Opens a fresh run record on the backend and binds it to the current slot
   async startRun(slotId) {
     const res = await fetch(`/api/saved-games/${slotId}/runs`, {
       method: 'POST',
@@ -153,8 +133,7 @@ export default class SavedGamesAPI {
     return data.run_id;
   }
 
-  // Reward path. is_permanent=true for archetype starters or the kept
-  // boss card; false (default) for in-run drops.
+  // Records a new card pickup distinguishing permanent starters from in-run drops
   async addCard(slotId, { cardId, isPermanent = false, obtainedAtFloor = null }) {
     const res = await fetch(`/api/saved-games/${slotId}/cards`, {
       method: 'POST',
@@ -169,18 +148,14 @@ export default class SavedGamesAPI {
     return data.id;
   }
 
-  // Full Battle Lobby inventory = permanent ∪ current-run pickups.
-  // Returned rows include the joined `cards` catalog data so the UI
-  // can render names/cost/scaling without a second round-trip.
+  // Returns every card available to the slot joined with catalog data for the UI
   async listCards(slotId) {
     const res = await fetch(`/api/saved-games/${slotId}/cards`, { headers: authHeaders() });
     const data = await parseOrThrow(res);
     return data.cards;
   }
 
-  // Battle Lobby "Continue" button. Creates the room_session and
-  // saves the chosen 5 cards atomically. `deck` is an array of card
-  // ids in UI slot order (slot N = deck[N-1]).
+  // Creates the room session and stores the five-card deck in slot order
   async startSession(runId, { roomId, deck }) {
     const res = await fetch(`/api/runs/${runId}/sessions`, {
       method: 'POST',

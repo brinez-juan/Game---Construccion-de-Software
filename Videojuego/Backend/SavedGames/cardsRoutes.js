@@ -1,3 +1,4 @@
+// Router for card inventory pickups, active-deck reads and room session creation
 import express from 'express';
 import pool from '../DB/dbconfig.js';
 import requireAuth from '../Auth/requireAuth.js';

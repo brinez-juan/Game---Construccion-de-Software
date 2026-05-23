@@ -1,6 +1,7 @@
 import Menus from './Menus.js';
 import TextLabel from './TextLabel.js';
 
+// End screen displayed when every enemy in the encounter is defeated
 export default class successScreen extends Menus{
     constructor(canvasWidth = 0, canvasHeight = 0){
         super('', canvasWidth, canvasHeight)

@@ -1,3 +1,4 @@
+// Router for saved-games slot CRUD scoped to the authenticated user
 import express from 'express';
 import pool from '../DB/dbconfig.js';
 import requireAuth from '../Auth/requireAuth.js';

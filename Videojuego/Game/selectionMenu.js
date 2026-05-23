@@ -2,7 +2,7 @@ import Menus from './Menus.js';
 import GameObject from './GameObject.js';
 import TextLabel from './TextLabel.js';
 
-//You guys can modify ui aspects if you want to but ensure UI keeps clean after
+// Save slot picker used for both new game creation and continuing a stored run
 export default class selectionMenu extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, menu){
         super(background, canvasWidth, canvasHeight)
@@ -139,6 +139,7 @@ export default class selectionMenu extends Menus{
         }
     }
 
+    // Reacts to a slot click by either confirming overwrite or jumping straight into a battle
     checkElementSelected(){
         for(let element of this.fields){
             if(element.hovered){
@@ -172,6 +173,7 @@ export default class selectionMenu extends Menus{
         }
     }
 
+    // Handles the yes, no and ok buttons of the overwrite confirmation dialog
     elementFieldSelection(){
         Object.entries(this.selectionField).forEach(([key,value]) =>{
             if(value && value.hovered){
