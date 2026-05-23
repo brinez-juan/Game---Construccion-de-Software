@@ -184,13 +184,13 @@ export default class battleScreen extends Menus{
             this.currentEnemyIndex = 0
             this.turn = 'player'
         }
-    }
 
     playerMaker(playerData){
         this.player = new Player(this.canvasWidth/5, this.canvasHeight/2 + 30, 120, 300, playerData.maxHealth, playerData.health, playerData.maxStamina, playerData.stamina, playerData.attributes, playerData.level, playerData.experience, playerData.experienceToNextLevel, playerData.inventory, playerData.activeDeck)
         this.player.setSprite('../Assets/Sprites/player.png')
-    }
+        }
     enemyMaker(enemyData){
+        const count = Math.floor(1 + Math.random() * 3);
         if(enemyData.length > 1){
             let positionY = this.canvasHeight/2
             let positionX = this.canvasWidth/2
@@ -208,4 +208,5 @@ export default class battleScreen extends Menus{
             this.enemies.push(enemyInstance)
         }
     }
+
 }

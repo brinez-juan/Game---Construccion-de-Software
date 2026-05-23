@@ -21,8 +21,8 @@ class Game {
     constructor(){
         this.canvasWidth = 800;
         this.canvasHeight = 600;
-        this.currentState = 0; 
-        this.isLoading = false; 
+        this.currentState = 0;
+        this.isLoading = false;
         this.menuStack = [];
         this.playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}]; 
         //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
