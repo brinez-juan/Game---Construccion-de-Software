@@ -10,6 +10,7 @@ export default class Action {
         baseDefense = 0,
         baseMagicDamage = 0,
         baseMagicDefense = 0,
+        baseHealing = 0,
         scalingAttribute = "STRENGTH",
         scaleFactor = 1.0,
         target = null
@@ -22,6 +23,7 @@ export default class Action {
         this.baseDefense = baseDefense;
         this.baseMagicDamage = baseMagicDamage;
         this.baseMagicDefense = baseMagicDefense;
+        this.baseHealing = baseHealing;
         this.scalingAttribute = scalingAttribute;
         this.scaleFactor = scaleFactor;
         this.target = target;
@@ -45,5 +47,10 @@ export default class Action {
     calculateMagicDefense(attributes = {}) {
         const attributeValue = attributes[this.scalingAttribute] ?? 0;
         return this.baseMagicDefense + (attributeValue * this.scaleFactor);
+    }
+
+    calculateHealing(attributes = {}) {
+        const attributeValue = attributes[this.scalingAttribute] ?? 0;
+        return this.baseHealing + (attributeValue * this.scaleFactor);
     }
 }
