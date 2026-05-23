@@ -28,7 +28,7 @@ class Game {
         this.isLoading = false;
         this.menuStack = [];
         this.playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}]; 
-        //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
+        this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30)
         this.menuStack.push(this.currentMenu)
         this.player = {maxHealth: 100, health: 100, maxStamina: 100, stamina: 100, attributes: {strength: 10, dexterity: 10, intelligence: 10}, 
         level: 1, experience: 0, experienceToNextLevel: 100, inventory: [], 
@@ -40,7 +40,6 @@ class Game {
           {id: 5, name: 'hunter_bow', description: 'A precise bow for swift and accurate strikes', action_type: 'attack_physic', stamina_cost: 12, base_damage: 6, rarity: 'uncommon', scales_with: 'dexterity', scaling_factor: 1.1, required_attribute: 'dexterity', required_value: 6, isPermanent: true}
         ]};
         this.currentEnemyPool = [{name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}]; 
-        this.currentMenu = new battleScreen('../Assets/backgrounds/background_1.png', this.canvasWidth, this.canvasHeight, this.player, this.currentEnemyPool)
         this.addEventListeners();
     }
 
