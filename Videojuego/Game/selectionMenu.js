@@ -153,13 +153,13 @@ export default class selectionMenu extends Menus{
                         }
                         else{
                             //Modify this when adding states in game
-                            this.state = 0; 
+                            this.state = 6; 
                         }
                     }
                     else{
                         if(this.menuType === 'new'){
                             //Modify this when adding states in game
-                            this.state = 0; 
+                            this.state = 6; 
                         }
                         else{
                             this.selectionField.frame = new GameObject(this.canvasWidth/2, this.canvasHeight/2, 300, 300, undefined, undefined, undefined)
@@ -177,8 +177,7 @@ export default class selectionMenu extends Menus{
             if(value && value.hovered){
                 if(key === 'yes'){
                     //add logic to overwrite data
-                    this.elementSelected = undefined
-                    this.selectionField = Object.fromEntries(Object.keys(this.selectionField).map(key => [key, null]));
+                    this.state = 6;
                 }
                 else if(key === 'no' || key === 'ok'){                   
                     this.elementSelected = undefined
