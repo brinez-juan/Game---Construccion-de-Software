@@ -7,7 +7,7 @@
 
 "use strict";
 
-export default class TextLabel {
+class TextLabel {
     constructor(x, y, font, color, open = undefined, text, click = false) {
         this.x = x;
         this.y = y;
