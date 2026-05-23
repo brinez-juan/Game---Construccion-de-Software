@@ -113,6 +113,16 @@ export default class battleScreen extends Menus{
         this.listenersActive = false
     }
     update(deltaTime){
+        if(this.player.health <= 0){
+            this.removeEventListeners()
+            this.state = 7
+            return
+        }
+        if(this.enemies.every(enemy => enemy.health <= 0)){
+            this.removeEventListeners()
+            this.state = 8
+            return
+        }
         if(this.turn === 'player'){
             this.addEventListeners()
             for(let enemy of this.enemies){

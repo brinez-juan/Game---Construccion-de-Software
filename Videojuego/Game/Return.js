@@ -4,6 +4,8 @@ import mainMenu from './mainMenu.js';
 import selectionMenu from './selectionMenu.js';
 import optionsMenu from './optionsMenu.js';
 import creditScreen from './creditScreen.js';
+import gameOverScreen from './gameOverScreen.js';
+import successScreen from './successScreen.js';
 import Player from './Player.js';
 
 // Context of the Canvas
@@ -93,6 +95,12 @@ class Game {
         }
         else if(state === 6){
             this.currentMenu = new battleScreen('../Assets/backgrounds/background_1.png', this.canvasWidth, this.canvasHeight, this.player, this.currentEnemyPool)
+        }
+        else if(state === 7){
+            this.currentMenu = new gameOverScreen(this.canvasWidth, this.canvasHeight)
+        }
+        else if(state === 8){
+            this.currentMenu = new successScreen(this.canvasWidth, this.canvasHeight)
         }
         this.menuStack.push(this.currentMenu)
     }
