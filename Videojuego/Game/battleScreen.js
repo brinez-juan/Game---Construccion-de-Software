@@ -208,20 +208,22 @@ export default class battleScreen extends Menus{
 
     // Instantiates Enemy objects from raw pool data and lays them out on the canvas
     enemyMaker(enemyData){
-        const count = Math.floor(1 + Math.random() * 3);
-        if(enemyData.length > 1){
+        let count = Math.floor(1 + Math.random() * 2);
+        if(count > 1){
             let positionY = this.canvasHeight/2
             let positionX = this.canvasWidth/2
             let offSetX = 150
             let offSetY = 50
-            for(let enemy of enemyData){
-                let enemyInstance = new Enemy(positionX, positionY, 120, 300,enemy.name, enemy.health, enemy.maxHealth, enemy.stamina, enemy.maxStamina, enemy.attributes)
+            for(let i = 0; i < count; i++){
+                let enemyIndex = Math.floor(Math.random() * (enemyData.length-1))
+                let enemyInstance = new Enemy(positionX, positionY, 120, 300,enemyData[enemyIndex].name, enemyData[enemyIndex].health, enemyData[enemyIndex].maxHealth, enemyData[enemyIndex].stamina, enemyData[enemyIndex].maxStamina, enemyData[enemyIndex].attributes)
                 this.enemies.push(enemyInstance)
                 positionX += offSetX
                 positionY += offSetY
             }
         }
         else{
+            let enemyIndex = Math.floor(Math.random() * (enemyData.length-1))
             let enemyInstance = new Enemy(3*this.canvasWidth/4, this.player.y, 200, 300,enemyData[0].name, enemyData[0].health, enemyData[0].maxHealth, enemyData[0].stamina, enemyData[0].maxStamina, enemyData[0].attributes)
             this.enemies.push(enemyInstance)
         }
