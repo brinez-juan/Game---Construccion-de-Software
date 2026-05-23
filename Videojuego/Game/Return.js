@@ -8,9 +8,8 @@ import Player from './Player.js';
 
 // Context of the Canvas
 let ctx;
-
-// A variable to store the game object
 let game;
+let oldTime = 0;
 
 // Variable to define oldTime
 let oldTime = 0
@@ -20,9 +19,9 @@ export const canvas = document.getElementById('canvas');
 //TODO: Replace with information gotten from the database
 //Make it an instance attribute of game
 
-class Game{
+class Game {
     constructor(){
-        this.canvasWidth = 800; 
+        this.canvasWidth = 800;
         this.canvasHeight = 600;
         this.currentState = 0; 
         this.isLoading = false; 
@@ -44,23 +43,30 @@ class Game{
         this.addEventListeners();
     }
 
-    addEventListeners(){
-
-    }
+    addEventListeners(){}
 
     draw(ctx){
-        this.currentMenu.draw(ctx)
+        this.currentMenu.draw(ctx);
     }
 
     update(deltaTime){
-        if (this.currentState != this.currentMenu.state){
-            this.currentState = this.currentMenu.state
-            this.screenManager(this.currentMenu.state)
+        if(this.isLoading){
+            this.loadTimer += deltaTime;
+            if(this.loadTimer > 2000){
+                this.isLoading = false;
+                this.loadTimer = 0;
+                this.currentState = 0;
+                this.screenManager(0);
+            }
+        }
+        else if (this.currentState != this.currentMenu.state){
+            this.currentState = this.currentMenu.state;
+            this.screenManager(this.currentMenu.state);
         }
         if(this.menuStack.length > 3){
-            this.menuStack.shift()
+            this.menuStack.shift();
         }
-        this.currentMenu.update(deltaTime)
+        this.currentMenu.update(deltaTime);
     }
 
     screenManager(state){
@@ -71,33 +77,28 @@ class Game{
             this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, this.playerProfiles, 'new')
         }
         else if(state === 2){
-            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'continue')
+            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, playerProfiles, 'continue');
         }
         else if(state === 3){
-            this.currentMenu = new optionsMenu('../Assets/backgrounds/options_background.png', this.canvasWidth, this.canvasHeight, 'pause')
+            this.currentMenu = new optionsMenu('../Assets/backgrounds/options_background.png', this.canvasWidth, this.canvasHeight, 'pause');
         }
         else if(state === 4){
-            this.currentMenu = new creditScreen('../Assets/backgrounds/credits.png', this.canvasWidth, this.canvasHeight)
+            this.currentMenu = new creditScreen('../Assets/backgrounds/credits.png', this.canvasWidth, this.canvasHeight);
         }
         else if(state === 5){
-            this.currentMenu = this.menuStack[this.menuStack.indexOf(this.currentMenu) - 1]
-            this.currentMenu.pop()
+            this.currentMenu = this.menuStack[this.menuStack.indexOf(this.currentMenu) - 1];
+            this.currentMenu.pop();
         }
         this.menuStack.push(this.currentMenu)
     }
 }
 
 function main(){
-    // Create the game object
-    game = new Game()
-    // Resize the element
+    game = new Game();
     canvas.width = game.canvasWidth;
     canvas.height = game.canvasHeight;
-    // Get the context for drawing in 2D
     ctx = canvas.getContext('2d');
-
-
-    drawScene(0, game.canvasWidth, game.canvasHeight);   
+    drawScene(0, game.canvasWidth, game.canvasHeight);
 }
 
 function drawScene(newTime, canvasWidth, canvasHeight) {
@@ -105,16 +106,11 @@ function drawScene(newTime, canvasWidth, canvasHeight) {
         oldTime = newTime;
     }
     let deltaTime = newTime - oldTime;
-
-    // Clean the canvas so we can draw everything again
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
     game.update(deltaTime);
-
     game.draw(ctx);
-
     oldTime = newTime;
     requestAnimationFrame(drawScene);
 }
 
-main()
+main();
