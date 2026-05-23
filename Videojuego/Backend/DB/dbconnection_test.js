@@ -1,3 +1,4 @@
+// Smoke-test server that exposes a single endpoint to verify the database pool is reachable
 import express from 'express';
 import pool from './dbconfig.js';
 

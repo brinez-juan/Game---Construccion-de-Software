@@ -1,3 +1,4 @@
+// Coordinates audio, language, pause and progress wipe actions through injected controllers
 export default class GameStateManager {
     constructor(controllers) {
         this.audioController = controllers.audioController || {};
@@ -45,6 +46,7 @@ export default class GameStateManager {
         }
     }
 
+    // Asks for confirmation and wipes server-side progress before returning to the title screen
     async deleteAllProgress() {
         var ok = confirm("Delete all progress?");
         if (!ok) return;

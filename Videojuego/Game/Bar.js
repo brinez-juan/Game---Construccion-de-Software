@@ -1,5 +1,6 @@
 import GameObject from './GameObject.js';
 
+// HUD bar that renders a fillable indicator over a missing-value background
 export default class Bar{
     constructor(x, y, width, height, indicatorSprite, stat){
         this.indicatorBar = new GameObject(x, y, width, height); 
@@ -9,6 +10,7 @@ export default class Bar{
         this.stat = stat;
     }
 
+    // Shrinks the indicator by the percentage of the stat that was just lost
     calculateCurrentIndicatorSubstraction(substractionValue){
         let percentage = substractionValue/this.stat;
         const oldWidth = this.indicatorBar.width;
@@ -20,6 +22,7 @@ export default class Bar{
         this.indicatorBar.x -= actualDelta / 2;
     }
 
+    // Grows the indicator by the percentage of the stat that was just recovered
     calculateCurrentIndicatorAddition(additionValue){
         let percentage = additionValue/this.stat;
         const oldWidth = this.indicatorBar.width;

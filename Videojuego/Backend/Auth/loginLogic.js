@@ -1,7 +1,8 @@
+// Login endpoint with failed-attempt tracking, temporary lockout and JWT issuance on success
 import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import pool from '../DB/dbconfig.js'; // Connection pool from US05
+import pool from '../DB/dbconfig.js';
 
 const router = express.Router();
 const MAX_FAILED_ATTEMPTS = 5;

@@ -1,6 +1,7 @@
 import Menus from './Menus.js';
 import GameObject from './GameObject.js';
 
+// Settings screen that toggles audio fields and adds an exit shortcut in pause mode
 export default class optionsMenu extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0, menuType){
         super(background, canvasWidth, canvasHeight)
@@ -54,6 +55,7 @@ export default class optionsMenu extends Menus{
 
     }
 
+    // Switches the hovered audio toggle sprite and updates its on or off type tag
     fieldChecker(){
         if(this.sfxField.hovered && this.sfxField.type === 'on'){
                 this.sfxField.setSprite('../Assets/Sprites/sfx_off.png')

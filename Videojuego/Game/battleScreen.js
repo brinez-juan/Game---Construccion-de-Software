@@ -5,6 +5,7 @@ import ParryBar from './parryBar.js';
 import ItemCard from './ItemCard.js';
 import {canvas} from './Return.js';
 
+// Main combat scene that orchestrates player turn, enemy turn, parry timing and end conditions
 export default class battleScreen extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, enemies){
         super(background, canvasWidth, canvasHeight)
@@ -23,6 +24,7 @@ export default class battleScreen extends Menus{
         this.playerDefending = false;
     }
 
+    // Routes cursor movement to deck cards and to enemies during the targeting phase
     handleMouseMove(e){
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
@@ -37,6 +39,7 @@ export default class battleScreen extends Menus{
         }
     }
 
+    // Handles card selection, target picking and stamina spending during the player turn
     handleClick(e){
         if(!this.cardInAction){
             for(let card of this.player.deck){
@@ -112,6 +115,7 @@ export default class battleScreen extends Menus{
         canvas.removeEventListener('click', this.handleClick)
         this.listenersActive = false
     }
+    // Per-frame loop that detects end conditions and advances either the player or the enemy turn
     update(deltaTime){
         if(this.player.health <= 0){
             this.removeEventListeners()
@@ -147,6 +151,7 @@ export default class battleScreen extends Menus{
         this.enemies = this.enemies.filter(enemy => enemy.health > 0)
     }
 
+    // Resolves one enemy attack per call by combining AI decision, parry result and stat changes
     enemyTurn(){
         if(this.currentEnemyIndex < this.enemies.length){
             this.enemyAttacking = this.enemies[this.currentEnemyIndex]
@@ -201,6 +206,7 @@ export default class battleScreen extends Menus{
         this.player.setSprite('../Assets/Sprites/player.png')
     }
 
+    // Instantiates Enemy objects from raw pool data and lays them out on the canvas
     enemyMaker(enemyData){
         const count = Math.floor(1 + Math.random() * 3);
         if(enemyData.length > 1){

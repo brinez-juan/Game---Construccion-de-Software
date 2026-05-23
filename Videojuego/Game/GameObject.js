@@ -1,3 +1,4 @@
+// Base class for every visual entity rendered on the canvas
 export default class GameObject {
     constructor(x = 0, y = 0, width = 0, height = 0, type = undefined, open_ = undefined, click = undefined) {
         this.x = x;
@@ -15,6 +16,7 @@ export default class GameObject {
         this.hovered; 
     }
 
+    // Assigns a sprite image and optional source rectangle for sheet cropping
     setSprite(imagePath, rect) {
         this.spriteImage = new Image();
         this.spriteImage.src = imagePath;
@@ -45,6 +47,7 @@ export default class GameObject {
         }
     }
 
+    // Updates the hovered flag when the cursor is over the object bounds
     mouseCollition(mouseX, mouseY){
         let left = this.x - this.width/2
         let right = this.x + this.width/2
@@ -53,6 +56,7 @@ export default class GameObject {
         this.hovered = left <= mouseX && mouseX <= right && mouseY <= bottom && top <= mouseY
     }
 
+    // Returns true when another object center sits inside this horizontal range
     xAxisCollition(object){
         let left = this.x - this.width/2
         let right = this.x + this.width/2

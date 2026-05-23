@@ -1,5 +1,6 @@
 import { PARRY_RESULTS } from "./GlobalVariables.js";
 
+// Centralized rules for spending and regenerating player stamina during a run
 export default class StaminaSystem {
     initRun(player) {
         player.stamina = player.maxStamina;
@@ -9,6 +10,7 @@ export default class StaminaSystem {
         return player.stamina >= card.staminaCost;
     }
 
+    // Tries to spend the card stamina cost and returns false when the player is too tired
     useCard(player, card) {
         if (!this.canUseCard(player, card)) {
             console.warn("not enough stamina for " + card.name);
@@ -18,6 +20,7 @@ export default class StaminaSystem {
         return true;
     }
 
+    // Grants stamina back to the player based on the quality of their parry attempt
     applyParryRecovery(player, parryResult) {
         let amount = 0;
         if (parryResult == PARRY_RESULTS.PERFECT) {

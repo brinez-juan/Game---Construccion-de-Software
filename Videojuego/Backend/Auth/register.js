@@ -1,3 +1,4 @@
+// Registration endpoint that validates input, hashes the password and returns a fresh JWT
 import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';

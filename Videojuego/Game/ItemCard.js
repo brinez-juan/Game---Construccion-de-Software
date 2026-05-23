@@ -2,6 +2,7 @@ import GameObject from './GameObject.js';
 import { CARD_RARITY, ACTION_TYPES } from "./GlobalVariables.js";
 import Action from "./Action.js";
 
+// Renderable card that wraps an Action plus its requirements, rarity and cost
 export default class ItemCard extends GameObject {
     constructor(
         x = 0,
@@ -26,6 +27,7 @@ export default class ItemCard extends GameObject {
         this.isPermanent = isPermanent;
     }
 
+    // Returns true only when every required attribute reaches its threshold
     meetsRequirements(playerAttributes = {}) {
         for (const [attr, minValue] of Object.entries(this.requirements)) {
             if ((playerAttributes[attr] ?? 0) < minValue) return false;
@@ -33,6 +35,7 @@ export default class ItemCard extends GameObject {
         return true;
     }
 
+    // Dispatches to the right Action formula according to this card action type
     calculateEffect(playerAttributes = {}) {
         switch (this.action.actionType) {
             case ACTION_TYPES.ATTACK_PHYSIC:

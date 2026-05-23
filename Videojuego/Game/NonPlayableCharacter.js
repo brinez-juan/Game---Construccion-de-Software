@@ -3,6 +3,7 @@ import { ACTION_TYPES } from "./GlobalVariables.js";
 import Bar from "./Bar.js";
 import GameObject from "./GameObject.js";
 
+// Friendly character used to deliver scripted dialogue lines
 export class NPC extends Character {
     constructor(name = "", dialogue = []) {
         super(name);
@@ -20,6 +21,7 @@ export class NPC extends Character {
     }
 }
 
+// Hostile combat entity with offensive and defensive stats plus AI decisions
 export class Enemy extends Character {
     constructor(
         x = 0,
@@ -58,10 +60,11 @@ export class Enemy extends Character {
         canvas.removeEventListener('mousemove', this.mouseCollition);
     }
 
+    // Picks an action type based on the enemy health ratio and the player damage profile
     decideAction(player) {
         const healthRatio = this.health / this.maxHealth;
 
-        // Detectar tipo dominante del jugador
+        // Detect dominant player damage type
         let playerType;
         if (player.physicalDamage > player.magicDamage) {
             playerType = "physical";
@@ -71,7 +74,7 @@ export class Enemy extends Character {
             playerType = "balanced";
         }
 
-        // Determinar estado de vida
+        // Classify the enemy health state to bias the chosen behavior
         let state;
         if (healthRatio > 0.6) {
             state = "aggressive";
@@ -81,14 +84,14 @@ export class Enemy extends Character {
             state = "defensive";
         }
 
-        // Opciones disponibles según stats
+        // Build the list of actions this enemy is currently capable of
         const options = [];
         if (this.physicalDamage > 0) options.push(ACTION_TYPES.ATTACK_PHYSIC);
         if (this.magicDamage > 0) options.push(ACTION_TYPES.ATTACK_MAGIC);
         if (this.physicalDefense > 0) options.push(ACTION_TYPES.DEFEND_PHYSIC);
         if (this.magicDefense > 0) options.push(ACTION_TYPES.DEFEND_MAGIC);
 
-        // 20% de probabilidad de tomar una acción aleatoria entre las viables
+        // Small random chance to pick any viable option to keep behavior unpredictable
         if (Math.random() < 0.2 && options.length > 0) {
             return options[Math.floor(Math.random() * (options.length-1))];
         }
@@ -126,10 +129,11 @@ export class Enemy extends Character {
                 : ACTION_TYPES.ATTACK_PHYSIC;
         }
 
-        // fallback (jugador balanceado)
+        // Fallback for balanced players where no clear counter exists
         return options[Math.floor(Math.random() * options.length)];
     }
 
+    // Multiplies the reward yield when this enemy is a boss
     bossRewards() {
         if (this.isBoss) {
             this.experienceReward *= 3;

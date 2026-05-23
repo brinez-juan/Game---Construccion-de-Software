@@ -3,6 +3,7 @@ import ItemCard from "./ItemCard.js";
 import Action from "./Action.js";
 import { ARCHETYPES, CARD_LIBRARY, CARD_REQUIREMENTS, CARD_RARITY } from "./GlobalVariables.js";
 
+// Builds a fully-formed ItemCard out of a CARD_LIBRARY entry by id
 function createCardFromId(id) {
     const def = CARD_LIBRARY[id];
     if (!def) return null;
@@ -31,6 +32,7 @@ function createCardFromId(id) {
     );
 }
 
+// Singleton-style container that holds the active player, archetype and save slot
 class GameSession {
     constructor() {
         this.player = null;
@@ -38,6 +40,7 @@ class GameSession {
         this.activeSaveSlotId = null;
     }
 
+    // Instantiates a player from the selected archetype with seeded stats and starter deck
     createPlayerForArchetype(archetypeId) {
         const archetype = ARCHETYPES[archetypeId];
         if (!archetype) return null;
@@ -46,7 +49,7 @@ class GameSession {
         for (const key in archetype.attributes) {
             this.player.attributes[key] = archetype.attributes[key];
         }
-        // VIGOR / ENDURANCE expand the pools at character creation.
+        // VIGOR and ENDURANCE expand the resource pools at character creation
         this.player.maxHealth = 100 + this.player.attributes.VIGOR * 10;
         this.player.health = this.player.maxHealth;
         this.player.maxStamina = 100 + this.player.attributes.ENDURANCE * 5;

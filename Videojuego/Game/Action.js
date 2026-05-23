@@ -1,5 +1,6 @@
 import { ACTION_TYPES } from "./GlobalVariables.js";
 
+// Combat effect descriptor that scales damage, defense or healing with a character attribute
 export default class Action {
     constructor(
         name = "",

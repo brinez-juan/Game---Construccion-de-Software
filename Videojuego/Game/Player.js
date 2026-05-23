@@ -5,6 +5,7 @@ import { canvas } from "./Return.js";
 import ItemCard from "./ItemCard.js";
 import Action from "./Action.js";
 
+// Player character with progression, inventory, active deck and battle HUD bars
 export default class Player extends Character {
     constructor(
         x,
@@ -34,6 +35,7 @@ export default class Player extends Character {
         this.experience += amount;
     }
 
+    // Consumes experience to raise level and grows the next level threshold
     levelUp() {
         if (this.experience >= this.experienceToNextLevel) {
             this.experience -= this.experienceToNextLevel;
@@ -56,12 +58,14 @@ export default class Player extends Character {
         this.inventory.push(card);
     }
 
+    // Replaces the active deck after enforcing the maximum deck size
     setActiveDeck(selectedCards) {
         if (selectedCards.length > MAX_DECK_SIZE) return false;
         this.activeDeck = [...selectedCards];
         return true;
     }
 
+    // Restores the player to base stats at the start of a new roguelite run
     resetRun() {
         this.health = this.maxHealth;
         this.stamina = this.maxStamina;
@@ -71,6 +75,7 @@ export default class Player extends Character {
         this.activeDeck = [];
     }
 
+    // Builds renderable ItemCard instances from raw deck data and lays them in a row
     deckMaker(activeDeck, positionX, positionY, cardWidth, cardHeight, offSetX){
         
         let posX = positionX - 2 * (cardWidth + offSetX)

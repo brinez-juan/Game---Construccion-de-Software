@@ -1,4 +1,5 @@
-import mysql from 'mysql2/promise'; // Using ES Modules, or use require() if using CommonJS
+// Shared MySQL connection pool configured from environment variables
+import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';

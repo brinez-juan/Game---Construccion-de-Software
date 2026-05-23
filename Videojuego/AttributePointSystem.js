@@ -1,3 +1,4 @@
+// Tracks free attribute points, spends them, refreshes UI and pushes the result to the backend
 export default class AttributePointSystem {
     constructor(player, ui, deckManager, attributeAPI) {
         this.player = player;
@@ -12,6 +13,7 @@ export default class AttributePointSystem {
         this.ui.setAvailablePoints(points);
     }
 
+    // Consumes one point on the selected attribute and refreshes any card scaling with it
     spendPoint(attributeName) {
         if (this.availablePoints <= 0) return;
         this.availablePoints--;

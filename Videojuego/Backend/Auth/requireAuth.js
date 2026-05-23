@@ -1,8 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-// Verifies the JWT issued by /auth/login or /auth/register and attaches
-// { id, username } to req.user. All saved-game routes scope queries by
-// req.user.id so a user can never read or mutate another user's saves.
+// Express middleware that validates the bearer JWT and attaches the user payload to the request
 export default function requireAuth(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;

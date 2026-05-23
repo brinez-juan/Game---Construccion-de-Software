@@ -2,6 +2,7 @@ import GameObject from "./GameObject.js";
 import { BASE_ATTRIBUTES } from "./GlobalVariables.js";
 
 
+// Base class for any living entity in the game with health, stamina and attributes
 export default class Character extends GameObject {
     constructor(
         name = "",
@@ -28,6 +29,7 @@ export default class Character extends GameObject {
         return this.health > 0;
     }
 
+    // Applies incoming damage and clamps health at zero
     takesDamage(damage) {
         this.health -= damage;
         if (this.health < 0) {
@@ -35,6 +37,7 @@ export default class Character extends GameObject {
         }
     }
 
+    // Subtracts stamina without falling below zero
     spendStamina(amount) {
         this.stamina -= amount;
         if (this.stamina < 0) {
@@ -42,6 +45,7 @@ export default class Character extends GameObject {
         }
     }
 
+    // Adds stamina without exceeding the cap
     recoverStamina(amount) {
         this.stamina += amount;
         if (this.stamina > this.maxStamina) {

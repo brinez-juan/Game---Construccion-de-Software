@@ -1,3 +1,4 @@
+// Adds live validation feedback to the sign-up email and password fields
 function signInFieldsListeners(){
     const usernameField = document.getElementById('sign-mail');
     usernameField.addEventListener('input', (event) =>{
@@ -22,6 +23,7 @@ function signInFieldsListeners(){
     })
 }
 
+// Toggles the visible panel between the login form and the sign-up form
 function stateButtonEvents(){
     $('#sign-button').click(function(){
         $('.login-menu').fadeOut();
@@ -35,6 +37,7 @@ function stateButtonEvents(){
     })
 }
 
+// Submits the sign-up form to the auth backend and stores the returned token on success
 function registerSubmitListener(){
     const submitButton = document.getElementById('sign-submit');
     const messageEl = document.getElementById('sign-message');
@@ -83,6 +86,7 @@ function registerSubmitListener(){
     });
 }
 
+// Submits the login form and persists the auth token and user payload on success
 function loginSubmitListener(){
     const submitButton = document.getElementById('login-submit');
     const messageEl = document.getElementById('login-message');
@@ -130,6 +134,7 @@ function loginSubmitListener(){
     });
 }
 
+// Entry point that registers every listener required by the login page
 function main(){
     signInFieldsListeners();
     stateButtonEvents();
