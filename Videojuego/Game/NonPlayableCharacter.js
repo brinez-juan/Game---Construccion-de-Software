@@ -49,19 +49,13 @@ export class Enemy extends Character {
         this.cardReward = cardReward;
         this.isBoss = isBoss;
         this.setSprite(`../Assets/Sprites/${name}.png`)
-        this.healthBar = new Bar(this.x, this.y -this.height/2 - 20, this.width, 20, '../Assets/Sprites/health_bar.png');
+        this.healthBar = new Bar(this.x, this.y -this.height/2 - 20, this.width, 20, '../Assets/Sprites/health_bar.png', this.maxHealth);
         this.indicator = new GameObject(this.x, this.y - this.height/2 - 50, 30, 30);
         this.indicator.setSprite('')
-        this.addEventListeners();
     }
 
-    addEventListeners() {
-        canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            this.mouseCollition(mouseX, mouseY)
-        });
+    removeEventListeners() {
+        canvas.removeEventListener('mousemove', this.mouseCollition);
     }
 
     decideAction(player) {

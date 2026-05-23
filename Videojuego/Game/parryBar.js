@@ -15,7 +15,6 @@ export default class ParryBar{
         this.parryIcon = new GameObject(canvasWidth/2 - 120, CanvasHeight/2 + 45, 45, 45);
         this.parryIcon.setSprite('../Assets/Sprites/parry_icon.png')
         this.state = null; 
-
         this.handleKeyDown = this.handleKeyDown.bind(this);
         window.addEventListener('keydown', this.handleKeyDown);
     }
@@ -66,7 +65,7 @@ export default class ParryBar{
 
     update(deltaTime, playerDexterity = 0){
         if(!this.state){
-            this.parryIcon.x += (1*(this.maxStamina/this.stamina) - 0.3*playerDexterity)
+            this.parryIcon.x += (1*(this.maxStamina/this.stamina) - 0.01*playerDexterity)
         }
         if(this.parryIcon.x > this.missParryIndicator.x + this.missParryIndicator.width/2){
             this.state = 'miss'
