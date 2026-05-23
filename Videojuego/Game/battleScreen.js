@@ -208,39 +208,23 @@ export default class battleScreen extends Menus{
 
     // Instantiates Enemy objects from raw pool data and lays them out on the canvas
     enemyMaker(enemyData){
-<<<<<<< HEAD
         let count = Math.floor(1 + Math.random() * 2);
         if(count > 1){
-=======
-        let numberOfEnemies = Math.floor(Math.random()*2 + 1)
-        if(numberOfEnemies > 1){
->>>>>>> 5d3b13d (Added enemy randomizer)
             let positionY = this.canvasHeight/2
             let positionX = this.canvasWidth/2
             let offSetX = 150
             let offSetY = 50
-<<<<<<< HEAD
             for(let i = 0; i < count; i++){
-                let enemyIndex = Math.floor(Math.random() * (enemyData.length-1))
-                let enemyInstance = new Enemy(positionX, positionY, 120, 300,enemyData[enemyIndex].name, enemyData[enemyIndex].health, enemyData[enemyIndex].maxHealth, enemyData[enemyIndex].stamina, enemyData[enemyIndex].maxStamina, enemyData[enemyIndex].attributes)
-=======
-            for(let i = 0; i < numberOfEnemies; i++){
                 let randomIndex = Math.floor(Math.random()*(enemyData.length-1))
                 let enemyInstance = new Enemy(positionX, positionY, 120, 300,enemyData[randomIndex].name, enemyData[randomIndex].health, enemyData[randomIndex].maxHealth, enemyData[randomIndex].stamina, enemyData[randomIndex].maxStamina, enemyData[randomIndex].attributes)
->>>>>>> 5d3b13d (Added enemy randomizer)
                 this.enemies.push(enemyInstance)
                 positionX += offSetX
                 positionY += offSetY
             }
         }
         else{
-<<<<<<< HEAD
-            let enemyIndex = Math.floor(Math.random() * (enemyData.length-1))
-            let enemyInstance = new Enemy(3*this.canvasWidth/4, this.player.y, 200, 300,enemyData[0].name, enemyData[0].health, enemyData[0].maxHealth, enemyData[0].stamina, enemyData[0].maxStamina, enemyData[0].attributes)
-=======
             let randomIndex = Math.floor(Math.random()*(enemyData.length-1))
             let enemyInstance = new Enemy(3*this.canvasWidth/4, this.player.y, 200, 300,enemyData[randomIndex].name, enemyData[randomIndex].health, enemyData[randomIndex].maxHealth, enemyData[randomIndex].stamina, enemyData[randomIndex].maxStamina, enemyData[randomIndex].attributes)
->>>>>>> 5d3b13d (Added enemy randomizer)
             this.enemies.push(enemyInstance)
         }
     }
