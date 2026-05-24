@@ -51,6 +51,17 @@ export default class battleScreen extends Menus{
                         this.turn = 'enemy'
                         return
                     }
+                    else if(card.action.actionType === 'aoe_magic' || card.action.actionType === 'aoe_physic'){
+                        let damageDone = card.action.calculateDamage(this.player.attributes)
+                        for(let enemy of this.enemies){
+                            enemy.health -= damageDone
+                            enemy.healthBar.calculateCurrentIndicatorSubstraction(damageDone)
+                        }
+                        this.player.stamina = this.player.stamina - card.staminaCost > 0 ? this.player.stamina - card.staminaCost : 0
+                        this.player.staminaBar.calculateCurrentIndicatorSubstraction(card.staminaCost)
+                        this.turn = 'enemy'
+                        return
+                    }
                     else{
                         this.cardInAction = card
                         this.cardInAction.y -= 15
@@ -98,8 +109,10 @@ export default class battleScreen extends Menus{
         for(let card of this.player.deck){
             card.draw(ctx)
         }
-        if(this.turn === 'enemy' && !this.ParryBar.state){
-            this.ParryBar.draw(ctx)
+        if(this.turn === 'enemy'){
+            if(!this.ParryBar.state){
+                this.ParryBar.draw(ctx)
+            }
         }
     }
     addEventListeners(){

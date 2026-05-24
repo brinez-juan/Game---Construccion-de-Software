@@ -33,7 +33,7 @@ class Game {
         this.player = {maxHealth: 100, health: 100, maxStamina: 100, stamina: 100, attributes: {strength: 10, dexterity: 10, intelligence: 10}, 
         level: 1, experience: 0, experienceToNextLevel: 100, inventory: [], 
         activeDeck: [
-          {id: 1, name: 'fireball', description: 'this is a fire ball', action_type: 'attack_magic', stamina_cost: 20, base_damage: 6, rarity: 'common', scales_with: 'intelligence', scaling_factor: 1.1, required_attribute: 'intelligence', required_value: 3, isPermanent: true},
+          {id: 1, name: 'fireball', description: 'this is a fire ball', action_type: 'aoe_magic', stamina_cost: 20, base_damage: 6, rarity: 'common', scales_with: 'intelligence', scaling_factor: 1.1, required_attribute: 'intelligence', required_value: 3, isPermanent: true},
           {id: 2, name: 'vicious_sword', description: 'A wickedly sharp sword with a dark aura', action_type: 'attack_physic', stamina_cost: 15, base_damage: 6, rarity: 'uncommon', scales_with: 'strength', scaling_factor: 1.2, required_attribute: 'strength', required_value: 5, isPermanent: true},
           {id: 3, name: 'knight_shield', description: 'A sturdy shield that provides strong defense', action_type: 'defend_physic', stamina_cost: 10, base_damage: 0, rarity: 'uncommon', scales_with: 'strength', scaling_factor: 1.1, required_attribute: 'strength', required_value: 4, isPermanent: true},
           {id: 4, name: 'battle_axe', description: 'A heavy axe designed for devastating attacks', action_type: 'attack_physic', stamina_cost: 25, base_damage: 6, rarity: 'rare', scales_with: 'strength', scaling_factor: 1.1, required_attribute: 'strength', required_value: 7, isPermanent: true},
