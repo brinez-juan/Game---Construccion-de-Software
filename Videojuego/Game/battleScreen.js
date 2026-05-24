@@ -217,6 +217,7 @@ export default class battleScreen extends Menus{
             for(let i = 0; i < count; i++){
                 let enemyIndex = Math.floor(Math.random() * (enemyData.length-1))
                 let enemyInstance = new Enemy(positionX, positionY, 120, 300,enemyData[enemyIndex].name, enemyData[enemyIndex].health, enemyData[enemyIndex].maxHealth, enemyData[enemyIndex].stamina, enemyData[enemyIndex].maxStamina, enemyData[enemyIndex].attributes)
+                console.log(enemyInstance)
                 this.enemies.push(enemyInstance)
                 positionX += offSetX
                 positionY += offSetY
