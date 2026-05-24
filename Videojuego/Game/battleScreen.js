@@ -25,6 +25,7 @@ export default class battleScreen extends Menus{
         this.playerDefending = false;
         this.parryLabel = null;
         this.parryLabelTimer = 0;
+        this.failedSelection = new Audio('../Assets/Audio/SYS_buzzer.ogg')
     }
 
     // Routes cursor movement to deck cards and to enemies during the targeting phase
@@ -46,7 +47,7 @@ export default class battleScreen extends Menus{
     handleClick(e){
         if(!this.cardInAction){
             for(let card of this.player.deck){
-                if(card.hovered){
+                if(card.hovered && card.staminaCost <= this.player.stamina){
                     if(card.action.actionType === 'defend_physic' || card.action.actionType === 'defend_magic'){
                         this.playerDefending = true;
                         this.player.stamina = this.player.stamina - card.staminaCost > 0 ? this.player.stamina - card.staminaCost : 0
@@ -74,6 +75,7 @@ export default class battleScreen extends Menus{
                     }
                 }
             }
+            this.failedSelection.play()
             return
         }
 
