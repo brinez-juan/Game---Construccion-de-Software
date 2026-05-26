@@ -4,10 +4,11 @@ import TextLabel from './TextLabel.js';
 
 // Title screen that exposes navigation entries for new game, continue, options and credits
 export default class mainMenu extends Menus{
-    constructor(background = '', canvasWidth = 0, canvasHeight = 0, btnSize){
+    constructor(background = '', canvasWidth = 0, canvasHeight = 0, btnSize, data){
         super(background, canvasWidth, canvasHeight, canvas)
         this.textY = this.canvasHeight/2 + 100
         this.buttonSize = btnSize
+        this.playerData = data
         this.textElements = []
         this.imgElements = []
         this.initElements()
@@ -84,7 +85,6 @@ export default class mainMenu extends Menus{
                 }
                 else if(element.text === 'Continue' && this.playerData.length != 0){
                     this.state = 2
-                    console.log(this.playerData)
                 }
                 else if(element.text === 'Options'){
                     this.state = 3
