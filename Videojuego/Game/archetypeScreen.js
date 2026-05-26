@@ -1,16 +1,16 @@
 import Menus from "./menus.js";
 import GameObject from "./GameObject.js";
 import TextLabel from "./TextLabel.js";
-import ARCHETYPES from "./GlobalVariables.js"
+import {ARCHETYPES} from "./GlobalVariables.js"
 
 // Archetype selection screen that shows the three available classes and their starting stats
 export default class archetypeScreen extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0){
         super(background, canvasWidth, canvasHeight)
+        this.fields = []
         this.fieldLabels = []
         this.fieldAmount = 3; 
         this.returnButton; 
-        this.menuType = menu;
         this.initElements()
     }
 
@@ -42,7 +42,7 @@ export default class archetypeScreen extends Menus{
                     this.fieldLabels.push(label)
                     posY += 2*offSetY
                 }
-                else if(key === attributes){
+                else if(key === 'attributes'){
                     for(const [attribute, attributeValue] of Object.entries(value)){
                         let text = attribute + ': ' + attributeValue
                         let label = new TextLabel(posX, posY, '20px Academia', 'black', true, text, true)
@@ -93,14 +93,14 @@ export default class archetypeScreen extends Menus{
 
     update(deltaTime){
         for(let element of this.fields){
-            if(element.hovered && !this.selectionField.frame){
+            if(element.hovered){
                 element.setSprite('../Assets/Sprites/selection2.png')
             }
             else{
                 element.setSprite('../Assets/Sprites/selection1.jpg')
             }
         }
-        if(this.returnButton.hovered && !this.selectionField.frame){
+        if(this.returnButton.hovered ){
             this.returnButton.setSprite('../Assets/Sprites/return_2.png')
         }
         else{

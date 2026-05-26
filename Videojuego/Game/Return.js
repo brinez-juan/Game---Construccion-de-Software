@@ -7,6 +7,8 @@ import creditScreen from './creditScreen.js';
 import gameOverScreen from './gameOverScreen.js';
 import successScreen from './successScreen.js';
 import Player from './Player.js';
+import battleLobby from './battleLobby.js';
+import archetypeScreen from './archetypeScreen.js';
 
 // Context of the Canvas
 let ctx;
@@ -28,7 +30,8 @@ class Game {
         this.isLoading = false;
         this.menuStack = [];
         this.playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}]; 
-        this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, this.playerProfiles)
+        //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, this.playerProfiles)
+        this.currentMenu = new battleLobby('../Assets/backgrounds/lobby_background.png', this.canvasWidth, this.canvasHeight, 100, 50, 1)    
         this.menuStack.push(this.currentMenu)
         this.player = {maxHealth: 100, health: 100, maxStamina: 100, stamina: 100, attributes: {strength: 10, dexterity: 10, intelligence: 10}, 
         level: 1, experience: 0, experienceToNextLevel: 100, inventory: [], 
@@ -51,16 +54,7 @@ class Game {
 
     // Per-frame tick that propagates updates and swaps screens when the active state changes
     update(deltaTime){
-        if(this.isLoading){
-            this.loadTimer += deltaTime;
-            if(this.loadTimer > 2000){
-                this.isLoading = false;
-                this.loadTimer = 0;
-                this.currentState = 0;
-                this.screenManager(0);
-            }
-        }
-        else if (this.currentState != this.currentMenu.state){
+        if (this.currentState != this.currentMenu.state){
             this.currentState = this.currentMenu.state;
             this.screenManager(this.currentMenu.state);
         }
