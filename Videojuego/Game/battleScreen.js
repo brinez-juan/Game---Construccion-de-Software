@@ -210,14 +210,14 @@ export default class battleScreen extends Menus{
                     this.player.health -= finalDamage
                     this.player.healthBar.calculateCurrentIndicatorSubstraction(finalDamage)
                 }
-                const staminaChange = this.ParryBar.calculateStamina(this.player)
-                if(staminaChange > 0){
-                    this.player.stamina = this.player.stamina + staminaChange > this.player.maxStamina ? this.player.maxStamina : this.player.stamina + staminaChange
-                    this.player.staminaBar.calculateCurrentIndicatorAddition(staminaChange)
-                } else if(staminaChange < 0){
-                    this.player.stamina = this.player.stamina - Math.abs(staminaChange) < 0? 0 : this.player.stamina - Math.abs(staminaChange)
-                    this.player.staminaBar.calculateCurrentIndicatorSubstraction(Math.abs(staminaChange))
-                }
+            }
+            const staminaChange = this.ParryBar.calculateStamina(this.player)
+            if(staminaChange > 0){
+                this.player.stamina = this.player.stamina + staminaChange > this.player.maxStamina ? this.player.maxStamina : this.player.stamina + staminaChange
+                this.player.staminaBar.calculateCurrentIndicatorAddition(staminaChange)
+            } else if(staminaChange < 0){
+                this.player.stamina = this.player.stamina - Math.abs(staminaChange) < 0? 0 : this.player.stamina - Math.abs(staminaChange)
+                this.player.staminaBar.calculateCurrentIndicatorSubstraction(Math.abs(staminaChange))
             }
 
             const labelData = { perfect: ['Perfect!', 'green'], normal: ['Good!', 'yellow'], miss: ['Miss!', 'red'] }
