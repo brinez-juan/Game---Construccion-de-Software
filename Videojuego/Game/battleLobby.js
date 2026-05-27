@@ -3,16 +3,21 @@ import Bar from "./Bar.js";
 import itemCard from "./ItemCard.js";
 import textLabel from "./textLabel.js";
 import Attribute from "./attribute.js";
+import ItemCard from "./ItemCard.js";
+import Action from "./Action.js";
 
 // Lobby menu displayed between battles to show player progression and allow attribute upgrades
 
 export default class battleLobby extends Menus{
-    constructor(background = '', canvasWidth = 0, canvasHeight = 0,experienceToNextLevel,  experience, level, attributes, deck, inventory){
+    constructor(background = '', canvasWidth = 0, canvasHeight = 0,experienceToNextLevel,  experience, level, attributes, deck){
         super(background, canvasWidth, canvasHeight)
         this.experienceBarElements = []; 
         this.attributeElements = []; 
+        this.deck = []
+        this.inventory = []
         this.experienceBarSpawn(experience, level, experienceToNextLevel)
         this.attributeSectionSpawn(attributes)
+        this.deckSectionSpawn(deck, this.canvasWidth/10*3, this.canvasHeight/5, 80*0.75, 80, 10)
     }
 
     experienceBarSpawn(exp, level, expToNextLevel){
@@ -51,13 +56,34 @@ export default class battleLobby extends Menus{
         }
     }
 
-    deckSectionSpawn(deck){
-
+    deckSectionSpawn(activeDeck, positionX, positionY, cardWidth, cardHeight, offSetX){
+        let deckLabel = new textLabel(positionX, positionY - 30, '30px Academia', 'black', undefined, 'Deck', false)
+        this.deck.push(deckLabel)
+        let posX = positionX - 2 * (cardWidth + offSetX)
+        let posY = positionY + 60
+        for(let card of activeDeck){
+            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0, card.scales_with, card.scaling_factor, null)
+            let cardInstance = new ItemCard(posX, posY, cardWidth, cardHeight, card.name, card.description, action, card.required_value, card.rarity, card.stamina_cost, card.isPermanent)
+            cardInstance.setSprite(`../Assets/Sprites/${card.name}.jpeg`)
+            this.deck.push(cardInstance)
+            posX += cardWidth + offSetX
+        }
     }
 
-    inventorySectionSpawn(inventory){
-        
+    inventorySectionSpawn(inventory, positionX, positionY, cardWidth, cardHeight, offSetX){
+        let inventoryLabel = new textLabel(positionX, positionY - 30, '30px Academia', 'black', undefined, 'Inventory', false)
+        this.inventory.push(inventoryLabel)
+        let posX = positionX - 2 * (cardWidth + offSetX)
+        let posY = positionY + 60
+        for(let card of inventory){
+            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0, card.scales_with, card.scaling_factor, null)
+            let cardInstance = new ItemCard(posX, posY, cardWidth, cardHeight, card.name, card.description, action, card.required_value, card.rarity, card.stamina_cost, card.isPermanent)
+            cardInstance.setSprite(`../Assets/Sprites/${card.name}.jpeg`)
+            this.inventory.push(cardInstance)
+            posX += cardWidth + offSetX
+        }
     }
+
     draw(ctx){
         this.background.draw(ctx)
         for(let element of this.experienceBarElements){
@@ -65,6 +91,9 @@ export default class battleLobby extends Menus{
         }
         for(let attribute of this.attributeElements){
             attribute.draw(ctx)
+        }
+        for(let element of this.deck){
+            element.draw(ctx)
         }
     }
 }
