@@ -1,12 +1,3 @@
-/*
- * Class to draw text at specific positions within the game canvas
- *
- * Gilberto Echeverria
- * 2026-02-10
- */
-
-"use strict";
-
 // Canvas-aware text element that supports hover detection and centered alignment
 class TextLabel {
     constructor(x, y, font, color, open = undefined, text, click = false) {

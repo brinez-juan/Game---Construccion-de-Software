@@ -7,6 +7,8 @@ import creditScreen from './creditScreen.js';
 import gameOverScreen from './gameOverScreen.js';
 import successScreen from './successScreen.js';
 import Player from './Player.js';
+import battleLobby from './battleLobby.js';
+import archetypeScreen from './archetypeScreen.js';
 
 // Context of the Canvas
 let ctx;
@@ -28,9 +30,9 @@ class Game {
         this.isLoading = false;
         this.menuStack = [];
         this.playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}]; 
-        this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, this.playerProfiles)
-        this.menuStack.push(this.currentMenu)
-        this.player = {maxHealth: 100, health: 100, maxStamina: 100, stamina: 100, attributes: {strength: 10, dexterity: 10, intelligence: 10}, 
+        //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, this.playerProfiles)        
+       //this.menuStack.push(this.currentMenu)
+        this.player = {maxHealth: 100, health: 100, maxStamina: 100, stamina: 100, attributes: {strength: 10, dexterity: 10, intelligence: 10, vigor: 10, endurance:10}, 
         level: 1, experience: 0, experienceToNextLevel: 100, inventory: [], 
         activeDeck: [
           {id: 1, name: 'fireball', description: 'this is a fire ball', action_type: 'aoe_magic', stamina_cost: 20, base_damage: 6, rarity: 'common', scales_with: 'intelligence', scaling_factor: 1.1, required_attribute: 'intelligence', required_value: 3, isPermanent: true},
@@ -39,6 +41,7 @@ class Game {
           {id: 4, name: 'battle_axe', description: 'A heavy axe designed for devastating attacks', action_type: 'attack_physic', stamina_cost: 25, base_damage: 6, rarity: 'rare', scales_with: 'strength', scaling_factor: 1.1, required_attribute: 'strength', required_value: 7, isPermanent: true},
           {id: 5, name: 'hunter_bow', description: 'A precise bow for swift and accurate strikes', action_type: 'attack_physic', stamina_cost: 12, base_damage: 6, rarity: 'uncommon', scales_with: 'dexterity', scaling_factor: 1.1, required_attribute: 'dexterity', required_value: 6, isPermanent: true}
         ]};
+        this.currentMenu = new battleLobby('../Assets/backgrounds/lobby_background.png', this.canvasWidth, this.canvasHeight, 100, 50, 1, this.player.attributes) 
         this.currentEnemyPool = [{name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}]; 
         this.addEventListeners();
     }
@@ -51,16 +54,7 @@ class Game {
 
     // Per-frame tick that propagates updates and swaps screens when the active state changes
     update(deltaTime){
-        if(this.isLoading){
-            this.loadTimer += deltaTime;
-            if(this.loadTimer > 2000){
-                this.isLoading = false;
-                this.loadTimer = 0;
-                this.currentState = 0;
-                this.screenManager(0);
-            }
-        }
-        else if (this.currentState != this.currentMenu.state){
+        if (this.currentState != this.currentMenu.state){
             this.currentState = this.currentMenu.state;
             this.screenManager(this.currentMenu.state);
         }
