@@ -18,6 +18,8 @@ export default class battleLobby extends Menus{
         this.experienceBarSpawn(experience, level, experienceToNextLevel)
         this.attributeSectionSpawn(attributes)
         this.deckSectionSpawn(deck, this.canvasWidth/10*3, this.canvasHeight/5, 80*0.75, 80, 10)
+        this.inventorySectionSpawn(deck, this.canvasWidth/10*3, this.canvasHeight/5*3, 80*0.75, 80, 10)
+        this.inventoryCurrentIndex = 0
     }
 
     experienceBarSpawn(exp, level, expToNextLevel){
@@ -57,8 +59,7 @@ export default class battleLobby extends Menus{
     }
 
     deckSectionSpawn(activeDeck, positionX, positionY, cardWidth, cardHeight, offSetX){
-        let deckLabel = new textLabel(positionX, positionY - 30, '30px Academia', 'black', undefined, 'Deck', false)
-        this.deck.push(deckLabel)
+        this.deckLabel = new textLabel(positionX, positionY - 30, '30px Academia', 'black', undefined, 'Deck', false)
         let posX = positionX - 2 * (cardWidth + offSetX)
         let posY = positionY + 60
         for(let card of activeDeck){
@@ -71,8 +72,7 @@ export default class battleLobby extends Menus{
     }
 
     inventorySectionSpawn(inventory, positionX, positionY, cardWidth, cardHeight, offSetX){
-        let inventoryLabel = new textLabel(positionX, positionY - 30, '30px Academia', 'black', undefined, 'Inventory', false)
-        this.inventory.push(inventoryLabel)
+        this.inventoryLabel = new textLabel(positionX, positionY - 30, '30px Academia', 'black', undefined, 'Inventory', false)
         let posX = positionX - 2 * (cardWidth + offSetX)
         let posY = positionY + 60
         for(let card of inventory){
@@ -80,12 +80,19 @@ export default class battleLobby extends Menus{
             let cardInstance = new ItemCard(posX, posY, cardWidth, cardHeight, card.name, card.description, action, card.required_value, card.rarity, card.stamina_cost, card.isPermanent)
             cardInstance.setSprite(`../Assets/Sprites/${card.name}.jpeg`)
             this.inventory.push(cardInstance)
-            posX += cardWidth + offSetX
+            if(positionX + 2*(cardWidth + offSetX) === cardInstance.x){
+                posX = positionX - 2 * (cardWidth + offSetX)
+            }
+            else{
+                posX += cardWidth + offSetX
+            }
         }
     }
 
     draw(ctx){
         this.background.draw(ctx)
+        this.inventoryLabel.draw(ctx)
+        this.deckLabel.draw(ctx)
         for(let element of this.experienceBarElements){
             element.draw(ctx)
         }
@@ -94,6 +101,10 @@ export default class battleLobby extends Menus{
         }
         for(let element of this.deck){
             element.draw(ctx)
+        }
+        for(let i = this.inventoryCurrentIndex; i < this.inventoryCurrentIndex + 5; i++){
+            let index = i%this.inventory.length
+            this.inventory[index].draw(ctx)
         }
     }
 }
