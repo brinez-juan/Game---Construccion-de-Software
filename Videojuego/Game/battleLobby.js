@@ -7,12 +7,12 @@ import Attribute from "./attribute.js";
 // Lobby menu displayed between battles to show player progression and allow attribute upgrades
 
 export default class battleLobby extends Menus{
-    constructor(background = '', canvasWidth = 0, canvasHeight = 0,experienceToNextLevel,  experience, level, attributes){
+    constructor(background = '', canvasWidth = 0, canvasHeight = 0,experienceToNextLevel,  experience, level, attributes, deck, inventory){
         super(background, canvasWidth, canvasHeight)
         this.experienceBarElements = []; 
         this.attributeElements = []; 
         this.experienceBarSpawn(experience, level, experienceToNextLevel)
-        this.attributeSectionSpaw(attributes)
+        this.attributeSectionSpawn(attributes)
     }
 
     experienceBarSpawn(exp, level, expToNextLevel){
@@ -35,7 +35,7 @@ export default class battleLobby extends Menus{
         this.experienceBarElements.push(levelLabel)
     }
 
-    attributeSectionSpaw(attributes){
+    attributeSectionSpawn(attributes){
         let offSetY = 30;
         let offsetX = 40;
         let initialPosX = this.canvasWidth/5*4 - offsetX
@@ -49,6 +49,14 @@ export default class battleLobby extends Menus{
             let attribute = new Attribute(initialPosX, initialPosY, 20, key, value)
             this.attributeElements.push(attribute)
         }
+    }
+
+    deckSectionSpawn(deck){
+
+    }
+
+    inventorySectionSpawn(inventory){
+        
     }
     draw(ctx){
         this.background.draw(ctx)
