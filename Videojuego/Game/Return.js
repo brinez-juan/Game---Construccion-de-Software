@@ -41,7 +41,7 @@ class Game {
           {id: 4, name: 'battle_axe', description: 'A heavy axe designed for devastating attacks', action_type: 'attack_physic', stamina_cost: 25, base_damage: 6, rarity: 'rare', scales_with: 'strength', scaling_factor: 1.1, required_attribute: 'strength', required_value: 7, isPermanent: true},
           {id: 5, name: 'hunter_bow', description: 'A precise bow for swift and accurate strikes', action_type: 'attack_physic', stamina_cost: 12, base_damage: 6, rarity: 'uncommon', scales_with: 'dexterity', scaling_factor: 1.1, required_attribute: 'dexterity', required_value: 6, isPermanent: true}
         ]};
-        this.currentMenu = new battleLobby('../Assets/backgrounds/lobby_background.png', this.canvasWidth, this.canvasHeight, 100, 50, 1, this.player.attributes) 
+        this.currentMenu = new battleLobby('../Assets/backgrounds/lobby_background.png', this.canvasWidth, this.canvasHeight, 100, 50, 1, this.player.attributes, this.player.activeDeck) 
         this.currentEnemyPool = [{name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}]; 
         this.addEventListeners();
     }
