@@ -7,7 +7,8 @@ export default class Attribute{
         this.additionButton = new gameObject(posX, posY-7, size, size)
         this.additionButton.setSprite('../Assets/Sprites/addition_button.png')
         this.attributeLabel = new textLabel(posX - 120, posY, `${size}px Academia`, 'black', undefined, attributeName, false)
-        this.attributeValueLabel = new textLabel(posX - 50, posY, `${size}px Academia`, 'black', undefined, attributeValue, false)
+        // Value sits closer to the '+' button so long centered names (e.g. INTELLIGENCE) don't overlap it.
+        this.attributeValueLabel = new textLabel(posX - 30, posY, `${size}px Academia`, 'black', undefined, attributeValue, false)
     }
 
     draw(ctx){

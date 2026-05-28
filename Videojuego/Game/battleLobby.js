@@ -11,12 +11,16 @@ import GameObject from "./GameObject.js";
 // Lobby menu displayed between battles to show player progression and allow attribute upgrades
 
 export default class battleLobby extends Menus{
-    constructor(background = '', canvasWidth = 0, canvasHeight = 0,experienceToNextLevel,  experience, level, attributes, deck, inventory = []){
+    constructor(background = '', canvasWidth = 0, canvasHeight = 0,experienceToNextLevel,  experience, level, attributes, deck, inventory = [], availablePoints = 0, slotId = null, api = null){
         super(background, canvasWidth, canvasHeight)
         this.originalAttributes = attributes
         this.attributes = attributes
+        this.availablePoints = availablePoints
+        this.slotId = slotId
+        this.api = api
         this.experienceBarElements = [];
         this.attributeElements = [];
+        this.attributeByKey = {}
         this.deck = []
         this.inventory = []
         this.inventoryStack = []
@@ -24,8 +28,10 @@ export default class battleLobby extends Menus{
         this.attributeSectionSpawn(attributes)
         this.deckSectionSpawn(deck, this.canvasWidth/10*3 + 20, this.canvasHeight/5, 80*0.75, 80, 10)
         this.inventorySectionSpawn(inventory, this.canvasWidth/10*3 + 20, this.canvasHeight/5*3, 80*0.75, 80, 10)
-        this.movetoRightButton = new GameObject(this.inventoryStack[this.inventoryStack.length - 1].x + 60,  this.inventoryStack[this.inventoryStack.length - 1].y, 35, 35)
-        this.movetoLeftButton = new GameObject(this.inventoryStack[0].x - 60,  this.inventoryStack[0].y, 35, 35)
+        // Buttons are placed from the row layout, not from card instances, so an
+        // inventory with fewer than 5 cards (or none) doesn't blow up.
+        this.movetoRightButton = new GameObject(this.inventoryRightX + 60, this.inventoryRowY, 35, 35)
+        this.movetoLeftButton = new GameObject(this.inventoryLeftX - 60, this.inventoryRowY, 35, 35)
         this.movetoRightButton.setSprite('../Assets/Sprites/move_right.png')
         this.movetoLeftButton.setSprite('../Assets/Sprites/move_left.png')
         this.cardSelectedDeck = null
@@ -56,7 +62,7 @@ export default class battleLobby extends Menus{
 
     attributeSectionSpawn(attributes){
         let offSetY = 30;
-        let offsetX = 40;
+        let offsetX = 55;
         let initialPosX = this.canvasWidth/5*4 - offsetX
         let initialPosY = this.canvasHeight/2
         let attributeSectionLabel = new textLabel(initialPosX, initialPosY, '30px Academia', 'black', undefined, 'Attributes', false)
@@ -67,7 +73,11 @@ export default class battleLobby extends Menus{
             initialPosY += offSetY
             let attribute = new Attribute(initialPosX, initialPosY, 20, key, value)
             this.attributeElements.push(attribute)
+            this.attributeByKey[key] = attribute
         }
+        initialPosY += offSetY
+        this.pointsLabel = new textLabel(initialPosX, initialPosY, '20px Academia', 'black', undefined, `Points: ${this.availablePoints}`, false)
+        this.attributeElements.push(this.pointsLabel)
     }
 
     deckSectionSpawn(activeDeck, positionX, positionY, cardWidth, cardHeight, offSetX){
@@ -77,7 +87,7 @@ export default class battleLobby extends Menus{
         for(let card of activeDeck){
             let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0, card.scales_with, card.scaling_factor, null)
             let cardInstance = new ItemCard(posX, posY, cardWidth, cardHeight, card.name, card.description, action, card.required_value, card.rarity, card.stamina_cost, card.isPermanent)
-            cardInstance.setSprite(`../Assets/Sprites/${card.name}.jpeg`)
+            cardInstance.setSprite(card.spritePath ?? `../Assets/Sprites/${card.name}.jpeg`)
             this.deck.push(cardInstance)
             posX += cardWidth + offSetX
         }
@@ -87,17 +97,22 @@ export default class battleLobby extends Menus{
         this.inventoryLabel = new textLabel(positionX, positionY - 30, '30px Academia', 'black', undefined, 'Inventory', false)
         let posX = positionX - 2 * (cardWidth + offSetX)
         let posY = positionY + 60
+        // Remember the row layout so the paging buttons can be placed even when the
+        // inventory has fewer than 5 cards (or is empty).
+        this.inventoryLeftX = posX
+        this.inventoryRightX = positionX + 2 * (cardWidth + offSetX)
+        this.inventoryRowY = posY
         for(let card of inventory){
             let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0, card.scales_with, card.scaling_factor, null)
             let cardInstance = new ItemCard(posX, posY, cardWidth, cardHeight, card.name, card.description, action, card.required_value, card.rarity, card.stamina_cost, card.isPermanent)
-            cardInstance.setSprite(`../Assets/Sprites/${card.name}.jpeg`)
+            cardInstance.setSprite(card.spritePath ?? `../Assets/Sprites/${card.name}.jpeg`)
             this.inventory.push(cardInstance)
             posX += cardWidth + offSetX
         }
 
-        for(let i = 0; i < 5; i++){
-            let element = this.inventory[i]
-            this.inventoryStack.push(element)
+        // Only the first page (up to 5) of real cards is shown at once.
+        for(let i = 0; i < Math.min(5, this.inventory.length); i++){
+            this.inventoryStack.push(this.inventory[i])
         }
     }
 
@@ -118,10 +133,34 @@ export default class battleLobby extends Menus{
         }
         this.movetoLeftButton.mouseCollition(mouseX, mouseY)
         this.movetoRightButton.mouseCollition(mouseX, mouseY)
-        //Add mouseCollition for the + buttons in attributes
+        for(const key in this.attributeByKey){
+            this.attributeByKey[key].additionButton.mouseCollition(mouseX, mouseY)
+        }
     }
 
-    handleClick(e){
+    async handleClick(e){
+        // Spend an attribute point: persist via PATCH, then refresh the value + counter.
+        if(this.availablePoints > 0 && this.api && this.slotId != null){
+            for(const key in this.attributeByKey){
+                const attribute = this.attributeByKey[key]
+                if(attribute.additionButton.hovered){
+                    try {
+                        const res = await this.api.spendAttribute(this.slotId, key)
+                        this.availablePoints = res.availablePoints
+                        this.attributes[key] = res.attributes[key]
+                        attribute.attributeValueLabel.text = res.attributes[key]
+                        this.pointsLabel.text = `Points: ${this.availablePoints}`
+                    } catch(err){
+                        console.error('Could not spend attribute point:', err)
+                    }
+                    return;
+                }
+            }
+        }
+
+        // Inventory paging only makes sense with more than one page of cards.
+        if(this.inventory.length <= 5) return;
+
         if(this.movetoLeftButton.hovered){
             this.inventoryCurrentIndex -= 5
             if(this.inventoryCurrentIndex < 0){
@@ -149,7 +188,7 @@ export default class battleLobby extends Menus{
                 this.inventoryStack[indexCurrentShowingCards] = this.inventory[indexInventory]
                 indexCurrentShowingCards++;
             }
-            return; 
+            return;
         }
     }
 
@@ -157,8 +196,10 @@ export default class battleLobby extends Menus{
         this.background.draw(ctx)
         this.inventoryLabel.draw(ctx)
         this.deckLabel.draw(ctx)
-        this.movetoLeftButton.draw(ctx)
-        this.movetoRightButton.draw(ctx)
+        if(this.inventory.length > 5){
+            this.movetoLeftButton.draw(ctx)
+            this.movetoRightButton.draw(ctx)
+        }
         for(let element of this.experienceBarElements){
             element.draw(ctx)
         }
