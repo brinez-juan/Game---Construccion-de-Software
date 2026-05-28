@@ -13,6 +13,7 @@ const { default: loginRouter } = await import('./Auth/loginLogic.js');
 const { default: savedGamesRouter } = await import('./SavedGames/savedGamesRoutes.js');
 const { default: attributesRouter } = await import('./SavedGames/attributesRoutes.js');
 const { default: cardsRouter } = await import('./SavedGames/cardsRoutes.js');
+const { default: roomsRouter } = await import('./SavedGames/roomsRoutes.js');
 
 const webPageDir = path.resolve(__dirname, '..', 'WebPage');
 const videojuegoDir = path.resolve(__dirname, '..');
@@ -27,6 +28,7 @@ app.use(loginRouter);
 app.use(savedGamesRouter);
 app.use(attributesRouter);
 app.use(cardsRouter);
+app.use(roomsRouter);
 
 // Keep .env, dbconfig and auth source out of the public surface.
 app.use('/Backend', (req, res) => res.status(404).send('Not found'));
