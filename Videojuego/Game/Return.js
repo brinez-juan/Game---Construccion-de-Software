@@ -10,7 +10,7 @@ import Player from './Player.js';
 import battleLobby from './battleLobby.js';
 import archetypeScreen from './archetypeScreen.js';
 import SavedGamesAPI from '../savedGamesApi.js';
-import { loadActiveSlot, normalizeCard } from './dataAdapter.js';
+import { loadActiveSlot, normalizeCard, buildRoomStateMap } from './dataAdapter.js';
 
 // Context of the Canvas
 let ctx;
@@ -36,6 +36,11 @@ class Game {
         this.playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}];
         this.api = boot.api;
         this.activeSlotId = boot.slotId;
+        // stateCode (101-112) -> room { id, floorNumber, roomNumber, isBoss, background }.
+        // Each room has a distinct screen state; a level-selection screen jumps to a room
+        // by setting this.state to its stateCode. currentRoom is the one in play.
+        this.rooms = boot.rooms;
+        this.currentRoom = null;
         this.player = {
             maxHealth: 100, health: 100, maxStamina: 100, stamina: 100,
             attributes: boot.attributes,
@@ -96,13 +101,21 @@ class Game {
             this.currentMenu.pop();
         }
         else if(state === 6){
-            this.currentMenu = new battleScreen('../Assets/backgrounds/courtyard_1_1.png', this.canvasWidth, this.canvasHeight, this.player, this.currentEnemyPool)
+            // Generic battle entry: use the room already selected, else default to the courtyard.
+            const background = this.currentRoom?.background ?? '../Assets/backgrounds/courtyard_1_1.png';
+            this.currentMenu = new battleScreen(background, this.canvasWidth, this.canvasHeight, this.player, this.currentEnemyPool)
         }
         else if(state === 7){
             this.currentMenu = new gameOverScreen(this.canvasWidth, this.canvasHeight)
         }
         else if(state === 8){
             this.currentMenu = new successScreen(this.canvasWidth, this.canvasHeight)
+        }
+        else if(this.rooms.has(state)){
+            // Per-room battle: stateCode 101-112 maps to a DB-backed room + its background asset.
+            const room = this.rooms.get(state);
+            this.currentRoom = room;
+            this.currentMenu = new battleScreen(room.background, this.canvasWidth, this.canvasHeight, this.player, this.currentEnemyPool)
         }
         this.menuStack.push(this.currentMenu)
     }
@@ -117,13 +130,16 @@ async function main(){
     }
 
     const api = new SavedGamesAPI();
-    let slot, attrs, rawCards;
+    let slot, attrs, rawCards, rawRooms = [];
     try {
         slot = await loadActiveSlot(api);
         if(!slot){ console.error('No save slots for this user. Create one first.'); return; }
         if(!slot.profile){ console.error('Active slot has no profile yet — pick an archetype first.'); return; }
         attrs = await api.getAttributes(slot.id);
         rawCards = await api.listCards(slot.id);
+        // Room catalog is non-critical: fall back to the built-in table if it fails.
+        try { rawRooms = await api.listRooms(); }
+        catch(roomsErr){ console.warn('Failed to load rooms; using fallback table:', roomsErr); }
     } catch(err){
         console.error('Failed to load save data (token may be expired):', err);
         window.location.href = '../pages/login.html';
@@ -142,7 +158,8 @@ async function main(){
         // once the XP bar tracks per-level progress instead of cumulative XP).
         experienceToNextLevel: Math.round(100 * Math.pow(1.5, level - 1)),
         deck: [],                          // no active deck persisted between runs yet
-        inventory: rawCards.map(normalizeCard)
+        inventory: rawCards.map(normalizeCard),
+        rooms: buildRoomStateMap(rawRooms) // stateCode -> room (falls back when empty)
     };
 
     game = new Game(boot);

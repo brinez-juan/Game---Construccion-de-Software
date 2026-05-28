@@ -169,6 +169,14 @@ export default class SavedGamesAPI {
     };
   }
 
+  // Returns the static floor/room catalog (room id, floor_number, room_number,
+  // is_boss, background asset) used to give each room a distinct screen state.
+  async listRooms() {
+    const res = await fetch('/api/rooms', { headers: authHeaders() });
+    const data = await parseOrThrow(res);
+    return data.rooms;
+  }
+
   async getSessionDeck(sessionId) {
     const res = await fetch(`/api/room-sessions/${sessionId}/deck`, { headers: authHeaders() });
     const data = await parseOrThrow(res);
