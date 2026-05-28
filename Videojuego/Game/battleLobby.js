@@ -87,7 +87,7 @@ export default class battleLobby extends Menus{
         let posX = positionX - 2 * (cardWidth + offSetX)
         let posY = positionY + 60
         for(let card of activeDeck){
-            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0, card.scales_with, card.scaling_factor, null)
+            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null)
             let cardInstance = new ItemCard(posX, posY, cardWidth, cardHeight, card.name, card.description, action, card.required_value, card.rarity, card.stamina_cost, card.isPermanent)
             cardInstance.setSprite(card.spritePath ?? `../Assets/Sprites/${card.name}.jpeg`)
             this.deck.push(cardInstance)
@@ -175,7 +175,7 @@ export default class battleLobby extends Menus{
                 if(this.movetoLeftButton.hovered){
                 this.inventoryCurrentIndex -= 5
                 if(this.inventoryCurrentIndex < 0){
-                    this.inventoryCurrentIndex = (this.inventory.length - 1)+ this.inventoryCurrentIndex
+                    this.inventoryCurrentIndex = this.inventory.length + this.inventoryCurrentIndex
                 }
                 const slotPositions = this.inventoryStack.map(card => card.x)
                 let indexCurrentShowingCards = 0
