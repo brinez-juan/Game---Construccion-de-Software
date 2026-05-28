@@ -9,6 +9,8 @@ import successScreen from './successScreen.js';
 import Player from './Player.js';
 import battleLobby from './battleLobby.js';
 import archetypeScreen from './archetypeScreen.js';
+import SavedGamesAPI from '../savedGamesApi.js';
+import { loadActiveSlot, normalizeCard } from './dataAdapter.js';
 
 // Context of the Canvas
 let ctx;
@@ -23,37 +25,30 @@ export const canvas = document.getElementById('canvas');
 
 // Top-level controller that owns the canvas loop, the active screen and the screen stack
 class Game {
-    constructor(){
+    // `boot` carries the data loaded from the backend before the loop starts:
+    // { api, slotId, attributes, level, availablePoints, totalExperience, experienceToNextLevel, deck, inventory }
+    constructor(boot){
         this.canvasWidth = 800;
         this.canvasHeight = 600;
         this.currentState = 0;
         this.isLoading = false;
         this.menuStack = [];
-        this.playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}]; 
-        //this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, this.playerProfiles)        
-       //this.menuStack.push(this.currentMenu)
-        this.player = {maxHealth: 100, health: 100, maxStamina: 100, stamina: 100, attributes: {strength: 10, dexterity: 10, intelligence: 10, vigor: 10, endurance:10}, 
-        level: 1, experience: 0, experienceToNextLevel: 100, inventory: [
-          {id: 1, name: 'fireball', description: 'this is a fire ball', action_type: 'aoe_magic', stamina_cost: 20, base_damage: 6, rarity: 'common', scales_with: 'intelligence', scaling_factor: 1.1, required_attribute: 'intelligence', required_value: 3, isPermanent: true},
-          {id: 2, name: 'vicious_sword', description: 'A wickedly sharp sword with a dark aura', action_type: 'attack_physic', stamina_cost: 15, base_damage: 6, rarity: 'uncommon', scales_with: 'strength', scaling_factor: 1.2, required_attribute: 'strength', required_value: 5, isPermanent: true},
-          {id: 3, name: 'knight_shield', description: 'A sturdy shield that provides strong defense', action_type: 'defend_physic', stamina_cost: 0, base_damage: 0, rarity: 'uncommon', scales_with: 'strength', scaling_factor: 1.1, required_attribute: 'strength', required_value: 4, isPermanent: true},
-          {id: 4, name: 'battle_axe', description: 'A heavy axe designed for devastating attacks', action_type: 'attack_physic', stamina_cost: 25, base_damage: 6, rarity: 'rare', scales_with: 'strength', scaling_factor: 1.1, required_attribute: 'strength', required_value: 7, isPermanent: true},
-          {id: 5, name: 'hunter_bow', description: 'A precise bow for swift and accurate strikes', action_type: 'attack_physic', stamina_cost: 12, base_damage: 6, rarity: 'uncommon', scales_with: 'dexterity', scaling_factor: 1.1, required_attribute: 'dexterity', required_value: 6, isPermanent: true},
-          {id: 1, name: 'fireball', description: 'this is a fire ball', action_type: 'aoe_magic', stamina_cost: 20, base_damage: 6, rarity: 'common', scales_with: 'intelligence', scaling_factor: 1.1, required_attribute: 'intelligence', required_value: 3, isPermanent: true},
-          {id: 2, name: 'vicious_sword', description: 'A wickedly sharp sword with a dark aura', action_type: 'attack_physic', stamina_cost: 15, base_damage: 6, rarity: 'uncommon', scales_with: 'strength', scaling_factor: 1.2, required_attribute: 'strength', required_value: 5, isPermanent: true},
-          {id: 3, name: 'knight_shield', description: 'A sturdy shield that provides strong defense', action_type: 'defend_physic', stamina_cost: 0, base_damage: 0, rarity: 'uncommon', scales_with: 'strength', scaling_factor: 1.1, required_attribute: 'strength', required_value: 4, isPermanent: true},
-          {id: 4, name: 'battle_axe', description: 'A heavy axe designed for devastating attacks', action_type: 'attack_physic', stamina_cost: 25, base_damage: 6, rarity: 'rare', scales_with: 'strength', scaling_factor: 1.1, required_attribute: 'strength', required_value: 7, isPermanent: true},
-          //{id: 5, name: 'hunter_bow', description: 'A precise bow for swift and accurate strikes', action_type: 'attack_physic', stamina_cost: 12, base_damage: 6, rarity: 'uncommon', scales_with: 'dexterity', scaling_factor: 1.1, required_attribute: 'dexterity', required_value: 6, isPermanent: true}
-        ],
-        activeDeck: [
-          {id: 1, name: 'fireball', description: 'this is a fire ball', action_type: 'aoe_magic', stamina_cost: 20, base_damage: 6, rarity: 'common', scales_with: 'intelligence', scaling_factor: 1.1, required_attribute: 'intelligence', required_value: 3, isPermanent: true},
-          {id: 2, name: 'vicious_sword', description: 'A wickedly sharp sword with a dark aura', action_type: 'attack_physic', stamina_cost: 15, base_damage: 6, rarity: 'uncommon', scales_with: 'strength', scaling_factor: 1.2, required_attribute: 'strength', required_value: 5, isPermanent: true},
-          {id: 3, name: 'knight_shield', description: 'A sturdy shield that provides strong defense', action_type: 'defend_physic', stamina_cost: 0, base_damage: 0, rarity: 'uncommon', scales_with: 'strength', scaling_factor: 1.1, required_attribute: 'strength', required_value: 4, isPermanent: true},
-          {id: 4, name: 'battle_axe', description: 'A heavy axe designed for devastating attacks', action_type: 'attack_physic', stamina_cost: 25, base_damage: 6, rarity: 'rare', scales_with: 'strength', scaling_factor: 1.1, required_attribute: 'strength', required_value: 7, isPermanent: true},
-          {id: 5, name: 'hunter_bow', description: 'A precise bow for swift and accurate strikes', action_type: 'attack_physic', stamina_cost: 12, base_damage: 6, rarity: 'uncommon', scales_with: 'dexterity', scaling_factor: 1.1, required_attribute: 'dexterity', required_value: 6, isPermanent: true}
-        ]};
-        this.currentMenu = new battleLobby('../Assets/backgrounds/lobby_background.png', this.canvasWidth, this.canvasHeight, 100, 50, 1, this.player.attributes, this.player.activeDeck, this.player.inventory)
-        this.currentEnemyPool = [{name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}]; 
+        this.playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}];
+        this.api = boot.api;
+        this.activeSlotId = boot.slotId;
+        this.player = {
+            maxHealth: 100, health: 100, maxStamina: 100, stamina: 100,
+            attributes: boot.attributes,
+            level: boot.level,
+            experience: boot.totalExperience,
+            experienceToNextLevel: boot.experienceToNextLevel,
+            inventory: boot.inventory,
+            activeDeck: boot.deck
+        };
+        this.currentMenu = new battleLobby('../Assets/backgrounds/lobby_background.png', this.canvasWidth, this.canvasHeight,
+            boot.experienceToNextLevel, boot.totalExperience, boot.level,
+            boot.attributes, boot.deck, boot.inventory, boot.availablePoints, this.activeSlotId, this.api)
+        this.currentEnemyPool = [{name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}];
         this.addEventListeners();
     }
 
@@ -113,9 +108,44 @@ class Game {
     }
 }
 
-// Bootstrap that initializes the Game, sizes the canvas and starts the render loop
-function main(){
-    game = new Game();
+// Bootstrap that gates on auth, loads the active save slot from the backend,
+// then initializes the Game, sizes the canvas and starts the render loop.
+async function main(){
+    if(!localStorage.getItem('authToken')){
+        window.location.href = '../pages/login.html';
+        return;
+    }
+
+    const api = new SavedGamesAPI();
+    let slot, attrs, rawCards;
+    try {
+        slot = await loadActiveSlot(api);
+        if(!slot){ console.error('No save slots for this user. Create one first.'); return; }
+        if(!slot.profile){ console.error('Active slot has no profile yet — pick an archetype first.'); return; }
+        attrs = await api.getAttributes(slot.id);
+        rawCards = await api.listCards(slot.id);
+    } catch(err){
+        console.error('Failed to load save data (token may be expired):', err);
+        window.location.href = '../pages/login.html';
+        return;
+    }
+
+    const level = attrs.level ?? slot.profile.level ?? 1;
+    const boot = {
+        api,
+        slotId: slot.id,
+        attributes: attrs.attributes,
+        level,
+        availablePoints: attrs.availablePoints ?? 0,
+        totalExperience: slot.profile.totalExperience ?? 0,
+        // XP-to-next is not stored in the DB; approximate from level (exact only matters
+        // once the XP bar tracks per-level progress instead of cumulative XP).
+        experienceToNextLevel: Math.round(100 * Math.pow(1.5, level - 1)),
+        deck: [],                          // no active deck persisted between runs yet
+        inventory: rawCards.map(normalizeCard)
+    };
+
+    game = new Game(boot);
     canvas.width = game.canvasWidth;
     canvas.height = game.canvasHeight;
     ctx = canvas.getContext('2d');
