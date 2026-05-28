@@ -11,19 +11,19 @@ import GameObject from "./GameObject.js";
 // Lobby menu displayed between battles to show player progression and allow attribute upgrades
 
 export default class battleLobby extends Menus{
-    constructor(background = '', canvasWidth = 0, canvasHeight = 0,experienceToNextLevel,  experience, level, attributes, deck){
+    constructor(background = '', canvasWidth = 0, canvasHeight = 0,experienceToNextLevel,  experience, level, attributes, deck, inventory = []){
         super(background, canvasWidth, canvasHeight)
         this.originalAttributes = attributes
         this.attributes = attributes
-        this.experienceBarElements = []; 
-        this.attributeElements = []; 
+        this.experienceBarElements = [];
+        this.attributeElements = [];
         this.deck = []
         this.inventory = []
         this.inventoryStack = []
         this.experienceBarSpawn(experience, level, experienceToNextLevel)
         this.attributeSectionSpawn(attributes)
         this.deckSectionSpawn(deck, this.canvasWidth/10*3 + 20, this.canvasHeight/5, 80*0.75, 80, 10)
-        this.inventorySectionSpawn(deck, this.canvasWidth/10*3 + 20, this.canvasHeight/5*3, 80*0.75, 80, 10)
+        this.inventorySectionSpawn(inventory, this.canvasWidth/10*3 + 20, this.canvasHeight/5*3, 80*0.75, 80, 10)
         this.movetoRightButton = new GameObject(this.inventoryStack[this.inventoryStack.length - 1].x + 60,  this.inventoryStack[this.inventoryStack.length - 1].y, 35, 35)
         this.movetoLeftButton = new GameObject(this.inventoryStack[0].x - 60,  this.inventoryStack[0].y, 35, 35)
         this.movetoRightButton.setSprite('../Assets/Sprites/move_right.png')
@@ -31,6 +31,7 @@ export default class battleLobby extends Menus{
         this.cardSelectedDeck = null
         this.cardSelectedInventory = null
         this.inventoryCurrentIndex = 0
+        this.addEventListeners()
     }
 
     experienceBarSpawn(exp, level, expToNextLevel){
@@ -101,8 +102,8 @@ export default class battleLobby extends Menus{
     }
 
     addEventListeners(){
-        canvas.addEventListener('mousemove', this.handleHover)
-        canvas.addEventListener('click', this.handleClick)
+        canvas.addEventListener('mousemove', this.handleHover.bind(this))
+        canvas.addEventListener('click', this.handleClick.bind(this))
     }
 
     handleHover(e){
@@ -127,13 +128,13 @@ export default class battleLobby extends Menus{
                 this.inventoryCurrentIndex = this.inventory.length - this.inventoryCurrentIndex
             }
             let indexCurrentShowingCards = 0
-            for(let i = this.inventoryCurrentIndex; i < this.inventory.inventoryCurrentIndex + 5; i++){
+            for(let i = this.inventoryCurrentIndex; i < this.inventoryCurrentIndex + 5; i++){
                 let indexInventory = i%this.inventory.length
                 this.inventory[indexInventory].x = this.inventoryStack[indexCurrentShowingCards].x
                 this.inventoryStack[indexCurrentShowingCards] = this.inventory[indexInventory]
                 indexCurrentShowingCards++;
             }
-            return; 
+            return;
         }
 
         if(this.movetoRightButton.hovered){
@@ -141,24 +142,14 @@ export default class battleLobby extends Menus{
             if(this.inventoryCurrentIndex > this.inventory.length){
                 this.inventoryCurrentIndex = this.inventoryCurrentIndex%this.inventory.length
             }
-            let indexCurrentShowingCards = 0; 
-            for(let i = this.inventoryCurrentIndex; i < this.inventory.inventoryCurrentIndex + 5; i++){
+            let indexCurrentShowingCards = 0;
+            for(let i = this.inventoryCurrentIndex; i < this.inventoryCurrentIndex + 5; i++){
                 let indexInventory = i%this.inventory.length
                 this.inventory[indexInventory].x = this.inventoryStack[indexCurrentShowingCards].x
                 this.inventoryStack[indexCurrentShowingCards] = this.inventory[indexInventory]
                 indexCurrentShowingCards++;
             }
             return; 
-        }
-
-        for(let card of this.deck){
-            if(!this.cardSelectedDeck && card.hovered){
-                this.cardSelectedDeck = card
-                card.y -= 15
-            }
-            else if(this.cardSelectedDeck === card && card.hovered){
-
-            }
         }
     }
 

@@ -43,7 +43,7 @@ class Game {
           {id: 2, name: 'vicious_sword', description: 'A wickedly sharp sword with a dark aura', action_type: 'attack_physic', stamina_cost: 15, base_damage: 6, rarity: 'uncommon', scales_with: 'strength', scaling_factor: 1.2, required_attribute: 'strength', required_value: 5, isPermanent: true},
           {id: 3, name: 'knight_shield', description: 'A sturdy shield that provides strong defense', action_type: 'defend_physic', stamina_cost: 0, base_damage: 0, rarity: 'uncommon', scales_with: 'strength', scaling_factor: 1.1, required_attribute: 'strength', required_value: 4, isPermanent: true},
           {id: 4, name: 'battle_axe', description: 'A heavy axe designed for devastating attacks', action_type: 'attack_physic', stamina_cost: 25, base_damage: 6, rarity: 'rare', scales_with: 'strength', scaling_factor: 1.1, required_attribute: 'strength', required_value: 7, isPermanent: true},
-          {id: 5, name: 'hunter_bow', description: 'A precise bow for swift and accurate strikes', action_type: 'attack_physic', stamina_cost: 12, base_damage: 6, rarity: 'uncommon', scales_with: 'dexterity', scaling_factor: 1.1, required_attribute: 'dexterity', required_value: 6, isPermanent: true}
+          //{id: 5, name: 'hunter_bow', description: 'A precise bow for swift and accurate strikes', action_type: 'attack_physic', stamina_cost: 12, base_damage: 6, rarity: 'uncommon', scales_with: 'dexterity', scaling_factor: 1.1, required_attribute: 'dexterity', required_value: 6, isPermanent: true}
         ],
         activeDeck: [
           {id: 1, name: 'fireball', description: 'this is a fire ball', action_type: 'aoe_magic', stamina_cost: 20, base_damage: 6, rarity: 'common', scales_with: 'intelligence', scaling_factor: 1.1, required_attribute: 'intelligence', required_value: 3, isPermanent: true},
@@ -52,7 +52,7 @@ class Game {
           {id: 4, name: 'battle_axe', description: 'A heavy axe designed for devastating attacks', action_type: 'attack_physic', stamina_cost: 25, base_damage: 6, rarity: 'rare', scales_with: 'strength', scaling_factor: 1.1, required_attribute: 'strength', required_value: 7, isPermanent: true},
           {id: 5, name: 'hunter_bow', description: 'A precise bow for swift and accurate strikes', action_type: 'attack_physic', stamina_cost: 12, base_damage: 6, rarity: 'uncommon', scales_with: 'dexterity', scaling_factor: 1.1, required_attribute: 'dexterity', required_value: 6, isPermanent: true}
         ]};
-        this.currentMenu = new battleLobby('../Assets/backgrounds/lobby_background.png', this.canvasWidth, this.canvasHeight, 100, 50, 1, this.player.attributes, this.player.activeDeck) 
+        this.currentMenu = new battleLobby('../Assets/backgrounds/lobby_background.png', this.canvasWidth, this.canvasHeight, 100, 50, 1, this.player.attributes, this.player.activeDeck, this.player.inventory)
         this.currentEnemyPool = [{name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}]; 
         this.addEventListeners();
     }
