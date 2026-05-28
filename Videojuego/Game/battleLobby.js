@@ -7,6 +7,7 @@ import ItemCard from "./ItemCard.js";
 import Action from "./Action.js";
 import { canvas } from "./Return.js";
 import GameObject from "./GameObject.js";
+//import { text } from "express";
 
 // Lobby menu displayed between battles to show player progression and allow attribute upgrades
 
@@ -37,6 +38,7 @@ export default class battleLobby extends Menus{
         this.cardSelectedDeck = null
         this.cardSelectedInventory = null
         this.inventoryCurrentIndex = 0
+        this.selectionField = {frame: undefined, info: [], ok: undefined}
         this.addEventListeners()
     }
 
@@ -103,7 +105,7 @@ export default class battleLobby extends Menus{
         this.inventoryRightX = positionX + 2 * (cardWidth + offSetX)
         this.inventoryRowY = posY
         for(let card of inventory){
-            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0, card.scales_with, card.scaling_factor, null)
+            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null)
             let cardInstance = new ItemCard(posX, posY, cardWidth, cardHeight, card.name, card.description, action, card.required_value, card.rarity, card.stamina_cost, card.isPermanent)
             cardInstance.setSprite(card.spritePath ?? `../Assets/Sprites/${card.name}.jpeg`)
             this.inventory.push(cardInstance)
@@ -122,73 +124,141 @@ export default class battleLobby extends Menus{
     }
 
     handleHover(e){
+        
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
-        for(let element of this.deck){
-            element.mouseCollition(mouseX, mouseY)
+        if(this.selectionField.frame){
+            this.selectionField.ok.mouseCollition(mouseX, mouseY)
         }
-        for(let element of this.inventoryStack){
-            element.mouseCollition(mouseX, mouseY)
-        }
-        this.movetoLeftButton.mouseCollition(mouseX, mouseY)
-        this.movetoRightButton.mouseCollition(mouseX, mouseY)
-        for(const key in this.attributeByKey){
-            this.attributeByKey[key].additionButton.mouseCollition(mouseX, mouseY)
+        else{
+            for(let element of this.deck){
+                element.mouseCollition(mouseX, mouseY)
+            }
+            for(let element of this.inventoryStack){
+                element.mouseCollition(mouseX, mouseY)
+            }
+            this.movetoLeftButton.mouseCollition(mouseX, mouseY)
+            this.movetoRightButton.mouseCollition(mouseX, mouseY)
+            for(const key in this.attributeByKey){
+                this.attributeByKey[key].additionButton.mouseCollition(mouseX, mouseY)
+            }
         }
     }
 
     async handleClick(e){
-        // Spend an attribute point: persist via PATCH, then refresh the value + counter.
-        if(this.availablePoints > 0 && this.api && this.slotId != null){
-            for(const key in this.attributeByKey){
-                const attribute = this.attributeByKey[key]
-                if(attribute.additionButton.hovered){
-                    try {
-                        const res = await this.api.spendAttribute(this.slotId, key)
-                        this.availablePoints = res.availablePoints
-                        this.attributes[key] = res.attributes[key]
-                        attribute.attributeValueLabel.text = res.attributes[key]
-                        this.pointsLabel.text = `Points: ${this.availablePoints}`
-                    } catch(err){
-                        console.error('Could not spend attribute point:', err)
+        if(this.selectionField.frame){
+            if(this.selectionField.ok.hovered){
+                this.selectionField = {frame: undefined, info: [], ok: undefined}
+            }
+        }
+        else{
+            // Spend an attribute point: persist via PATCH, then refresh the value + counter.
+            if(this.availablePoints > 0 && this.api && this.slotId != null){
+                for(const key in this.attributeByKey){
+                    const attribute = this.attributeByKey[key]
+                    if(attribute.additionButton.hovered){
+                        try {
+                            const res = await this.api.spendAttribute(this.slotId, key)
+                            this.availablePoints = res.availablePoints
+                            this.attributes[key] = res.attributes[key]
+                            attribute.attributeValueLabel.text = res.attributes[key]
+                            this.pointsLabel.text = `Points: ${this.availablePoints}`
+                        } catch(err){
+                            console.error('Could not spend attribute point:', err)
+                        }
+                        return;
                     }
-                    return;
                 }
             }
-        }
 
-        // Inventory paging only makes sense with more than one page of cards.
-        if(this.inventory.length <= 5) return;
+                if(this.movetoLeftButton.hovered){
+                this.inventoryCurrentIndex -= 5
+                if(this.inventoryCurrentIndex < 0){
+                    this.inventoryCurrentIndex = (this.inventory.length - 1)+ this.inventoryCurrentIndex
+                }
+                const slotPositions = this.inventoryStack.map(card => card.x)
+                let indexCurrentShowingCards = 0
+                for(let i = this.inventoryCurrentIndex; i < this.inventoryCurrentIndex + 5; i++){
+                    let indexInventory = i%this.inventory.length
+                    this.inventory[indexInventory].x = slotPositions[indexCurrentShowingCards] 
+                    this.inventoryStack[indexCurrentShowingCards] = this.inventory[indexInventory]
+                    indexCurrentShowingCards++;
+                }
+                return;
+            }
 
-        if(this.movetoLeftButton.hovered){
-            this.inventoryCurrentIndex -= 5
-            if(this.inventoryCurrentIndex < 0){
-                this.inventoryCurrentIndex = this.inventory.length - this.inventoryCurrentIndex
+            if(this.movetoRightButton.hovered){
+                this.inventoryCurrentIndex += 5
+                if(this.inventoryCurrentIndex >= this.inventory.length){
+                    this.inventoryCurrentIndex = this.inventoryCurrentIndex%this.inventory.length
+                }
+                const slotPositions = this.inventoryStack.map(card => card.x)
+                let indexCurrentShowingCards = 0;
+                for(let i = this.inventoryCurrentIndex; i < this.inventoryCurrentIndex + 5; i++){
+                    let indexInventory = i%this.inventory.length
+                    this.inventory[indexInventory].x = slotPositions[indexCurrentShowingCards]
+                    this.inventoryStack[indexCurrentShowingCards] = this.inventory[indexInventory]
+                    indexCurrentShowingCards++;
+                }
+                return; 
             }
-            let indexCurrentShowingCards = 0
-            for(let i = this.inventoryCurrentIndex; i < this.inventoryCurrentIndex + 5; i++){
-                let indexInventory = i%this.inventory.length
-                this.inventory[indexInventory].x = this.inventoryStack[indexCurrentShowingCards].x
-                this.inventoryStack[indexCurrentShowingCards] = this.inventory[indexInventory]
-                indexCurrentShowingCards++;
-            }
-            return;
-        }
 
-        if(this.movetoRightButton.hovered){
-            this.inventoryCurrentIndex += 5
-            if(this.inventoryCurrentIndex > this.inventory.length){
-                this.inventoryCurrentIndex = this.inventoryCurrentIndex%this.inventory.length
+            for(let card of this.inventoryStack){
+                if(card.hovered){
+                    if(!this.cardSelectedInventory){
+                        this.cardSelectedInventory = card
+                        return
+                    }
+                    else if(card === this.cardSelectedInventory){
+                        this.attributeShow(card)
+                        return
+                    }
+                    else{
+                        this.cardSelectedInventory = card
+                        return
+                    }
+                }
             }
-            let indexCurrentShowingCards = 0;
-            for(let i = this.inventoryCurrentIndex; i < this.inventoryCurrentIndex + 5; i++){
-                let indexInventory = i%this.inventory.length
-                this.inventory[indexInventory].x = this.inventoryStack[indexCurrentShowingCards].x
-                this.inventoryStack[indexCurrentShowingCards] = this.inventory[indexInventory]
-                indexCurrentShowingCards++;
+
+            for(let card of this.deck){
+                if(card.hovered){
+                    if(!this.cardSelectedDeck){
+                        this.cardSelectedDeck = card
+                        return
+                    }
+                    else if(card === this.cardSelectedDeck){
+                        this.attributeShow(card)
+                        return
+                    }
+                    else{
+                        this.cardSelectedDeck = card
+                        return
+                    }
+                }
             }
-            return;
+
+            if(this.cardSelectedDeck && this.cardSelectedInventory){
+                let deckIndex = this.deck.indexOf(this.cardSelectedDeck)
+                let inventoryIndex = this.inventory.indexOf(this.cardSelectedInventory)
+                let stackIndex = this.inventoryStack.indexOf(this.cardSelectedInventory)
+
+                let deckX = this.cardSelectedDeck.x 
+                let deckY = this.cardSelectedDeck.y
+                this.cardSelectedDeck.x = this.cardSelectedInventory.x
+                this.cardSelectedDeck.y = this.cardSelectedInventory.y
+                this.cardSelectedInventory.x = deckX
+                this.cardSelectedInventory.y = deckY
+
+                this.deck[deckIndex] = this.cardSelectedInventory                                                                              
+                this.inventory[inventoryIndex] = this.cardSelectedDeck                                                                         
+                if(stackIndex !== -1){                                                                                                         
+                    this.inventoryStack[stackIndex] = this.cardSelectedDeck                                                                    
+                }                                                                                                                              
+                                                                                                                                             
+                this.cardSelectedDeck = null                                                                                                   
+                this.cardSelectedInventory = null
+            }
         }
     }
 
@@ -213,5 +283,27 @@ export default class battleLobby extends Menus{
             element.draw(ctx)
         }
 
+        if(this.selectionField.frame){
+            this.selectionField.frame.draw(ctx)
+            for(let label of this.selectionField.info){
+                label.draw(ctx)
+            }
+            this.selectionField.ok.draw(ctx)
+        }
+    }
+
+    attributeShow(card){
+        this.selectionField.frame = new GameObject(this.canvasWidth/2, this.canvasHeight/2, 300, 300, undefined, undefined, undefined)
+        this.selectionField.frame.setSprite('../Assets/Sprites/selection1.jpg')
+        this.selectionField.info = []
+        let offSetY = 25
+        let nameLabel = new textLabel(this.canvasWidth/2, this.canvasHeight/2 - 3*offSetY, '25px Academia', 'black', undefined, 'Name: ' + card.name.replace("_", " "))
+        let actionType = new textLabel(this.canvasWidth/2, this.canvasHeight/2 - 2*offSetY, '25px Academia', 'black', undefined, 'Type: ' + card.action.actionType.replace("_", " "))
+        let baseDamage = new textLabel(this.canvasWidth/2, this.canvasHeight/2 - 1*offSetY, '25px Academia', 'black', undefined, 'Base damage: ' + card.action.baseDamage)
+        let scaleAtt = new textLabel(this.canvasWidth/2, this.canvasHeight/2, '25px Academia', 'black', undefined, 'Required att: ' + card.action.scalingAttribute)
+        let scaleFact = new textLabel(this.canvasWidth/2, this.canvasHeight/2 + 1*offSetY, '25px Academia', 'black', undefined, 'Scale factor: ' + card.action.scaleFactor)
+        let scaleReq = new textLabel(this.canvasWidth/2, this.canvasHeight/2 + 2*offSetY, '25px Academia', 'black', undefined, 'Attribute nec. val: ' + card.requirements)
+        this.selectionField.info.push(nameLabel, actionType, baseDamage, scaleAtt, scaleFact, scaleReq)
+        this.selectionField.ok = new textLabel(this.canvasWidth/2, this.canvasHeight/2 + this.selectionField.frame.height/3, '25px Academia', 'black', undefined, 'ok', true)
     }
 }
