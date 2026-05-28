@@ -96,7 +96,7 @@ class Game {
             this.currentMenu.pop();
         }
         else if(state === 6){
-            this.currentMenu = new battleScreen('../Assets/backgrounds/background_1.png', this.canvasWidth, this.canvasHeight, this.player, this.currentEnemyPool)
+            this.currentMenu = new battleScreen('../Assets/backgrounds/courtyard_1_1.png', this.canvasWidth, this.canvasHeight, this.player, this.currentEnemyPool)
         }
         else if(state === 7){
             this.currentMenu = new gameOverScreen(this.canvasWidth, this.canvasHeight)
