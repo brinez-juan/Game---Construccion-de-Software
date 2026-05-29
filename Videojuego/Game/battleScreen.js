@@ -252,19 +252,27 @@ export default class battleScreen extends Menus{
             let offSetX = 150
             let offSetY = 50
             for(let i = 0; i < count; i++){
-                let enemyIndex = Math.floor(Math.random() * (enemyData.length-1))
-                let enemyInstance = new Enemy(positionX, positionY, 120, 300,enemyData[enemyIndex].name, enemyData[enemyIndex].health, enemyData[enemyIndex].maxHealth, enemyData[enemyIndex].stamina, enemyData[enemyIndex].maxStamina, enemyData[enemyIndex].attributes)
-                console.log(enemyInstance)
-                this.enemies.push(enemyInstance)
+                let enemyIndex = Math.floor(Math.random() * enemyData.length)
+                this.enemies.push(this.makeEnemy(enemyData[enemyIndex], positionX, positionY, 120, 300))
                 positionX += offSetX
                 positionY += offSetY
             }
         }
         else{
-            let enemyIndex = Math.floor(Math.random() * (enemyData.length-1))
-            let enemyInstance = new Enemy(3*this.canvasWidth/4, this.player.y, 200, 300,enemyData[enemyIndex].name, enemyData[enemyIndex].health, enemyData[enemyIndex].maxHealth, enemyData[enemyIndex].stamina, enemyData[enemyIndex].maxStamina, enemyData[enemyIndex].attributes)
-            this.enemies.push(enemyInstance)
+            let enemyIndex = Math.floor(Math.random() * enemyData.length)
+            this.enemies.push(this.makeEnemy(enemyData[enemyIndex], 3*this.canvasWidth/4, this.player.y, 200, 300))
         }
     }
 
+    // Builds one Enemy from a normalized datum, forwarding the DB combat stats the
+    // enemy turn reads (physical/magic damage and defenses) and overriding the
+    // sprite with the resolved fallback path so missing art doesn't 404.
+    makeEnemy(datum, x, y, width, height){
+        const enemy = new Enemy(x, y, width, height, datum.name,
+            datum.health, datum.maxHealth, datum.stamina, datum.maxStamina, datum.attributes,
+            datum.physicalDamage, datum.magicDamage, datum.physicalDefense, datum.magicDefense,
+            datum.experienceReward, null, datum.isBoss)
+        if(datum.spritePath){ enemy.setSprite(datum.spritePath) }
+        return enemy
+    }
 }

@@ -12,23 +12,38 @@ import GameObject from "./GameObject.js";
 // Lobby menu displayed between battles to show player progression and allow attribute upgrades
 
 export default class battleLobby extends Menus{
-    constructor(background = '', canvasWidth = 0, canvasHeight = 0,experienceToNextLevel,  experience, level, attributes, deck, inventory = [], availablePoints = 0, slotId = null, api = null){
+    constructor(background = '', canvasWidth = 0, canvasHeight = 0,experienceToNextLevel,  experience, level, attributes, deck, inventory = [], availablePoints = 0, slotId = null, api = null, game = null){
         super(background, canvasWidth, canvasHeight)
         this.originalAttributes = attributes
         this.attributes = attributes
         this.availablePoints = availablePoints
         this.slotId = slotId
         this.api = api
+        // The lobby is the prep step before a battle: it knows the chosen room and
+        // the active run so "Start battle" can persist the deck and enter combat.
+        this.game = game
+        this.currentRoom = game?.currentRoom ?? null
+        this.runId = game?.runId ?? null
+        this.starting = false
         this.experienceBarElements = [];
         this.attributeElements = [];
         this.attributeByKey = {}
         this.deck = []
         this.inventory = []
         this.inventoryStack = []
+        // No active deck is persisted between runs, so a fresh slot arrives with an
+        // empty deck and all cards in the inventory. Seed the deck from the inventory
+        // (up to MAX_DECK_SIZE) so the player always starts with a playable deck and
+        // the deck/inventory swap has cards to work with. Deck and inventory stay
+        // disjoint.
+        const MAX_DECK_SIZE = 5
+        const combined = [...(deck || []), ...(inventory || [])]
+        const effectiveDeck = combined.slice(0, MAX_DECK_SIZE)
+        const effectiveInventory = combined.slice(MAX_DECK_SIZE)
         this.experienceBarSpawn(experience, level, experienceToNextLevel)
         this.attributeSectionSpawn(attributes)
-        this.deckSectionSpawn(deck, this.canvasWidth/10*3 + 20, this.canvasHeight/5, 80*0.75, 80, 10)
-        this.inventorySectionSpawn(inventory, this.canvasWidth/10*3 + 20, this.canvasHeight/5*3, 80*0.75, 80, 10)
+        this.deckSectionSpawn(effectiveDeck, this.canvasWidth/10*3 + 20, this.canvasHeight/5, 80*0.75, 80, 10)
+        this.inventorySectionSpawn(effectiveInventory, this.canvasWidth/10*3 + 20, this.canvasHeight/5*3, 80*0.75, 80, 10)
         // Buttons are placed from the row layout, not from card instances, so an
         // inventory with fewer than 5 cards (or none) doesn't blow up.
         this.movetoRightButton = new GameObject(this.inventoryRightX + 60, this.inventoryRowY, 35, 35)
@@ -39,6 +54,8 @@ export default class battleLobby extends Menus{
         this.cardSelectedInventory = null
         this.inventoryCurrentIndex = 0
         this.selectionField = {frame: undefined, info: [], ok: undefined}
+        // "Start battle" enters the chosen room. Bottom-centre, clickable label.
+        this.startButton = new textLabel(this.canvasWidth/2, this.canvasHeight - 30, '34px Academia', 'black', undefined, 'Start battle', true)
         this.addEventListeners()
     }
 
@@ -90,6 +107,10 @@ export default class battleLobby extends Menus{
             let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null)
             let cardInstance = new ItemCard(posX, posY, cardWidth, cardHeight, card.name, card.description, action, card.required_value, card.rarity, card.stamina_cost, card.isPermanent)
             cardInstance.setSprite(card.spritePath ?? `../Assets/Sprites/${card.name}.jpeg`)
+            // Keep the DB id + raw normalized card so "Start battle" can persist the
+            // chosen deck (card ids) and hand the battle screen real card data.
+            cardInstance.cardId = card.cardId
+            cardInstance.sourceCard = card
             this.deck.push(cardInstance)
             posX += cardWidth + offSetX
         }
@@ -108,6 +129,8 @@ export default class battleLobby extends Menus{
             let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null)
             let cardInstance = new ItemCard(posX, posY, cardWidth, cardHeight, card.name, card.description, action, card.required_value, card.rarity, card.stamina_cost, card.isPermanent)
             cardInstance.setSprite(card.spritePath ?? `../Assets/Sprites/${card.name}.jpeg`)
+            cardInstance.cardId = card.cardId
+            cardInstance.sourceCard = card
             this.inventory.push(cardInstance)
             posX += cardWidth + offSetX
         }
@@ -119,8 +142,48 @@ export default class battleLobby extends Menus{
     }
 
     addEventListeners(){
-        canvas.addEventListener('mousemove', this.handleHover.bind(this))
-        canvas.addEventListener('click', this.handleClick.bind(this))
+        // Store bound refs so dispose() can remove exactly these listeners when the
+        // lobby hands off to the battle screen (otherwise stale clicks would keep
+        // firing startSession on a screen that's no longer active).
+        this._hover = this.handleHover.bind(this)
+        this._click = this.handleClick.bind(this)
+        canvas.addEventListener('mousemove', this._hover)
+        canvas.addEventListener('click', this._click)
+    }
+
+    dispose(){
+        canvas.removeEventListener('mousemove', this._hover)
+        canvas.removeEventListener('click', this._click)
+    }
+
+    // Collects the chosen deck (or falls back to the first inventory cards),
+    // persists the room session + deck, hands the battle screen real card data,
+    // then transitions to the room's battle state.
+    async startBattle(){
+        if(this.starting){ return }
+        this.starting = true
+        const chosen = this.deck.map(c => c.sourceCard).filter(Boolean)
+        let pool = chosen.length > 0 ? chosen : this.inventory.map(c => c.sourceCard).filter(Boolean)
+        const seen = new Set()
+        const deckCards = []
+        for(const card of pool){
+            if(card && !seen.has(card.cardId)){ seen.add(card.cardId); deckCards.push(card) }
+            if(deckCards.length === 5){ break }
+        }
+        if(deckCards.length === 0){ console.error('Cannot start battle: empty deck.'); this.starting = false; return }
+
+        try {
+            if(this.api && this.runId != null && this.currentRoom){
+                await this.api.startSession(this.runId, { roomId: this.currentRoom.id, deck: deckCards.map(c => c.cardId) })
+            }
+        } catch(err){
+            console.error('Could not persist room session/deck:', err)
+        }
+
+        // Hand the assembled deck to the battle screen via the shared player object.
+        if(this.game?.player){ this.game.player.activeDeck = deckCards }
+        this.dispose()
+        this.state = this.currentRoom ? this.currentRoom.stateCode : 6
     }
 
     handleHover(e){
@@ -138,6 +201,7 @@ export default class battleLobby extends Menus{
             for(let element of this.inventoryStack){
                 element.mouseCollition(mouseX, mouseY)
             }
+            this.startButton.mouseCollition(mouseX, mouseY)
             this.movetoLeftButton.mouseCollition(mouseX, mouseY)
             this.movetoRightButton.mouseCollition(mouseX, mouseY)
             for(const key in this.attributeByKey){
@@ -153,6 +217,11 @@ export default class battleLobby extends Menus{
             }
         }
         else{
+            // Start battle takes priority over the card/attribute interactions.
+            if(this.startButton.hovered){
+                await this.startBattle()
+                return
+            }
             // Spend an attribute point: persist via PATCH, then refresh the value + counter.
             if(this.availablePoints > 0 && this.api && this.slotId != null){
                 for(const key in this.attributeByKey){
@@ -282,6 +351,7 @@ export default class battleLobby extends Menus{
         for(let element of this.inventoryStack){
             element.draw(ctx)
         }
+        this.startButton.draw(ctx)
 
         if(this.selectionField.frame){
             this.selectionField.frame.draw(ctx)
