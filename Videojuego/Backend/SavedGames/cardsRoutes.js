@@ -341,4 +341,32 @@ router.get('/api/room-sessions/:id/deck', requireAuth, async (req, res) => {
   }
 });
 
+// US22 Task 4: restore the last Battle Deck saved for a run. Used when the player
+// returns to the Battle Lobby (e.g. after quitting and pressing Continue) — there is
+// no tracked session id across a quit, so this reads the active_deck_cards of the
+// most recent room_session for the run. Scoped to the user via the same JOIN chain as
+// the per-session deck read above; an empty array means no deck has been saved yet.
+router.get('/api/runs/:runId/deck', requireAuth, async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT adc.slot, adc.card_id, c.name, c.action_type, c.stamina_cost
+         FROM active_deck_cards adc
+         JOIN cards          c  ON c.id  = adc.card_id
+         JOIN room_sessions  rs ON rs.id = adc.room_session_id
+         JOIN runs           r  ON r.id  = rs.run_id
+         JOIN player_profiles pp ON pp.id = r.player_id
+        WHERE rs.run_id = ? AND pp.user_id = ?
+          AND rs.id = (
+            SELECT MAX(rs2.id) FROM room_sessions rs2 WHERE rs2.run_id = ?
+          )
+        ORDER BY adc.slot ASC`,
+      [req.params.runId, req.user.id, req.params.runId]
+    );
+    return res.json({ success: true, deck: rows });
+  } catch (error) {
+    console.error('run-deck load error:', error);
+    return res.status(500).json({ success: false, message: 'Could not load run deck.' });
+  }
+});
+
 export default router;

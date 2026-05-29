@@ -90,6 +90,27 @@ class Game {
         // Furthest (floor, room) reached, used to rebuild the map on Continue.
         this.runProgress = slot.run ? { floor: slot.run.floor, room: slot.run.room } : null;
         this.availablePoints = attrs.availablePoints ?? 0;
+
+        // Restore the last Battle Deck saved for this run so Continue resumes with the
+        // deck the player committed to (US22 Task 4). The saved deck is split out of the
+        // inventory and the two are kept disjoint; a missing/empty deck just leaves
+        // activeDeck empty and the lobby seeds a starter deck from the inventory.
+        let activeDeck = [];
+        let inventory = rawCards.map(normalizeCard);
+        try {
+            if(this.runId != null){
+                const saved = await this.api.getRunDeck(this.runId);   // [{ slot, card_id }]
+                if(saved?.length){
+                    const byId = new Map(inventory.map(c => [c.cardId, c]));
+                    activeDeck = saved.map(d => byId.get(d.card_id)).filter(Boolean);
+                    const deckIds = new Set(activeDeck.map(c => c.cardId));
+                    inventory = inventory.filter(c => !deckIds.has(c.cardId));
+                }
+            }
+        } catch(err){
+            console.warn('No saved deck to restore:', err);
+        }
+
         this.player = {
             maxHealth: 100, health: 100, maxStamina: 100, stamina: 100,
             attributes: attrs.attributes,
@@ -98,8 +119,8 @@ class Game {
             // XP-to-next isn't stored; approximate from level (only matters once the
             // XP bar tracks per-level progress instead of cumulative XP).
             experienceToNextLevel: Math.round(100 * Math.pow(1.5, level - 1)),
-            inventory: rawCards.map(normalizeCard),
-            activeDeck: []
+            inventory,
+            activeDeck
         };
     }
 
