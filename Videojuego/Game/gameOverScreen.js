@@ -40,8 +40,14 @@ constructor(canvasWidth = 0, canvasHeight = 0, stats = { floorsCompleted: 0, ene
 
     handleClick(e){
         if(this.continueBtn.hovered){
-            this.state = 4;  // placexholder state for permanent card selection
+            this.dispose();
+            this.state = 0;  // back to the main menu (run-end summary is deferred)
         }
+    }
+
+    dispose(){
+        canvas.removeEventListener('mousemove', this.boundMouseMove);
+        canvas.removeEventListener('click', this.boundClick);
     }
     draw(ctx){
         // Background fill

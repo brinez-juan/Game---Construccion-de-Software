@@ -6,11 +6,17 @@ import optionsMenu from './optionsMenu.js';
 import creditScreen from './creditScreen.js';
 import gameOverScreen from './gameOverScreen.js';
 import successScreen from './successScreen.js';
-import Player from './Player.js';
 import battleLobby from './battleLobby.js';
 import archetypeScreen from './archetypeScreen.js';
+import mapScreen, { MapManager } from './mapScreen.js';
 import SavedGamesAPI from '../savedGamesApi.js';
-import { loadActiveSlot, normalizeCard, buildRoomStateMap } from './dataAdapter.js';
+import {
+    normalizeCard,
+    buildRoomStateMap,
+    buildEnemyPoolByFloor,
+    buildFloorRoomModel,
+    buildCardSlugToId
+} from './dataAdapter.js';
 
 // Context of the Canvas
 let ctx;
@@ -20,41 +26,102 @@ let oldTime = 0;
 
 export const canvas = document.getElementById('canvas');
 
-//TODO: Replace with information gotten from the database
-//Make it an instance attribute of game
+// Reusable background asset paths (relative to pages/game.html).
+const BG = {
+    main:    '../Assets/backgrounds/main_background.png',
+    options: '../Assets/backgrounds/options_background.png',
+    credits: '../Assets/backgrounds/credits.png',
+    map:     '../Assets/backgrounds/mapa.png',
+    lobby:   '../Assets/backgrounds/lobby_background.png',
+    battleFallback: '../Assets/backgrounds/courtyard_1_1.png'
+};
 
 // Top-level controller that owns the canvas loop, the active screen and the screen stack
 class Game {
-    // `boot` carries the data loaded from the backend before the loop starts:
-    // { api, slotId, attributes, level, availablePoints, totalExperience, experienceToNextLevel, deck, inventory }
+    // `boot` carries the global reference data loaded from the backend before the
+    // loop starts (rooms, enemies, card catalog, slots). Per-slot data is loaded
+    // on demand once a slot is chosen, via loadSlotData().
     constructor(boot){
         this.canvasWidth = 800;
         this.canvasHeight = 600;
         this.currentState = 0;
         this.isLoading = false;
         this.menuStack = [];
-        this.playerProfiles = [{field: 0,name: 'smv', level: 2, floor: 2,last_session: '03-04'}, {field: 2,name: 'smv', level: 2, floor: 2,last_session: '03-04'}];
         this.api = boot.api;
-        this.activeSlotId = boot.slotId;
-        // stateCode (101-112) -> room { id, floorNumber, roomNumber, isBoss, background }.
-        // Each room has a distinct screen state; a level-selection screen jumps to a room
-        // by setting this.state to its stateCode. currentRoom is the one in play.
-        this.rooms = boot.rooms;
+
+        // Global reference data (DB-backed).
+        this.roomsMap = boot.roomsMap;                 // stateCode (101-112) -> room
+        this.floorRoomModel = boot.floorRoomModel;     // floors 1-3 for the castle map
+        this.enemyPoolByFloor = boot.enemyPoolByFloor;  // floorNumber -> { regular, boss }
+        this.cardCatalog = boot.cardCatalog;
+        this.cardSlugToId = boot.cardSlugToId;          // starting-card slug -> card id
+        this.slots = boot.slots;                        // for main-menu Continue gating
+
+        // Per-run state, filled as the player progresses.
+        this.activeSlotId = null;
+        this.runId = null;
         this.currentRoom = null;
+        this.mapManager = null;
+        this.availablePoints = 0;
+        this.player = this.blankPlayer();
+
+        this.currentMenu = new mainMenu(BG.main, this.canvasWidth, this.canvasHeight, 30, this.slots);
+        this.currentState = 0;
+    }
+
+    blankPlayer(){
+        return {
+            maxHealth: 100, health: 100, maxStamina: 100, stamina: 100,
+            attributes: { STRENGTH: 0, DEXTERITY: 0, INTELLIGENCE: 0, VIGOR: 0, ENDURANCE: 0 },
+            level: 1, experience: 0, experienceToNextLevel: 100,
+            inventory: [], activeDeck: []
+        };
+    }
+
+    // Loads the chosen slot's profile, attributes and cards into the runtime player.
+    async loadSlotData(slotId){
+        const slot = await this.api.fetchSlot(slotId);
+        const attrs = await this.api.getAttributes(slotId);
+        const rawCards = await this.api.listCards(slotId);
+        const level = attrs.level ?? slot.profile?.level ?? 1;
+        this.activeSlotId = slotId;
+        this.runId = slot.run?.id ?? this.runId;
+        this.availablePoints = attrs.availablePoints ?? 0;
         this.player = {
             maxHealth: 100, health: 100, maxStamina: 100, stamina: 100,
-            attributes: boot.attributes,
-            level: boot.level,
-            experience: boot.totalExperience,
-            experienceToNextLevel: boot.experienceToNextLevel,
-            inventory: boot.inventory,
-            activeDeck: boot.deck
+            attributes: attrs.attributes,
+            level,
+            experience: slot.profile?.totalExperience ?? 0,
+            // XP-to-next isn't stored; approximate from level (only matters once the
+            // XP bar tracks per-level progress instead of cumulative XP).
+            experienceToNextLevel: Math.round(100 * Math.pow(1.5, level - 1)),
+            inventory: rawCards.map(normalizeCard),
+            activeDeck: []
         };
-        this.currentMenu = new battleLobby('../Assets/backgrounds/lobby_background.png', this.canvasWidth, this.canvasHeight,
-            boot.experienceToNextLevel, boot.totalExperience, boot.level,
-            boot.attributes, boot.deck, boot.inventory, boot.availablePoints, this.activeSlotId, this.api)
-        this.currentEnemyPool = [{name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}, {name: 'corrupt_knight', health: 30, maxHealth: 30, stamina: 50, maxStamina: 50, attributes: {strength: 5, dexterity: 5, intelligence: 5}}];
-        this.addEventListeners();
+    }
+
+    // The forest tutorial room (floor 0, room 1) — off the castle map but still a
+    // normal room in the state map.
+    getForestRoom(){
+        for(const room of this.roomsMap.values()){
+            if(room.floorNumber === 0 && room.roomNumber === 1){ return room; }
+        }
+        return null;
+    }
+
+    // Creates the castle map manager (reset to a new run unlock state) when needed.
+    startMap(reset){
+        if(reset || !this.mapManager){
+            this.mapManager = new MapManager(this.floorRoomModel);
+        }
+    }
+
+    // Picks the floor-appropriate enemy pool for a room (boss list for boss rooms).
+    enemyPoolFor(room){
+        const pool = this.enemyPoolByFloor.get(room?.floorNumber);
+        if(!pool){ return []; }
+        if(room.isBoss && pool.boss.length){ return pool.boss; }
+        return pool.regular.length ? pool.regular : pool.boss;
     }
 
     addEventListeners(){}
@@ -78,51 +145,72 @@ class Game {
     // Maps numeric state codes to concrete screen instances and pushes them to the stack
     screenManager(state){
         if(state === 0){
-           this.currentMenu = new mainMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, 30, this.playerProfiles)
+            this.currentMenu = new mainMenu(BG.main, this.canvasWidth, this.canvasHeight, 30, this.slots)
         }
         else if(state === 1){
-            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, this.playerProfiles, 'new')
+            this.currentMenu = new selectionMenu(BG.main, this.canvasWidth, this.canvasHeight, this, 'new')
         }
         else if(state === 2){
-            this.currentMenu = new selectionMenu('../Assets/backgrounds/main_background.png', this.canvasWidth, this.canvasHeight, this.playerProfiles, 'continue');
+            this.currentMenu = new selectionMenu(BG.main, this.canvasWidth, this.canvasHeight, this, 'continue')
         }
         else if(state === 3){
             if(this.currentMenu instanceof battleScreen){
                 this.menuStack[this.menuStack.length - 1].dispose()
                 this.menuStack.push(this.currentMenu)
             }
-            this.currentMenu = new optionsMenu('../Assets/backgrounds/options_background.png', this.canvasWidth, this.canvasHeight, 'pause')
+            this.currentMenu = new optionsMenu(BG.options, this.canvasWidth, this.canvasHeight, 'pause')
         }
         else if(state === 4){
-            this.currentMenu = new creditScreen('../Assets/backgrounds/credits.png', this.canvasWidth, this.canvasHeight);
+            this.currentMenu = new creditScreen(BG.credits, this.canvasWidth, this.canvasHeight);
         }
         else if(state === 5){
             this.currentMenu = this.menuStack[this.menuStack.indexOf(this.currentMenu) - 1];
             this.currentMenu.pop();
         }
         else if(state === 6){
-            // Generic battle entry: use the room already selected, else default to the courtyard.
-            const background = this.currentRoom?.background ?? '../Assets/backgrounds/courtyard_1_1.png';
-            this.currentMenu = new battleScreen(background, this.canvasWidth, this.canvasHeight, this.player, this.currentEnemyPool)
+            // Generic battle entry: use the room already selected, else default.
+            const background = this.currentRoom?.background ?? BG.battleFallback;
+            this.currentMenu = new battleScreen(background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(this.currentRoom))
         }
         else if(state === 7){
             this.currentMenu = new gameOverScreen(this.canvasWidth, this.canvasHeight)
         }
         else if(state === 8){
+            // Record progress before showing the victory screen. The forest tutorial
+            // (floor 0) is off-map, so only castle rooms advance the map manager.
+            if(this.mapManager && this.currentRoom && this.currentRoom.floorNumber !== 0){
+                this.mapManager.completeRoom(this.currentRoom.floorNumber, this.currentRoom.roomNumber)
+            }
             this.currentMenu = new successScreen(this.canvasWidth, this.canvasHeight)
         }
-        else if(this.rooms.has(state)){
-            // Per-room battle: stateCode 101-112 maps to a DB-backed room + its background asset.
-            const room = this.rooms.get(state);
+        else if(state === 9){
+            this.currentMenu = new archetypeScreen(BG.main, this.canvasWidth, this.canvasHeight, this)
+        }
+        else if(state === 10){
+            this.startMap(false)
+            const self = this
+            this.currentMenu = new mapScreen(BG.map, this.canvasWidth, this.canvasHeight, this.mapManager,
+                function(room){ self.currentRoom = room })
+        }
+        else if(state === 11){
+            const p = this.player
+            this.currentMenu = new battleLobby(BG.lobby, this.canvasWidth, this.canvasHeight,
+                p.experienceToNextLevel, p.experience, p.level, p.attributes, p.activeDeck, p.inventory,
+                this.availablePoints, this.activeSlotId, this.api, this)
+        }
+        else if(this.roomsMap.has(state)){
+            // Per-room battle: stateCode 101-112 maps to a DB-backed room + its
+            // background asset and a floor-appropriate enemy pool.
+            const room = this.roomsMap.get(state);
             this.currentRoom = room;
-            this.currentMenu = new battleScreen(room.background, this.canvasWidth, this.canvasHeight, this.player, this.currentEnemyPool)
+            this.currentMenu = new battleScreen(room.background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(room))
         }
         this.menuStack.push(this.currentMenu)
     }
 }
 
-// Bootstrap that gates on auth, loads the active save slot from the backend,
-// then initializes the Game, sizes the canvas and starts the render loop.
+// Bootstrap that gates on auth, loads the global reference data from the backend,
+// then initializes the Game on the main menu, sizes the canvas and starts the loop.
 async function main(){
     if(!localStorage.getItem('authToken')){
         window.location.href = '../pages/login.html';
@@ -130,36 +218,30 @@ async function main(){
     }
 
     const api = new SavedGamesAPI();
-    let slot, attrs, rawCards, rawRooms = [];
-    try {
-        slot = await loadActiveSlot(api);
-        if(!slot){ console.error('No save slots for this user. Create one first.'); return; }
-        if(!slot.profile){ console.error('Active slot has no profile yet — pick an archetype first.'); return; }
-        attrs = await api.getAttributes(slot.id);
-        rawCards = await api.listCards(slot.id);
-        // Room catalog is non-critical: fall back to the built-in table if it fails.
-        try { rawRooms = await api.listRooms(); }
-        catch(roomsErr){ console.warn('Failed to load rooms; using fallback table:', roomsErr); }
-    } catch(err){
-        console.error('Failed to load save data (token may be expired):', err);
+    let rawRooms = [], rawEnemies = [], rawCatalog = [], slots = [];
+    // Reference data is non-critical — fall back to built-in tables if it fails.
+    try { rawRooms = await api.listRooms(); }
+    catch(err){ console.warn('Failed to load rooms; using fallback table:', err); }
+    try { rawEnemies = await api.listEnemies(); }
+    catch(err){ console.warn('Failed to load enemies:', err); }
+    try { rawCatalog = await api.listCardCatalog(); }
+    catch(err){ console.warn('Failed to load card catalog:', err); }
+    // Slots require a valid token; a failure here means the session is unusable.
+    try { slots = await api.listSlots(); }
+    catch(err){
+        console.error('Failed to load save slots (token may be expired):', err);
         window.location.href = '../pages/login.html';
         return;
     }
 
-    const level = attrs.level ?? slot.profile.level ?? 1;
     const boot = {
         api,
-        slotId: slot.id,
-        attributes: attrs.attributes,
-        level,
-        availablePoints: attrs.availablePoints ?? 0,
-        totalExperience: slot.profile.totalExperience ?? 0,
-        // XP-to-next is not stored in the DB; approximate from level (exact only matters
-        // once the XP bar tracks per-level progress instead of cumulative XP).
-        experienceToNextLevel: Math.round(100 * Math.pow(1.5, level - 1)),
-        deck: [],                          // no active deck persisted between runs yet
-        inventory: rawCards.map(normalizeCard),
-        rooms: buildRoomStateMap(rawRooms) // stateCode -> room (falls back when empty)
+        roomsMap: buildRoomStateMap(rawRooms),
+        floorRoomModel: buildFloorRoomModel(rawRooms),
+        enemyPoolByFloor: buildEnemyPoolByFloor(rawEnemies),
+        cardCatalog: rawCatalog,
+        cardSlugToId: buildCardSlugToId(rawCatalog),
+        slots
     };
 
     game = new Game(boot);
