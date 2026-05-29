@@ -133,6 +133,19 @@ export default class SavedGamesAPI {
     return data.run_id;
   }
 
+  // Persists the furthest floor/room reached (and optionally the victory flag)
+  // so the slot card and the map can resume after the player quits.
+  async updateRunProgress(runId, { finalFloor, finalRoom, victory } = {}) {
+    const body = { final_floor_reached: finalFloor, final_room_reached: finalRoom };
+    if (typeof victory === 'boolean') { body.victory = victory; }
+    const res = await fetch(`/api/runs/${runId}/progress`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify(body)
+    });
+    await parseOrThrow(res);
+  }
+
   // Records a new card pickup distinguishing permanent starters from in-run drops
   async addCard(slotId, { cardId, isPermanent = false, obtainedAtFloor = null }) {
     const res = await fetch(`/api/saved-games/${slotId}/cards`, {

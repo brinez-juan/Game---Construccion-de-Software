@@ -62,6 +62,7 @@ class Game {
         this.runId = null;
         this.currentRoom = null;
         this.mapManager = null;
+        this.runProgress = null;   // { floor, room } furthest reached, from the DB
         this.availablePoints = 0;
         this.player = this.blankPlayer();
 
@@ -86,6 +87,8 @@ class Game {
         const level = attrs.level ?? slot.profile?.level ?? 1;
         this.activeSlotId = slotId;
         this.runId = slot.run?.id ?? this.runId;
+        // Furthest (floor, room) reached, used to rebuild the map on Continue.
+        this.runProgress = slot.run ? { floor: slot.run.floor, room: slot.run.room } : null;
         this.availablePoints = attrs.availablePoints ?? 0;
         this.player = {
             maxHealth: 100, health: 100, maxStamina: 100, stamina: 100,
@@ -109,10 +112,32 @@ class Game {
         return null;
     }
 
-    // Creates the castle map manager (reset to a new run unlock state) when needed.
-    startMap(reset){
+    // Creates the castle map manager when needed. When `progress` ({floor, room})
+    // is given, the unlock state is rebuilt from the furthest room reached so a
+    // continued run resumes where it left off.
+    startMap(reset, progress = null){
         if(reset || !this.mapManager){
             this.mapManager = new MapManager(this.floorRoomModel);
+            if(progress && progress.floor != null){
+                this.mapManager.restoreFromProgress(progress.floor, progress.room);
+            }
+        }
+    }
+
+    // Persists the furthest room reached so the slot card updates and Continue
+    // can resume. Best-effort (fire-and-forget); failures are logged, not fatal.
+    async persistProgress(){
+        if(!this.api || this.runId == null || !this.currentRoom){ return; }
+        const victory = (this.currentRoom.floorNumber === 3 && this.currentRoom.isBoss) ? true : undefined;
+        try {
+            await this.api.updateRunProgress(this.runId, {
+                finalFloor: this.currentRoom.floorNumber,
+                finalRoom: this.currentRoom.roomNumber,
+                victory
+            });
+            this.runProgress = { floor: this.currentRoom.floorNumber, room: this.currentRoom.roomNumber };
+        } catch(err){
+            console.error('Could not persist run progress:', err);
         }
     }
 
@@ -181,6 +206,8 @@ class Game {
             if(this.mapManager && this.currentRoom && this.currentRoom.floorNumber !== 0){
                 this.mapManager.completeRoom(this.currentRoom.floorNumber, this.currentRoom.roomNumber)
             }
+            // Persist the cleared room so the slot card and Continue stay in sync.
+            this.persistProgress()
             this.currentMenu = new successScreen(this.canvasWidth, this.canvasHeight)
         }
         else if(state === 9){

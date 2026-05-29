@@ -232,7 +232,9 @@ export default class selectionMenu extends Menus{
             if(this.game.runId == null){
                 this.game.runId = await this.game.api.startRun(slot.id)
             }
-            this.game.startMap(true)   // fresh map manager for this session
+            // Rebuild the map from the run's saved progress so it resumes where the
+            // player left off instead of restarting at the first room.
+            this.game.startMap(true, this.game.runProgress)
             this.state = 10
         } catch(err){
             console.error('Could not continue this save:', err)
