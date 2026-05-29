@@ -182,4 +182,20 @@ export default class SavedGamesAPI {
     const data = await parseOrThrow(res);
     return data.deck;
   }
+
+  // Returns the full card catalog (every row of the cards table). Used as the
+  // card source of truth and to resolve archetype starting-card slugs to ids.
+  async listCardCatalog() {
+    const res = await fetch('/api/cards', { headers: authHeaders() });
+    const data = await parseOrThrow(res);
+    return data.cards;
+  }
+
+  // Returns the enemy catalog joined with floor_number so the client can pick a
+  // room-appropriate pool per floor.
+  async listEnemies() {
+    const res = await fetch('/api/enemies', { headers: authHeaders() });
+    const data = await parseOrThrow(res);
+    return data.enemies;
+  }
 }
