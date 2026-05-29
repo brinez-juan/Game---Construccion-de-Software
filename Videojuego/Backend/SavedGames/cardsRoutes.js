@@ -173,6 +173,56 @@ router.post('/api/saved-games/:id/runs', requireAuth, async (req, res) => {
   }
 });
 
+// US23 — Issue #60: reset run progress on death.
+// When the player dies, the roguelite rules wipe the run-only inventory and
+// end the current run, but keep the permanent inventory and the accumulated
+// level/XP. Detaching the run from the slot (current_run_id = NULL) means the
+// next Continue starts a brand-new run, which resets the map to the beginning
+// on its own. Done in a transaction so a half-applied reset can't leave the
+// slot pointing at a run whose cards were already deleted.
+router.post('/api/saved-games/:id/reset-on-death', requireAuth, async (req, res) => {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const { profileId, runId, error } = await slotContext(conn, req.params.id, req.user.id);
+    if (error) {
+      await conn.rollback();
+      return res.status(404).json({ success: false, message: 'Save not found.' });
+    }
+
+    // Task 1 + Task 4: delete this run's run-only cards, keep the permanent ones.
+    // Guarded on profileId/runId so a slot with no profile or no active run is a
+    // safe no-op rather than deleting every run-only card the player owns.
+    if (profileId && runId) {
+      await conn.query(
+        `DELETE FROM player_cards
+          WHERE player_id = ?
+            AND is_permanent = FALSE
+            AND obtained_at_run = ?`,
+        [profileId, runId]
+      );
+    }
+
+    // Task 3: detach the run so the next Continue starts fresh (map reset). The
+    // runs row is kept for history; player_profiles (level/XP) is untouched (Task 5).
+    await conn.query(
+      `UPDATE saved_games SET current_run_id = NULL
+        WHERE id = ? AND user_id = ?`,
+      [req.params.id, req.user.id]
+    );
+
+    await conn.commit();
+    return res.json({ success: true });
+  } catch (error) {
+    await conn.rollback();
+    console.error('reset-on-death error:', error);
+    return res.status(500).json({ success: false, message: 'Could not reset run.' });
+  } finally {
+    conn.release();
+  }
+});
+
 // Persist run progress after a room is cleared so the slot card shows the
 // furthest floor/room reached and Continue can resume the map at the right
 // place. Scoped to the authenticated user via the run's player_profile.
