@@ -173,6 +173,50 @@ router.post('/api/saved-games/:id/runs', requireAuth, async (req, res) => {
   }
 });
 
+// Persist run progress after a room is cleared so the slot card shows the
+// furthest floor/room reached and Continue can resume the map at the right
+// place. Scoped to the authenticated user via the run's player_profile.
+// Body: { final_floor_reached: int (0-3), final_room_reached: int (1-3), victory?: bool }
+router.patch('/api/runs/:runId/progress', requireAuth, async (req, res) => {
+  const { final_floor_reached, final_room_reached, victory } = req.body || {};
+  if (!Number.isInteger(final_floor_reached) || !Number.isInteger(final_room_reached)) {
+    return res.status(400).json({
+      success: false,
+      message: 'final_floor_reached and final_room_reached (ints) are required.'
+    });
+  }
+  try {
+    // Ownership: the run's player_profile must belong to this user.
+    const [runRows] = await pool.query(
+      `SELECT r.id
+         FROM runs r
+         JOIN player_profiles pp ON pp.id = r.player_id
+        WHERE r.id = ? AND pp.user_id = ?`,
+      [req.params.runId, req.user.id]
+    );
+    if (runRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Run not found.' });
+    }
+    await pool.query(
+      `UPDATE runs
+          SET final_floor_reached = ?,
+              final_room_reached = ?,
+              victory = COALESCE(?, victory)
+        WHERE id = ?`,
+      [
+        final_floor_reached,
+        final_room_reached,
+        typeof victory === 'boolean' ? (victory ? 1 : 0) : null,
+        req.params.runId
+      ]
+    );
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('update-run-progress error:', err);
+    return res.status(500).json({ success: false, message: 'Could not update run progress.' });
+  }
+});
+
 // Task 4: start a room_session AND save the chosen Battle Deck in one
 // transaction. The Battle Lobby's 'Continue' button calls this with the
 // 5 selected card ids in their UI slot order. Inserting deck rows

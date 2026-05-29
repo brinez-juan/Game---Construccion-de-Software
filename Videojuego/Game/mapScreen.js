@@ -41,6 +41,24 @@ export class MapManager {
         }
     }
 
+    // Rebuilds unlock/completion from a run's furthest (floor, room) by replaying
+    // completions in order. Floor 0 (forest) is off-map: any finalFloor < 1 just
+    // leaves the castle at its entry state (courtyard unlocked).
+    restoreFromProgress(finalFloor, finalRoom) {
+        this.resetToNewGame();
+        if(finalFloor == null || finalFloor < 1){ return; }
+        for(const floor of this.floors){
+            let stop = false;
+            for(const room of floor.rooms){
+                const reached = floor.floorNumber < finalFloor ||
+                    (floor.floorNumber === finalFloor && room.roomNumber <= finalRoom);
+                if(reached){ this.completeRoom(floor.floorNumber, room.roomNumber); }
+                else { stop = true; break; }
+            }
+            if(stop){ break; }
+        }
+    }
+
     getState() {
         return this.floors.map(f => ({
             floorNumber: f.floorNumber,
