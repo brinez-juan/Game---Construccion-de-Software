@@ -196,6 +196,15 @@ export default class SavedGamesAPI {
     return data.deck;
   }
 
+  // Returns the last Battle Deck saved for a run (its most recent room_session) so the
+  // Battle Lobby can restore the deck the player committed to before quitting. Each
+  // row is { slot, card_id, ... }; an empty array means nothing has been saved yet.
+  async getRunDeck(runId) {
+    const res = await fetch(`/api/runs/${runId}/deck`, { headers: authHeaders() });
+    const data = await parseOrThrow(res);
+    return data.deck;
+  }
+
   // Returns the full card catalog (every row of the cards table). Used as the
   // card source of truth and to resolve archetype starting-card slugs to ids.
   async listCardCatalog() {
