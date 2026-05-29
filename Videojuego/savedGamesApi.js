@@ -64,6 +64,16 @@ export default class SavedGamesAPI {
     await parseOrThrow(res);
   }
 
+  // US23: on death, wipe the run-only inventory and detach the run from the slot so the
+  // next Continue starts a brand-new run (map reset, permanent cards + level/XP kept).
+  async resetRunOnDeath(slotId) {
+    const res = await fetch(`/api/saved-games/${slotId}/reset-on-death`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+    await parseOrThrow(res);
+  }
+
   // Persists the chosen archetype with its seeded attributes and links the profile to the slot
   async createProfile(slotId, { archetype, attributes = {}, attributePoints = 0 }) {
     const res = await fetch(`/api/saved-games/${slotId}/profile`, {

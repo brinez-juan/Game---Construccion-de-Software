@@ -64,6 +64,7 @@ class Game {
         this.mapManager = null;
         this.runProgress = null;   // { floor, room } furthest reached, from the DB
         this.availablePoints = 0;
+        this.enemiesDefeated = 0;  // accumulated across the run, shown on Game Over
         this.player = this.blankPlayer();
 
         this.currentMenu = new mainMenu(BG.main, this.canvasWidth, this.canvasHeight, 30, this.slots);
@@ -90,6 +91,7 @@ class Game {
         // Furthest (floor, room) reached, used to rebuild the map on Continue.
         this.runProgress = slot.run ? { floor: slot.run.floor, room: slot.run.room } : null;
         this.availablePoints = attrs.availablePoints ?? 0;
+        this.enemiesDefeated = 0;   // fresh run summary starts from zero
 
         // Restore the last Battle Deck saved for this run so Continue resumes with the
         // deck the player committed to (US22 Task 4). The saved deck is split out of the
@@ -162,6 +164,33 @@ class Game {
         }
     }
 
+    // Roguelite death rules (US23): wipe the run-only inventory + end the run in the
+    // DB, then reset the in-memory run state so the next Continue starts fresh at the
+    // beginning of the map. Permanent cards and accumulated level/XP are kept.
+    // Best-effort persistence (fire-and-forget); the in-memory reset always runs.
+    async resetRunOnDeath(){
+        try {
+            if(this.api && this.activeSlotId != null){
+                await this.api.resetRunOnDeath(this.activeSlotId);
+            }
+        } catch(err){
+            console.error('Could not reset run on death:', err);
+        }
+        // End the run and clear map progress so a new run rebuilds at the entry room.
+        this.runId = null;
+        this.runProgress = null;
+        this.currentRoom = null;
+        this.mapManager = null;
+        // Restore HP and stamina to their initial values.
+        this.player.health = this.player.maxHealth;
+        this.player.stamina = this.player.maxStamina;
+        // Drop the run-only cards but keep the permanent inventory; clear the deck.
+        this.player.inventory = (this.player.inventory || []).filter(c => c.isPermanent);
+        this.player.activeDeck = [];
+        // Fresh run summary; level and experience are intentionally left untouched.
+        this.enemiesDefeated = 0;
+    }
+
     // Picks the floor-appropriate enemy pool for a room (boss list for boss rooms).
     enemyPoolFor(room){
         const pool = this.enemyPoolByFloor.get(room?.floorNumber);
@@ -216,10 +245,20 @@ class Game {
         else if(state === 6){
             // Generic battle entry: use the room already selected, else default.
             const background = this.currentRoom?.background ?? BG.battleFallback;
-            this.currentMenu = new battleScreen(background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(this.currentRoom))
+            this.currentMenu = new battleScreen(background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(this.currentRoom), this)
         }
         else if(state === 7){
-            this.currentMenu = new gameOverScreen(this.canvasWidth, this.canvasHeight)
+            // Snapshot the run summary BEFORE resetting (resetRunOnDeath clears these),
+            // so the Game Over screen shows the real floor/kills/level instead of defaults.
+            const stats = {
+                floorsCompleted: this.runProgress?.floor ?? this.currentRoom?.floorNumber ?? 0,
+                enemiesDefeated: this.enemiesDefeated,
+                finalLevel: this.player?.level ?? 1
+            }
+            // Reset the run on death (wipe run inventory, end run, reset map/HP/stamina)
+            // before showing the Game Over screen. Best-effort; mirrors state 8's persist.
+            this.resetRunOnDeath()
+            this.currentMenu = new gameOverScreen(this.canvasWidth, this.canvasHeight, stats)
         }
         else if(state === 8){
             // Record progress before showing the victory screen. The forest tutorial
@@ -251,7 +290,7 @@ class Game {
             // background asset and a floor-appropriate enemy pool.
             const room = this.roomsMap.get(state);
             this.currentRoom = room;
-            this.currentMenu = new battleScreen(room.background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(room))
+            this.currentMenu = new battleScreen(room.background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(room), this)
         }
         this.menuStack.push(this.currentMenu)
     }

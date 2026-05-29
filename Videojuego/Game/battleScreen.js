@@ -8,13 +8,20 @@ import TextLabel from './TextLabel.js';
 
 // Main combat scene that orchestrates player turn, enemy turn, parry timing and end conditions
 export default class battleScreen extends Menus{
-    constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, enemies){
+    constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, enemies, game = null){
         super(background, canvasWidth, canvasHeight)
+        // Reference to the top-level Game so end conditions can report kills into the
+        // run-wide enemiesDefeated counter shown on the Game Over screen.
+        this.game = game
         this.enemies = []
         this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, playerData.stamina, playerData.maxStamina)
         this.playerMaker(playerData)
         this.player.deckMaker(playerData.activeDeck, this.canvasWidth/2, 4*this.canvasHeight/5, 100*0.75, 100, 15)
         this.enemyMaker(enemies)
+        // Snapshot how many enemies this room started with so kills can be tallied at
+        // the end regardless of how many were filtered out mid-fight.
+        this.initialEnemyCount = this.enemies.length
+        this.summaryReported = false
         this.turn = 'player';
         this.cardInAction = undefined;
         this.enemyAttacking = undefined;
@@ -144,11 +151,13 @@ export default class battleScreen extends Menus{
         }
         if(this.player.health <= 0){
             this.removeEventListeners()
+            this.reportEnemiesDefeated()
             this.state = 7
             return
         }
         if(this.enemies.every(enemy => enemy.health <= 0)){
             this.removeEventListeners()
+            this.reportEnemiesDefeated()
             this.state = 8
             return
         }
@@ -181,6 +190,18 @@ export default class battleScreen extends Menus{
 
     checkEnemyStatus(){
         this.enemies = this.enemies.filter(enemy => enemy.health > 0)
+    }
+
+    // Tallies this room's kills (enemies that started minus those still alive) into the
+    // run-wide counter. Guarded so it can only fire once per battle even if update()
+    // re-detects the end condition before the screen is swapped out.
+    reportEnemiesDefeated(){
+        if(this.summaryReported){ return }
+        this.summaryReported = true
+        if(this.game){
+            const alive = this.enemies.filter(enemy => enemy.health > 0).length
+            this.game.enemiesDefeated += this.initialEnemyCount - alive
+        }
     }
 
     // Resolves one enemy attack per call by combining AI decision, parry result and stat changes
