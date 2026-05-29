@@ -104,19 +104,20 @@ export class MapManager {
 // so they scale with the canvas; expect a visual tuning pass against the art.
 const ROOM_LAYOUT = [
     // --- FLOOR 3 (top: Library, Bedroom, Throne[boss]) ---
-    { floorNumber: 3, roomNumber: 1, xF: 0.340, yF: 0.050, wF: 0.205, hF: 0.260 },
-    { floorNumber: 3, roomNumber: 2, xF: 0.555, yF: 0.050, wF: 0.205, hF: 0.260 },
-    { floorNumber: 3, roomNumber: 3, xF: 0.770, yF: 0.050, wF: 0.205, hF: 0.260 },
+    { floorNumber: 3, roomNumber: 1, xF: 0.309, yF: 0.073, wF: 0.200, hF: 0.280 },
+    { floorNumber: 3, roomNumber: 2, xF: 0.530, yF: 0.073, wF: 0.193, hF: 0.280 },
+    { floorNumber: 3, roomNumber: 3, xF: 0.750, yF: 0.073, wF: 0.225, hF: 0.280 },
 
     // --- FLOOR 2 (middle: Paintings, Dining, Red Stairs[boss]) ---
-    { floorNumber: 2, roomNumber: 1, xF: 0.340, yF: 0.360, wF: 0.205, hF: 0.260 },
-    { floorNumber: 2, roomNumber: 2, xF: 0.555, yF: 0.360, wF: 0.205, hF: 0.260 },
-    { floorNumber: 2, roomNumber: 3, xF: 0.770, yF: 0.360, wF: 0.205, hF: 0.260 },
+
+    { floorNumber: 2, roomNumber: 3, xF: 0.310, yF: 0.392, wF: 0.110, hF: 0.260 },
+    { floorNumber: 2, roomNumber: 2, xF: 0.440, yF: 0.392, wF: 0.260, hF: 0.260 },
+    { floorNumber: 2, roomNumber: 1, xF: 0.720, yF: 0.392, wF: 0.260, hF: 0.260 },
 
     // --- FLOOR 1 (bottom: Courtyard[outside castle], Main Entrance, Purple Stairs[boss]) ---
-    { floorNumber: 1, roomNumber: 1, xF: 0.050, yF: 0.690, wF: 0.220, hF: 0.270 }, // courtyard, outside
-    { floorNumber: 1, roomNumber: 2, xF: 0.400, yF: 0.690, wF: 0.250, hF: 0.270 },
-    { floorNumber: 1, roomNumber: 3, xF: 0.700, yF: 0.690, wF: 0.250, hF: 0.270 },
+    { floorNumber: 1, roomNumber: 1, xF: 0.030, yF: 0.690, wF: 0.275, hF: 0.270 }, // courtyard, outside
+    { floorNumber: 1, roomNumber: 2, xF: 0.355, yF: 0.680, wF: 0.380, hF: 0.290 },
+    { floorNumber: 1, roomNumber: 3, xF: 0.755, yF: 0.680, wF: 0.225, hF: 0.290 },
 ];
 
 // ─── mapScreen ────────────────────────────────────────────────────────────────
