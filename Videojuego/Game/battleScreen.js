@@ -8,7 +8,7 @@ import TextLabel from './TextLabel.js';
 
 // Main combat scene that orchestrates player turn, enemy turn, parry timing and end conditions
 export default class battleScreen extends Menus{
-    constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, enemies, game = null){
+    constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, enemies, game = null, isBoss = false){
         super(background, canvasWidth, canvasHeight)
         // Reference to the top-level Game so end conditions can report kills into the
         // run-wide enemiesDefeated counter shown on the Game Over screen.
@@ -17,7 +17,7 @@ export default class battleScreen extends Menus{
         this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, playerData.stamina, playerData.maxStamina)
         this.playerMaker(playerData)
         this.player.deckMaker(playerData.activeDeck, this.canvasWidth/2, 4*this.canvasHeight/5, 100*0.75, 100, 15)
-        this.enemyMaker(enemies)
+        this.enemyMaker(enemies, isBoss)
         // Snapshot how many enemies this room started with so kills can be tallied at
         // the end regardless of how many were filtered out mid-fight.
         this.initialEnemyCount = this.enemies.length
@@ -60,7 +60,7 @@ export default class battleScreen extends Menus{
                         this.player.stamina = this.player.stamina - card.staminaCost > 0 ? this.player.stamina - card.staminaCost : 0
                         this.player.staminaBar.calculateCurrentIndicatorSubstraction(card.staminaCost)
                         this.turn = 'enemy'
-                        this.player.setSprite('../Assets/Sprites/player_defend.png')
+                        this.player.setSprite('../Assets/Sprites/characters/player_defend.png')
                         console.log(this.player.spriteImage)
                         return
                     }
@@ -255,18 +255,19 @@ export default class battleScreen extends Menus{
             this.currentEnemyIndex = 0
             this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, this.player.stamina, this.player.maxStamina)
             this.turn = 'player' 
-            this.player.setSprite('../Assets/Sprites/player.png') 
+            this.player.setSprite('../Assets/Sprites/characters/player.png') 
         }
     }
 
     playerMaker(playerData){
         this.player = new Player(this.canvasWidth/5, this.canvasHeight/2 + 30, 120, 300, playerData.maxHealth, playerData.health, playerData.maxStamina, playerData.stamina, playerData.attributes, playerData.level, playerData.experience, playerData.experienceToNextLevel)
-        this.player.setSprite('../Assets/Sprites/player.png')
+        this.player.setSprite('../Assets/Sprites/characters/player.png')
     }
 
-    // Instantiates Enemy objects from raw pool data and lays them out on the canvas
-    enemyMaker(enemyData){
-        let count = Math.floor(1 + Math.random() * 2);
+    // Instantiates Enemy objects from raw pool data and lays them out on the canvas.
+    // Boss rooms always spawn a single enemy; regular rooms spawn 1-3.
+    enemyMaker(enemyData, isBoss = false){
+        let count = isBoss ? 1 : Math.floor(1 + Math.random() * 3);
         if(count > 1){
             let positionY = this.canvasHeight/2
             let positionX = this.canvasWidth/2

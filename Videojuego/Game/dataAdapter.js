@@ -8,10 +8,11 @@ const AVAILABLE_CARD_SPRITES = new Set([
 ]);
 const FALLBACK_CARD_SPRITE = '../Assets/Sprites/knight_shield.jpeg';
 
-// Enemy art that actually ships in Assets/Sprites (as .png). DB enemy names like
-// "Forest Wolf" have no art yet, so they fall back to a neutral placeholder.
-const AVAILABLE_ENEMY_SPRITES = new Set(['corrupt_knight']);
-const FALLBACK_ENEMY_SPRITE = '../Assets/Sprites/corrupt_knight.png';
+// Enemy art ships in Assets/Sprites/characters/ as <name>_<floor>.png. The exact
+// filename is pinned per enemy in the DB (enemies.sprite) because the display
+// names don't slug-match the files; enemies with no art yet fall back here.
+const ENEMY_SPRITE_DIR = '../Assets/Sprites/characters/';
+const FALLBACK_ENEMY_SPRITE = ENEMY_SPRITE_DIR + 'corrupt_knight_1.png';
 
 // "Fire Bolt" -> "fire_bolt"
 function slugify(name) {
@@ -31,13 +32,12 @@ function spritePathFor(name) {
         : FALLBACK_CARD_SPRITE;
 }
 
-// Same idea for enemies, whose art ships as .png. Unknown names degrade to the
-// placeholder instead of requesting a missing file.
-function enemySpritePathFor(name) {
-    const slug = slugify(name);
-    return AVAILABLE_ENEMY_SPRITES.has(slug)
-        ? `../Assets/Sprites/${slug}.png`
-        : FALLBACK_ENEMY_SPRITE;
+// Resolves an enemy's art from its DB-pinned filename (enemies.sprite). Enemies
+// without art yet (sprite null/empty) degrade to the placeholder instead of
+// requesting a missing file.
+function enemySpritePathFor(apiEnemy) {
+    const file = apiEnemy && apiEnemy.sprite;
+    return file ? ENEMY_SPRITE_DIR + file : FALLBACK_ENEMY_SPRITE;
 }
 
 // Midpoint of an inclusive [min, max] range, rounded; tolerates null/equal bounds.
@@ -141,7 +141,7 @@ export function normalizeEnemy(apiEnemy) {
         experienceReward: Number(apiEnemy.xp_reward) || 0,
         isBoss: !!apiEnemy.is_boss,
         floorNumber: apiEnemy.floor_number,
-        spritePath: enemySpritePathFor(apiEnemy.name)
+        spritePath: enemySpritePathFor(apiEnemy)
     };
 }
 

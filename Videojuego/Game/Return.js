@@ -245,7 +245,7 @@ class Game {
         else if(state === 6){
             // Generic battle entry: use the room already selected, else default.
             const background = this.currentRoom?.background ?? BG.battleFallback;
-            this.currentMenu = new battleScreen(background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(this.currentRoom), this)
+            this.currentMenu = new battleScreen(background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(this.currentRoom), this, !!this.currentRoom?.isBoss)
         }
         else if(state === 7){
             // Snapshot the run summary BEFORE resetting (resetRunOnDeath clears these),
@@ -290,7 +290,7 @@ class Game {
             // background asset and a floor-appropriate enemy pool.
             const room = this.roomsMap.get(state);
             this.currentRoom = room;
-            this.currentMenu = new battleScreen(room.background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(room), this)
+            this.currentMenu = new battleScreen(room.background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(room), this, !!room?.isBoss)
         }
         this.menuStack.push(this.currentMenu)
     }

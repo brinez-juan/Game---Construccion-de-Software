@@ -42,7 +42,7 @@ router.get('/api/enemies', requireAuth, async (req, res) => {
               e.physical_damage_min, e.physical_damage_max,
               e.magic_damage_min, e.magic_damage_max,
               e.physical_defense, e.magic_defense,
-              e.xp_reward, e.is_boss, f.floor_number
+              e.xp_reward, e.is_boss, e.sprite, f.floor_number
          FROM enemies e
          JOIN floors f ON f.id = e.floor_id
         ORDER BY f.floor_number, e.is_boss`
