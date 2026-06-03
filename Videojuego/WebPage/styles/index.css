@@ -1,0 +1,228 @@
+body {
+    background: #0a0a0c;
+    color: #d8d0c4;
+}
+
+.hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(rgba(10,10,12,0.7), rgba(10,10,12,0.9)), url('../Assets/backgrounds/main_background.png') center/cover no-repeat;
+}
+
+.hero-logo {
+    max-width: 85vw;
+    width: 600px;
+    margin-bottom: 1.5rem;
+}
+
+.hero-tagline {
+    color: #c9a25a;
+    font-size: 1.5rem;
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.hero-pitch {
+    color: #a09888;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+.section {
+    padding: 4rem 1.5rem;
+}
+
+.section-title {
+    text-align: center;
+    color: #c9a25a;
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 2.5rem;
+}
+
+.feature-block,
+.lore-content,
+.art-content {
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.feature-block {
+    margin-bottom: 3rem;
+}
+
+.feature-row {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    max-width: 900px;
+    margin: 0 auto 3rem;
+}
+
+.mechanic-images {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 2rem auto;
+}
+
+.feature-text h3,
+.mechanic-block h3,
+.floor-text h3 {
+    color: #c9a25a;
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+}
+
+.feature-text p,
+.mechanic-intro,
+.floor-text p,
+.art-content p {
+    color: #8a8278;
+    line-height: 1.7;
+}
+
+.lore-content p {
+    color: #9a9288;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+}
+
+.lore-twist {
+    border-left: 3px solid #a83e3e;
+    padding: 1rem 1.2rem;
+    margin-top: 1.5rem;
+    text-align: left;
+    background: rgba(168,62,62,0.05);
+}
+
+.lore-twist strong {
+    color: #c44;
+}
+
+.mechanics {
+    background: #0f0f12;
+}
+
+.mechanic-block {
+    margin-bottom: 2rem;
+}
+
+.parry-tier {
+    padding: 1rem;
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 0.8rem;
+}
+
+.tier-header {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.3rem;
+}
+
+.tier-name {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.tier-color {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.parry-tier.poor { border-left: 4px solid #c44; }
+.parry-tier.poor .tier-name { color: #c44; }
+.parry-tier.normal { border-left: 4px solid #d4a030; }
+.parry-tier.normal .tier-name { color: #d4a030; }
+.parry-tier.perfect { border-left: 4px solid #5a9e5a; }
+.parry-tier.perfect .tier-name { color: #5a9e5a; }
+
+.parry-tier p {
+    color: #777;
+    font-size: 0.9rem;
+}
+
+.attr-list {
+    list-style: none;
+}
+
+.attr-item {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 1rem 0;
+}
+
+.attr-info h4 {
+    color: #c9a25a;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+}
+
+.attr-info p {
+    color: #8a8278;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.attr-example {
+    color: #6a6048;
+    font-size: 0.85rem;
+    font-style: italic;
+    margin-top: 0.3rem;
+}
+
+.floor-block {
+    max-width: 800px;
+    margin: 0 auto 2rem;
+    padding: 1.5rem 2rem;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-left: 4px solid #c9a25a;
+}
+
+.floor-example {
+    color: #7a7058;
+    font-size: 0.9rem;
+    margin-top: 0.6rem;
+    border-left: 2px solid #c9a25a;
+    padding-left: 0.8rem;
+}
+
+.cta-footer {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    border-top: 1px solid rgba(201,162,90,0.15);
+}
+
+.cta-footer h2 {
+    color: #c9a25a;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+}
+
+.showcase-image {
+    max-width: 280px;
+    width: 100%;
+    display: block;
+    margin: 0 auto 1.5rem;
+}
+
+.full-width-image {
+    width: 100%;
+    display: block;
+}
+
+.cta-footer .hero-cta {
+    display: inline-block;
+    padding: 12px 36px;
+    color: #c9a25a;
+    text-decoration: none;
+    text-transform: uppercase;
+    border: 2px solid #c9a25a;
+}

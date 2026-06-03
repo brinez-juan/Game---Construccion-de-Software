@@ -1,28 +1,253 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Game page</title>
-        <link rel="stylesheet" href="../styles/global.css">
-        <link rel="stylesheet" href="../styles/game.css">
-    </head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RETURN — A Lost Kingdom Awaits</title>
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../styles/index.css">
+    <link rel="icon" href="../Assets/Sprites/favicon.png" type="image/png">
+</head>
+<body class="main">
+    <nav class="Nav-bar">
+        <a href="game.html" class="nav-logo">Return</a>
+        <ul>
+            <a href="index.html" class="Nav-Button">
+                <li>Home</li>
+            </a>
+            <a href="login.html" class="Nav-Button">
+                <li>Game</li>
+            </a>
+            <a href="" class="Nav-Button">
+                <li>Tutorial</li>
+            </a>
+            <a href="" class="Nav-Button">
+                <li>Made by</li>
+            </a>
+        </ul>
+    </nav>
 
-    <body class="main">
-        <nav class="Nav-bar">
-            <a href="game.html" class="nav-logo">Return</a>
-            <ul>
-                <a href="index.html" class="Nav-Button">
-                    <li>Home</li>
-                </a>
-                <a href="login.html" class="Nav-Button">
-                    <li>Game</li>
-                </a>
-                <a href="" class="Nav-Button">
-                    <li>Tutorial</li>
-                </a>
-                <a href="" class="Nav-Button">
-                    <li>Made by</li>
-                </a>
-            </ul>
-        </nav>
-    </body>
+    <!-- 1. Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <img src="../Assets/Sprites/Logo.png" alt="RETURN" class="hero-logo">
+            <p class="hero-tagline">A Lost Kingdom Awaits.</p>
+            <p class="hero-pitch">
+                Return is a high-stakes, turn-based roguelike TCG where survival isn't just found in card strategy, 
+                but earned through mechanical precision. You play as Edrick, a fallen warrior navigating a shifting 
+                ancestral fortress where every card is a weapon fueled by blood. Unlike traditional card games, 
+                Return features a real-time <strong>"Parry-to-Play"</strong> loop: perfectly timed physical parries 
+                grant you the stamina and card resources needed to unleash devastating counter-attacks. 
+                If you hesitate, you die; if you dominate, you evolve.
+            </p>
+        </div>
+    </section>
+
+    <!-- 2. Core Features -->
+    <section class="section features">
+        <h2 class="section-title">Core Features</h2>
+
+        <div class="feature-row">
+            <div class="feature-block">
+                <div class="feature-text">
+                    <h3>Parry-to-Play Combat</h3>
+                    <p>A real-time parry timing system built right into a turn-based card game. Actively defend against incoming attacks using a dynamic precision meter to nullify damage and generate combat stamina. Perfect parries completely negate incoming damage and grant a substantial stamina boost to fuel your next turn.</p>
+                </div>
+            </div>
+
+            <div class="feature-block">
+                <div class="feature-text">
+                    <h3>Strategic Deck-Building</h3>
+                    <p>Build your active deck by choosing up to 5 strategic weapon, shield, or spell cards from your permanent cross-run inventory before entering combat. Every card is a weapon fueled by blood — heavy axes, swift bows, crushing fireballs, and blessed shields await your command.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-block">
+            <div class="feature-text">
+                <h3>Roguelite Progression</h3>
+                <p>Death returns you to the start, but all is not lost. Permanent loot cards earned from epic boss fights are kept cross-run, allowing you to grow stronger, adapt your affinities, and eventually crush the castle's defenders. The kingdom remembers. Do you?</p>
+            </div>
+        </div>
+
+        <div class="feature-block">
+            <div class="feature-text">
+                <h3>Deep Attribute RPG</h3>
+                <p>Earn combat experience (XP) to level up and manually distribute points into five distinct core attributes. Strength scales physical attacks, Vigor expands your health bar, Intelligence enhances spell cards, Endurance amplifies stamina, and Dexterity optimizes combat efficiency.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Lore & Story -->
+    <section class="section lore">
+        <h2 class="section-title">The Story</h2>
+        <div class="lore-content">
+            <img src="../Assets/Sprites/player.png" alt="Edrick, the fallen knight" class="showcase-image">
+            <p>
+                Step into the heavy armor of <strong>Edrick</strong>, a once-respected knight of the kingdom who was 
+                unjustly accused of murdering the king's right hand and forcefully exiled. Now branded an outlaw, 
+                he returns with only a sword and shield, determined to claw his way up the ancestral castle to claim 
+                his vengeance.
+            </p>
+            <div class="lore-twist">
+                <p><strong>The Twist:</strong> As you fight through your former allies, dark memories surface. 
+                Through mid-game flashbacks and dialogue, you discover the terrifying truth: the assassination was 
+                orchestrated by your own wife, who manipulated those closest to you to provoke your ruin. 
+                <em>She now awaits you at the throne.</em></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Gameplay Mechanics -->
+    <section class="section mechanics">
+        <h2 class="section-title">Gameplay Mechanics</h2>
+        <div class="mechanics-grid">
+            <!-- Parry Meter -->
+            <div class="mechanic-block">
+                <h3>The Precision Parry Meter</h3>
+                <p class="mechanic-intro">
+                    When an enemy strikes, a precision parry bar appears. Players must hit the <strong>Spacebar</strong> 
+                    at the exact right moment. The ideal parry target changes positions with every enemy attack, 
+                    and its width scales dynamically with your current stamina.
+                </p>
+                <div class="parry-showcase">
+                    <div class="parry-tier poor">
+                        <div class="tier-header">
+                            <span class="tier-name">Poor Parry</span>
+                            <span class="tier-color">Red Zone</span>
+                        </div>
+                        <p>Missed timing. Results in severe health loss and a massive drain on your stamina.</p>
+                    </div>
+                    <div class="parry-tier normal">
+                        <div class="tier-header">
+                            <span class="tier-name">Normal Parry</span>
+                            <span class="tier-color">Yellow Zone</span>
+                        </div>
+                        <p>Mitigates most damage and yields a small stamina recovery.</p>
+                    </div>
+                    <div class="parry-tier perfect">
+                        <div class="tier-header">
+                            <span class="tier-name">Perfect Parry</span>
+                            <span class="tier-color">Green Zone</span>
+                        </div>
+                        <p>Completely negates incoming damage and grants a substantial stamina boost to fuel your next turn.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mechanic-images">
+                <img src="../Assets/Sprites/knight_shield.jpeg" alt="Knight Shield" class="showcase-image">
+                <img src="../Assets/Sprites/vicious_sword.jpeg" alt="Vicious Sword" class="showcase-image">
+            </div>
+            <!-- Attributes -->
+            <div class="mechanic-block">
+                <h3>The RPG Attributes</h3>
+                <p class="mechanic-intro">
+                    Tailor Edrick to your personal playstyle by distributing experience points across five core attributes:
+                </p>
+                <ul class="attr-list">
+                    <li class="attr-item">
+                        <div class="attr-info">
+                            <h4>Strength</h4>
+                            <p>Dynamically scales physical attacks and heavy weapon cards.</p>
+                            <p class="attr-example">Example: A base Slash card deals 15 damage. With 20 Strength, it deals 28 damage and gains a 10% chance to stagger lighter enemies.</p>
+                        </div>
+                    </li>
+                    <li class="attr-item">
+                        <div class="attr-info">
+                            <h4>Vigor</h4>
+                            <p>Permanently expands your maximum health bar.</p>
+                            <p class="attr-example">Example: Starting HP is 80. With 15 Vigor, your max HP becomes 140 and healing potions restore an extra 12 points.</p>
+                        </div>
+                    </li>
+                    <li class="attr-item">
+                        <div class="attr-info">
+                            <h4>Intelligence</h4>
+                            <p>Greatly enhances the damage and effects of magical spell cards.</p>
+                            <p class="attr-example">Example: A Fireball spell deals 12 base magic damage. With 18 Intelligence, it deals 26 damage and applies Burn for 8 damage over 2 turns.</p>
+                        </div>
+                    </li>
+                    <li class="attr-item">
+                        <div class="attr-info">
+                            <h4>Endurance</h4>
+                            <p>Amplifies total stamina capacity and baseline recovery speed.</p>
+                            <p class="attr-example">Example: Base stamina is 60. With 12 Endurance, you have 100 stamina and recover 8 points per turn instead of 5.</p>
+                        </div>
+                    </li>
+                    <li class="attr-item">
+                        <div class="attr-info">
+                            <h4>Dexterity</h4>
+                            <p>Lowers stamina consumption per card action and optimizes combat efficiency.</p>
+                            <p class="attr-example">Example: A base Dash card costs 15 stamina. With 10 Dexterity, it costs only 11 stamina and your critical hit chance rises from 5% to 12%.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. The Shifting Floors -->
+    <section class="section floors">
+        <h2 class="section-title">The Shifting Floors</h2>
+
+        <div class="floor-block">
+            <div class="floor-text">
+                <h3>The Forest — Tutorial</h3>
+                <p>A calm, mist-shrouded, steel-blue area designed to let players learn card mechanics, parrying, and movement basics before storming the gates. No enemies here pose a real threat; the goal is to master the Parry-to-Play loop in a safe environment.</p>
+            </div>
+        </div>
+
+        <div class="floor-block">
+            <div class="floor-text">
+                <h3>The Mystic Courtyard & Entrance</h3>
+                <p>Bathed in desaturated teals and eerie violet washes. Face off against Corrupted Knights triggering Berserker Rages and Holy Spirits causing Damage-over-Time Infections.</p>
+                <p class="floor-example"><strong>Boss:</strong> Charles, the Pale Knight — a swift duelist who alternates between rapid thrusts and wide sweeping arcs, forcing you to adapt your parry timing mid-combo.</p>
+            </div>
+        </div>
+
+        <div class="floor-block">
+            <div class="floor-text">
+                <h3>The Halls of Last Reverence</h3>
+                <p>A terrifying, dark environment stained in deep crimson. Contend with heavy Executioners performing massive Mercy cuts and defensive Shielded Maidens trapping you in iron spikes.</p>
+                <p class="floor-example"><strong>Boss:</strong> Galahad of the Hidden Axe — a hulking executioner whose overhead cleave drains 40% of your stamina if blocked poorly. Perfect parries are the only way to open his guard.</p>
+            </div>
+        </div>
+
+        <div class="floor-block">
+            <div class="floor-text">
+                <h3>The Throne That Never Forgets</h3>
+                <p>A ruined royal space rendered in abyssal blacks and tarnished gold. Fight elite Pale Lancers before facing the ultimate entities.</p>
+                <p class="floor-example"><strong>Boss:</strong> Gawain of the Fair Lance — a ranged specialist who applies constant pressure with lunging spear throws. <strong>Final:</strong> The Forgotten King awaits at the summit, wielding every attack pattern you have faced so far.</p>
+            </div>
+        </div>
+    </section>
+
+    <img src="../Assets/backgrounds/battle_background.jpg" alt="Battle scene" class="full-width-image">
+
+    <!-- 6. Art & Audio -->
+    <section class="section art-audio">
+        <h2 class="section-title">Art & Audio</h2>
+        <div class="art-content">
+            <p>
+                <strong>Visual Philosophy:</strong> The game features a striking digital hand-painted watercolor-and-ink aesthetic. 
+                It leverages desaturated medieval tones mixed with stark, fine-liner analog lineart to make the entire screen 
+                feel like an organic, handcrafted adventurer's field journal.
+            </p>
+            <p>
+                <strong>UI Aesthetic:</strong> All menu elements, card templates, and battle overlays incorporate a distinct 
+                watercolor paper and parchment grain texture.
+            </p>
+            <p>
+                <strong>Sonic Atmosphere:</strong> Heavily inspired by the tense, unsettling, yet deeply melancholic polyphonies 
+                found in Elden Ring and Nier: Replicant. Combat audio clearly differentiates the sharp, metallic crunch of a 
+                successful parry from regular damage to ensure crisp tactical feedback.
+            </p>
+        </div>
+    </section>
+
+    <!-- 7. CTA Footer -->
+    <section class="cta-footer">
+        <h2>The Kingdom Remembers. Do You?</h2>
+        <a href="game.html" class="hero-cta">Play Now</a>
+    </section>
+</body>
 </html>
