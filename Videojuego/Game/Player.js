@@ -84,7 +84,7 @@ export default class Player extends Character {
             let cardInstance = new ItemCard(posX, positionY, cardWidth, cardHeight, card.name, card.description, action, card.required_value, card.rarity, card.stamina_cost, card.isPermanent)
             // Use the resolved fallback sprite (DB card names like "Heavy Strike" have
             // no matching art file, and drawing a broken image renders nothing).
-            cardInstance.setSprite(card.spritePath ?? `../Assets/Sprites/${card.name}.jpeg`)
+            cardInstance.setSprite(card.spritePath ?? `../Assets/Sprites/cards/${card.name}.jpeg`)
             this.deck.push(cardInstance)
             posX += cardWidth + offSetX
         }

@@ -2,11 +2,12 @@
 // the canvas game consumes at runtime. Pure functions — the SavedGamesAPI instance
 // is always passed in so this module stays free of fetch/transport concerns.
 
-// Card art that actually ships in Assets/Sprites. Anything else falls back.
+// Card art that actually ships in Assets/Sprites/cards. Anything else falls back.
+const CARD_SPRITE_DIR = '../Assets/Sprites/cards/';
 const AVAILABLE_CARD_SPRITES = new Set([
     'battle_axe', 'fireball', 'hunter_bow', 'knight_shield', 'vicious_sword'
 ]);
-const FALLBACK_CARD_SPRITE = '../Assets/Sprites/knight_shield.jpeg';
+const FALLBACK_CARD_SPRITE = CARD_SPRITE_DIR + 'knight_shield.jpeg';
 
 // Enemy art ships in Assets/Sprites/characters/ as <name>_<floor>.png. The exact
 // filename is pinned per enemy in the DB (enemies.sprite) because the display
@@ -24,11 +25,12 @@ function slugify(name) {
 }
 
 // Sprite path relative to pages/game.html, or a neutral fallback when the DB
-// card has no matching art file.
-function spritePathFor(name) {
-    const slug = slugify(name);
+// card has no matching art file. Prefers the DB-pinned sprite_name; falls back
+// to slugifying the display name for cards seeded before that column existed.
+function spritePathFor(spriteName, name) {
+    const slug = spriteName ? slugify(spriteName) : slugify(name);
     return AVAILABLE_CARD_SPRITES.has(slug)
-        ? `../Assets/Sprites/${slug}.jpeg`
+        ? `${CARD_SPRITE_DIR}${slug}.jpeg`
         : FALLBACK_CARD_SPRITE;
 }
 
@@ -64,7 +66,7 @@ export function normalizeCard(apiCard) {
         required_value: Number(apiCard.required_value) || 0,
         rarity: apiCard.rarity,
         isPermanent: !!apiCard.is_permanent,
-        spritePath: spritePathFor(apiCard.name)
+        spritePath: spritePathFor(apiCard.sprite_name, apiCard.name)
     };
 }
 

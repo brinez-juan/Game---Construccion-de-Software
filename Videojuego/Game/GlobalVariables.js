@@ -41,20 +41,22 @@ export const MAX_DECK_SIZE = 5;
 
 // Starter loadouts offered during character creation
 export const ARCHETYPES = {
+    // Until more card art exists, every archetype starts with the same five
+    // art-backed cards (slugs match cards.sprite_name / slugify(cards.name) in the DB).
     SOLDIER: {
         id: "soldier",
         attributes: { STRENGTH: 3, DEXTERITY: 1, INTELLIGENCE: 0, VIGOR: 2, ENDURANCE: 2 },
-        startingCards: ["heavy_strike", "shield_block", "basic_attack", "basic_attack", "recover"]
+        startingCards: ["vicious_sword", "battle_axe", "hunter_bow", "fireball", "knight_shield"]
     },
     ARCHER: {
         id: "archer",
         attributes: { STRENGTH: 1, DEXTERITY: 3, INTELLIGENCE: 0, VIGOR: 1, ENDURANCE: 2 },
-        startingCards: ["precise_shot", "dodge_roll", "basic_attack", "basic_attack", "recover"]
+        startingCards: ["vicious_sword", "battle_axe", "hunter_bow", "fireball", "knight_shield"]
     },
     MAGE: {
         id: "mage",
         attributes: { STRENGTH: 0, DEXTERITY: 1, INTELLIGENCE: 3, VIGOR: 1, ENDURANCE: 2 },
-        startingCards: ["fireball", "magic_shield", "basic_attack", "basic_attack", "recover"]
+        startingCards: ["vicious_sword", "battle_axe", "hunter_bow", "fireball", "knight_shield"]
     }
 };
 
