@@ -164,6 +164,39 @@ class Game {
         }
     }
 
+    // US16: adds battle XP to the player's cumulative total and re-derives the level
+    // from it. `experience` mirrors player_profiles.total_experience (cumulative, as
+    // seeded in loadSlotData), so we must NOT subtract on level-up the way Player.levelUp
+    // does — instead the level is the highest L whose cumulative threshold the total has
+    // passed. That threshold, 200 * (1.5^(L-1) - 1), is the running sum of the same
+    // per-level 100 * 1.5^(n-1) curve the lobby uses, so the two stay consistent.
+    // `experienceToNextLevel` tracks the current level's bar size for the HUD.
+    awardExperience(amount){
+        if(!this.player || !amount || amount <= 0){ return; }
+        this.player.experience += amount;
+        let level = 1;
+        while(this.player.experience >= 200 * (Math.pow(1.5, level) - 1)){
+            level++;
+        }
+        this.player.level = level;
+        this.player.experienceToNextLevel = Math.round(100 * Math.pow(1.5, level - 1));
+    }
+
+    // US16: persists the player's accumulated XP + level onto the slot's player_profile
+    // so progression survives between sessions. Best-effort (fire-and-forget), mirroring
+    // persistProgress; failures are logged, not fatal.
+    async persistExperience(){
+        if(!this.api || this.activeSlotId == null || !this.player){ return; }
+        try {
+            await this.api.updateExperience(this.activeSlotId, {
+                totalExperience: this.player.experience,
+                level: this.player.level
+            });
+        } catch(err){
+            console.error('Could not persist experience:', err);
+        }
+    }
+
     // Roguelite death rules (US23): wipe the run-only inventory + end the run in the
     // DB, then reset the in-memory run state so the next Continue starts fresh at the
     // beginning of the map. Permanent cards and accumulated level/XP are kept.
@@ -266,8 +299,10 @@ class Game {
             if(this.mapManager && this.currentRoom && this.currentRoom.floorNumber !== 0){
                 this.mapManager.completeRoom(this.currentRoom.floorNumber, this.currentRoom.roomNumber)
             }
-            // Persist the cleared room so the slot card and Continue stay in sync.
+            // Persist the cleared room so the slot card and Continue stay in sync, and
+            // the XP/level earned this battle (US16) so progression survives the session.
             this.persistProgress()
+            this.persistExperience()
             this.currentMenu = new successScreen(this.canvasWidth, this.canvasHeight)
         }
         else if(state === 9){

@@ -21,6 +21,10 @@ export default class battleScreen extends Menus{
         // Snapshot how many enemies this room started with so kills can be tallied at
         // the end regardless of how many were filtered out mid-fight.
         this.initialEnemyCount = this.enemies.length
+        // US16: snapshot the roster's total XP up front. Dead enemies get filtered out
+        // of this.enemies during enemy turns, so the reward can't be summed at the end;
+        // we award a slice of this total proportional to how many were defeated.
+        this.totalEnemyXp = this.enemies.reduce((sum, enemy) => sum + (enemy.experienceReward || 0), 0)
         this.summaryReported = false
         this.turn = 'player';
         this.cardInAction = undefined;
@@ -200,7 +204,13 @@ export default class battleScreen extends Menus{
         this.summaryReported = true
         if(this.game){
             const alive = this.enemies.filter(enemy => enemy.health > 0).length
-            this.game.enemiesDefeated += this.initialEnemyCount - alive
+            const killed = this.initialEnemyCount - alive
+            this.game.enemiesDefeated += killed
+            // US16: award XP for the enemies defeated this battle (full roster XP on a
+            // clear) so the player's level/XP can be persisted in the victory path.
+            if(killed > 0 && this.initialEnemyCount > 0 && typeof this.game.awardExperience === 'function'){
+                this.game.awardExperience(Math.round(this.totalEnemyXp * killed / this.initialEnemyCount))
+            }
         }
     }
 
