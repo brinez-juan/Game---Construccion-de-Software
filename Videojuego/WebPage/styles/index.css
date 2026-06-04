@@ -29,8 +29,24 @@ body {
 .hero-pitch {
     color: #a09888;
     max-width: 600px;
-    margin: 0 auto;
+    margin: 0 auto 2rem;
     line-height: 1.7;
+}
+
+.hero-cta {
+    display: inline-block;
+    padding: 14px 42px;
+    color: #c9a25a;
+    text-decoration: none;
+    text-transform: uppercase;
+    border: 2px solid #c9a25a;
+    letter-spacing: 0.1em;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.hero-cta:hover {
+    background-color: #c9a25a;
+    color: #0a0a0c;
 }
 
 .section {
@@ -194,16 +210,18 @@ body {
     padding-left: 0.8rem;
 }
 
-.cta-footer {
+.page-footer {
     text-align: center;
     padding: 3rem 1.5rem;
     border-top: 1px solid rgba(201,162,90,0.15);
+    background: #0a0a0c;
 }
 
-.cta-footer h2 {
+.footer-line {
     color: #c9a25a;
-    text-transform: uppercase;
-    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    font-style: italic;
+    margin-bottom: 0.8rem;
 }
 
 .showcase-image {
@@ -218,11 +236,4 @@ body {
     display: block;
 }
 
-.cta-footer .hero-cta {
-    display: inline-block;
-    padding: 12px 36px;
-    color: #c9a25a;
-    text-decoration: none;
-    text-transform: uppercase;
-    border: 2px solid #c9a25a;
-}
+
