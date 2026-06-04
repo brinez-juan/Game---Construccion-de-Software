@@ -64,6 +64,16 @@ export default class SavedGamesAPI {
     await parseOrThrow(res);
   }
 
+  // US23: on death, wipe the run-only inventory and detach the run from the slot so the
+  // next Continue starts a brand-new run (map reset, permanent cards + level/XP kept).
+  async resetRunOnDeath(slotId) {
+    const res = await fetch(`/api/saved-games/${slotId}/reset-on-death`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+    await parseOrThrow(res);
+  }
+
   // Persists the chosen archetype with its seeded attributes and links the profile to the slot
   async createProfile(slotId, { archetype, attributes = {}, attributePoints = 0 }) {
     const res = await fetch(`/api/saved-games/${slotId}/profile`, {
@@ -133,6 +143,19 @@ export default class SavedGamesAPI {
     return data.run_id;
   }
 
+  // Persists the furthest floor/room reached (and optionally the victory flag)
+  // so the slot card and the map can resume after the player quits.
+  async updateRunProgress(runId, { finalFloor, finalRoom, victory } = {}) {
+    const body = { final_floor_reached: finalFloor, final_room_reached: finalRoom };
+    if (typeof victory === 'boolean') { body.victory = victory; }
+    const res = await fetch(`/api/runs/${runId}/progress`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify(body)
+    });
+    await parseOrThrow(res);
+  }
+
   // Records a new card pickup distinguishing permanent starters from in-run drops
   async addCard(slotId, { cardId, isPermanent = false, obtainedAtFloor = null }) {
     const res = await fetch(`/api/saved-games/${slotId}/cards`, {
@@ -181,5 +204,30 @@ export default class SavedGamesAPI {
     const res = await fetch(`/api/room-sessions/${sessionId}/deck`, { headers: authHeaders() });
     const data = await parseOrThrow(res);
     return data.deck;
+  }
+
+  // Returns the last Battle Deck saved for a run (its most recent room_session) so the
+  // Battle Lobby can restore the deck the player committed to before quitting. Each
+  // row is { slot, card_id, ... }; an empty array means nothing has been saved yet.
+  async getRunDeck(runId) {
+    const res = await fetch(`/api/runs/${runId}/deck`, { headers: authHeaders() });
+    const data = await parseOrThrow(res);
+    return data.deck;
+  }
+
+  // Returns the full card catalog (every row of the cards table). Used as the
+  // card source of truth and to resolve archetype starting-card slugs to ids.
+  async listCardCatalog() {
+    const res = await fetch('/api/cards', { headers: authHeaders() });
+    const data = await parseOrThrow(res);
+    return data.cards;
+  }
+
+  // Returns the enemy catalog joined with floor_number so the client can pick a
+  // room-appropriate pool per floor.
+  async listEnemies() {
+    const res = await fetch('/api/enemies', { headers: authHeaders() });
+    const data = await parseOrThrow(res);
+    return data.enemies;
   }
 }

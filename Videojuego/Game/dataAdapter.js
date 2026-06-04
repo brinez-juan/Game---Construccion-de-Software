@@ -8,6 +8,11 @@ const AVAILABLE_CARD_SPRITES = new Set([
 ]);
 const FALLBACK_CARD_SPRITE = '../Assets/Sprites/knight_shield.jpeg';
 
+// Enemy art that actually ships in Assets/Sprites (as .png). DB enemy names like
+// "Forest Wolf" have no art yet, so they fall back to a neutral placeholder.
+const AVAILABLE_ENEMY_SPRITES = new Set(['corrupt_knight']);
+const FALLBACK_ENEMY_SPRITE = '../Assets/Sprites/corrupt_knight.png';
+
 // "Fire Bolt" -> "fire_bolt"
 function slugify(name) {
     return String(name)
@@ -24,6 +29,22 @@ function spritePathFor(name) {
     return AVAILABLE_CARD_SPRITES.has(slug)
         ? `../Assets/Sprites/${slug}.jpeg`
         : FALLBACK_CARD_SPRITE;
+}
+
+// Same idea for enemies, whose art ships as .png. Unknown names degrade to the
+// placeholder instead of requesting a missing file.
+function enemySpritePathFor(name) {
+    const slug = slugify(name);
+    return AVAILABLE_ENEMY_SPRITES.has(slug)
+        ? `../Assets/Sprites/${slug}.png`
+        : FALLBACK_ENEMY_SPRITE;
+}
+
+// Midpoint of an inclusive [min, max] range, rounded; tolerates null/equal bounds.
+function midRange(min, max) {
+    const lo = Number(min) || 0;
+    const hi = Number(max);
+    return Math.round((lo + (Number.isFinite(hi) ? hi : lo)) / 2);
 }
 
 // One row from SavedGamesAPI.listCards() -> the object deckSectionSpawn/deckMaker expect.
@@ -92,6 +113,89 @@ export function buildRoomStateMap(apiRooms) {
     for (const apiRoom of source) {
         const room = normalizeRoom(apiRoom);
         map.set(room.stateCode, room);
+    }
+    return map;
+}
+
+// Enemies ----------------------------------------------------------------------
+//
+// One row from SavedGamesAPI.listEnemies() -> the shape battleScreen.enemyMaker
+// + the Enemy constructor consume. Health/damage are taken as the midpoint of the
+// DB min/max ranges so combat is deterministic. Enemies have no stamina or
+// str/dex/int columns, so those get neutral defaults. spritePath falls back when
+// no art ships for the enemy name.
+export function normalizeEnemy(apiEnemy) {
+    const health = midRange(apiEnemy.health_min, apiEnemy.health_max);
+    return {
+        id: apiEnemy.id,
+        name: apiEnemy.name,
+        health,
+        maxHealth: health,
+        stamina: 50,
+        maxStamina: 50,
+        attributes: { strength: 5, dexterity: 5, intelligence: 5 },
+        physicalDamage: midRange(apiEnemy.physical_damage_min, apiEnemy.physical_damage_max),
+        magicDamage: midRange(apiEnemy.magic_damage_min, apiEnemy.magic_damage_max),
+        physicalDefense: Number(apiEnemy.physical_defense) || 0,
+        magicDefense: Number(apiEnemy.magic_defense) || 0,
+        experienceReward: Number(apiEnemy.xp_reward) || 0,
+        isBoss: !!apiEnemy.is_boss,
+        floorNumber: apiEnemy.floor_number,
+        spritePath: enemySpritePathFor(apiEnemy.name)
+    };
+}
+
+// Groups normalized enemies by floor_number into { regular, boss } pools so a
+// battle can pull a floor-appropriate pool (boss list for boss rooms).
+export function buildEnemyPoolByFloor(apiEnemies) {
+    const map = new Map();
+    for (const apiEnemy of (apiEnemies || [])) {
+        const enemy = normalizeEnemy(apiEnemy);
+        if (!map.has(enemy.floorNumber)) map.set(enemy.floorNumber, { regular: [], boss: [] });
+        const pool = map.get(enemy.floorNumber);
+        (enemy.isBoss ? pool.boss : pool.regular).push(enemy);
+    }
+    return map;
+}
+
+// Floor/room model for the castle map. Excludes floor 0 (the Forest is a
+// tutorial, not a castle node) and returns floors 1-3 each with their rooms
+// (normalized, so background/isBoss/stateCode are available). The MapManager
+// layers unlocked/completed flags on top of this; the cells read room data from
+// buildFloorRoomLookup below.
+export function buildFloorRoomModel(apiRooms) {
+    const source = (Array.isArray(apiRooms) && apiRooms.length > 0) ? apiRooms : FALLBACK_ROOMS;
+    const byFloor = new Map();
+    for (const apiRoom of source) {
+        if (apiRoom.floor_number === 0) continue; // forest tutorial is off-map
+        const room = normalizeRoom(apiRoom);
+        if (!byFloor.has(room.floorNumber)) byFloor.set(room.floorNumber, []);
+        byFloor.get(room.floorNumber).push(room);
+    }
+    return [...byFloor.keys()].sort((a, b) => a - b).map(floorNumber => ({
+        floorNumber,
+        rooms: byFloor.get(floorNumber).sort((a, b) => a.roomNumber - b.roomNumber)
+    }));
+}
+
+// "<floorNumber>-<roomNumber>" -> normalized room, for floors 1-3, so a
+// hand-authored map cell can look up its DB-backed room.
+export function buildFloorRoomLookup(apiRooms) {
+    const lookup = new Map();
+    for (const floor of buildFloorRoomModel(apiRooms)) {
+        for (const room of floor.rooms) {
+            lookup.set(`${room.floorNumber}-${room.roomNumber}`, room);
+        }
+    }
+    return lookup;
+}
+
+// Maps a card slug (e.g. "heavy_strike") to its DB id using the card catalog, so
+// the archetype screen can seed starting decks defined as slugs in GlobalVariables.
+export function buildCardSlugToId(catalog) {
+    const map = new Map();
+    for (const card of (catalog || [])) {
+        map.set(slugify(card.name), card.id);
     }
     return map;
 }

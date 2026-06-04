@@ -8,13 +8,20 @@ import TextLabel from './TextLabel.js';
 
 // Main combat scene that orchestrates player turn, enemy turn, parry timing and end conditions
 export default class battleScreen extends Menus{
-    constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, enemies){
+    constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, enemies, game = null){
         super(background, canvasWidth, canvasHeight)
+        // Reference to the top-level Game so end conditions can report kills into the
+        // run-wide enemiesDefeated counter shown on the Game Over screen.
+        this.game = game
         this.enemies = []
         this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, playerData.stamina, playerData.maxStamina)
         this.playerMaker(playerData)
         this.player.deckMaker(playerData.activeDeck, this.canvasWidth/2, 4*this.canvasHeight/5, 100*0.75, 100, 15)
         this.enemyMaker(enemies)
+        // Snapshot how many enemies this room started with so kills can be tallied at
+        // the end regardless of how many were filtered out mid-fight.
+        this.initialEnemyCount = this.enemies.length
+        this.summaryReported = false
         this.turn = 'player';
         this.cardInAction = undefined;
         this.enemyAttacking = undefined;
@@ -144,11 +151,13 @@ export default class battleScreen extends Menus{
         }
         if(this.player.health <= 0){
             this.removeEventListeners()
+            this.reportEnemiesDefeated()
             this.state = 7
             return
         }
         if(this.enemies.every(enemy => enemy.health <= 0)){
             this.removeEventListeners()
+            this.reportEnemiesDefeated()
             this.state = 8
             return
         }
@@ -181,6 +190,18 @@ export default class battleScreen extends Menus{
 
     checkEnemyStatus(){
         this.enemies = this.enemies.filter(enemy => enemy.health > 0)
+    }
+
+    // Tallies this room's kills (enemies that started minus those still alive) into the
+    // run-wide counter. Guarded so it can only fire once per battle even if update()
+    // re-detects the end condition before the screen is swapped out.
+    reportEnemiesDefeated(){
+        if(this.summaryReported){ return }
+        this.summaryReported = true
+        if(this.game){
+            const alive = this.enemies.filter(enemy => enemy.health > 0).length
+            this.game.enemiesDefeated += this.initialEnemyCount - alive
+        }
     }
 
     // Resolves one enemy attack per call by combining AI decision, parry result and stat changes
@@ -252,19 +273,27 @@ export default class battleScreen extends Menus{
             let offSetX = 150
             let offSetY = 50
             for(let i = 0; i < count; i++){
-                let enemyIndex = Math.floor(Math.random() * (enemyData.length-1))
-                let enemyInstance = new Enemy(positionX, positionY, 120, 300,enemyData[enemyIndex].name, enemyData[enemyIndex].health, enemyData[enemyIndex].maxHealth, enemyData[enemyIndex].stamina, enemyData[enemyIndex].maxStamina, enemyData[enemyIndex].attributes)
-                console.log(enemyInstance)
-                this.enemies.push(enemyInstance)
+                let enemyIndex = Math.floor(Math.random() * enemyData.length)
+                this.enemies.push(this.makeEnemy(enemyData[enemyIndex], positionX, positionY, 120, 300))
                 positionX += offSetX
                 positionY += offSetY
             }
         }
         else{
-            let enemyIndex = Math.floor(Math.random() * (enemyData.length-1))
-            let enemyInstance = new Enemy(3*this.canvasWidth/4, this.player.y, 200, 300,enemyData[enemyIndex].name, enemyData[enemyIndex].health, enemyData[enemyIndex].maxHealth, enemyData[enemyIndex].stamina, enemyData[enemyIndex].maxStamina, enemyData[enemyIndex].attributes)
-            this.enemies.push(enemyInstance)
+            let enemyIndex = Math.floor(Math.random() * enemyData.length)
+            this.enemies.push(this.makeEnemy(enemyData[enemyIndex], 3*this.canvasWidth/4, this.player.y, 200, 300))
         }
     }
 
+    // Builds one Enemy from a normalized datum, forwarding the DB combat stats the
+    // enemy turn reads (physical/magic damage and defenses) and overriding the
+    // sprite with the resolved fallback path so missing art doesn't 404.
+    makeEnemy(datum, x, y, width, height){
+        const enemy = new Enemy(x, y, width, height, datum.name,
+            datum.health, datum.maxHealth, datum.stamina, datum.maxStamina, datum.attributes,
+            datum.physicalDamage, datum.magicDamage, datum.physicalDefense, datum.magicDefense,
+            datum.experienceReward, null, datum.isBoss)
+        if(datum.spritePath){ enemy.setSprite(datum.spritePath) }
+        return enemy
+    }
 }

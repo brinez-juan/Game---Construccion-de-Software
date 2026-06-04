@@ -173,6 +173,100 @@ router.post('/api/saved-games/:id/runs', requireAuth, async (req, res) => {
   }
 });
 
+// US23 — Issue #60: reset run progress on death.
+// When the player dies, the roguelite rules wipe the run-only inventory and
+// end the current run, but keep the permanent inventory and the accumulated
+// level/XP. Detaching the run from the slot (current_run_id = NULL) means the
+// next Continue starts a brand-new run, which resets the map to the beginning
+// on its own. Done in a transaction so a half-applied reset can't leave the
+// slot pointing at a run whose cards were already deleted.
+router.post('/api/saved-games/:id/reset-on-death', requireAuth, async (req, res) => {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const { profileId, runId, error } = await slotContext(conn, req.params.id, req.user.id);
+    if (error) {
+      await conn.rollback();
+      return res.status(404).json({ success: false, message: 'Save not found.' });
+    }
+
+    // Task 1 + Task 4: delete this run's run-only cards, keep the permanent ones.
+    // Guarded on profileId/runId so a slot with no profile or no active run is a
+    // safe no-op rather than deleting every run-only card the player owns.
+    if (profileId && runId) {
+      await conn.query(
+        `DELETE FROM player_cards
+          WHERE player_id = ?
+            AND is_permanent = FALSE
+            AND obtained_at_run = ?`,
+        [profileId, runId]
+      );
+    }
+
+    // Task 3: detach the run so the next Continue starts fresh (map reset). The
+    // runs row is kept for history; player_profiles (level/XP) is untouched (Task 5).
+    await conn.query(
+      `UPDATE saved_games SET current_run_id = NULL
+        WHERE id = ? AND user_id = ?`,
+      [req.params.id, req.user.id]
+    );
+
+    await conn.commit();
+    return res.json({ success: true });
+  } catch (error) {
+    await conn.rollback();
+    console.error('reset-on-death error:', error);
+    return res.status(500).json({ success: false, message: 'Could not reset run.' });
+  } finally {
+    conn.release();
+  }
+});
+
+// Persist run progress after a room is cleared so the slot card shows the
+// furthest floor/room reached and Continue can resume the map at the right
+// place. Scoped to the authenticated user via the run's player_profile.
+// Body: { final_floor_reached: int (0-3), final_room_reached: int (1-3), victory?: bool }
+router.patch('/api/runs/:runId/progress', requireAuth, async (req, res) => {
+  const { final_floor_reached, final_room_reached, victory } = req.body || {};
+  if (!Number.isInteger(final_floor_reached) || !Number.isInteger(final_room_reached)) {
+    return res.status(400).json({
+      success: false,
+      message: 'final_floor_reached and final_room_reached (ints) are required.'
+    });
+  }
+  try {
+    // Ownership: the run's player_profile must belong to this user.
+    const [runRows] = await pool.query(
+      `SELECT r.id
+         FROM runs r
+         JOIN player_profiles pp ON pp.id = r.player_id
+        WHERE r.id = ? AND pp.user_id = ?`,
+      [req.params.runId, req.user.id]
+    );
+    if (runRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Run not found.' });
+    }
+    await pool.query(
+      `UPDATE runs
+          SET final_floor_reached = ?,
+              final_room_reached = ?,
+              victory = COALESCE(?, victory)
+        WHERE id = ?`,
+      [
+        final_floor_reached,
+        final_room_reached,
+        typeof victory === 'boolean' ? (victory ? 1 : 0) : null,
+        req.params.runId
+      ]
+    );
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('update-run-progress error:', err);
+    return res.status(500).json({ success: false, message: 'Could not update run progress.' });
+  }
+});
+
 // Task 4: start a room_session AND save the chosen Battle Deck in one
 // transaction. The Battle Lobby's 'Continue' button calls this with the
 // 5 selected card ids in their UI slot order. Inserting deck rows
@@ -294,6 +388,34 @@ router.get('/api/room-sessions/:id/deck', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('deck load error:', error);
     return res.status(500).json({ success: false, message: 'Could not load deck.' });
+  }
+});
+
+// US22 Task 4: restore the last Battle Deck saved for a run. Used when the player
+// returns to the Battle Lobby (e.g. after quitting and pressing Continue) — there is
+// no tracked session id across a quit, so this reads the active_deck_cards of the
+// most recent room_session for the run. Scoped to the user via the same JOIN chain as
+// the per-session deck read above; an empty array means no deck has been saved yet.
+router.get('/api/runs/:runId/deck', requireAuth, async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT adc.slot, adc.card_id, c.name, c.action_type, c.stamina_cost
+         FROM active_deck_cards adc
+         JOIN cards          c  ON c.id  = adc.card_id
+         JOIN room_sessions  rs ON rs.id = adc.room_session_id
+         JOIN runs           r  ON r.id  = rs.run_id
+         JOIN player_profiles pp ON pp.id = r.player_id
+        WHERE rs.run_id = ? AND pp.user_id = ?
+          AND rs.id = (
+            SELECT MAX(rs2.id) FROM room_sessions rs2 WHERE rs2.run_id = ?
+          )
+        ORDER BY adc.slot ASC`,
+      [req.params.runId, req.user.id, req.params.runId]
+    );
+    return res.json({ success: true, deck: rows });
+  } catch (error) {
+    console.error('run-deck load error:', error);
+    return res.status(500).json({ success: false, message: 'Could not load run deck.' });
   }
 });
 
