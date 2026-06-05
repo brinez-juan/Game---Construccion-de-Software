@@ -5,6 +5,7 @@ import ParryBar from './parryBar.js';
 import ItemCard from './ItemCard.js';
 import {canvas} from './Return.js';
 import TextLabel from './TextLabel.js';
+import AudioManager from './AudioManager.js';
 
 // Main combat scene that orchestrates player turn, enemy turn, parry timing and end conditions
 export default class battleScreen extends Menus{
@@ -32,7 +33,7 @@ export default class battleScreen extends Menus{
         this.playerDefending = false;
         this.parryLabel = null;
         this.parryLabelTimer = 0;
-        this.failedSelection = new Audio('../Assets/Audio/SYS_buzzer.ogg')
+        AudioManager.playMusic('battle')
     }
 
     // Routes cursor movement to deck cards and to enemies during the targeting phase
@@ -82,7 +83,7 @@ export default class battleScreen extends Menus{
                     }
                 }
             }
-            this.failedSelection.play()
+            AudioManager.playSFX('buzzer')
             return
         }
 

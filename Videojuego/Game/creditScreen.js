@@ -1,5 +1,6 @@
 import Menus from './Menus.js';
 import GameObject from './GameObject.js';
+import AudioManager from './AudioManager.js';
 
 // Static credits panel with a single return button back to the main menu
 export default class creditScreen extends Menus{
@@ -8,6 +9,7 @@ export default class creditScreen extends Menus{
         this.returnButton = this.returnButton = new GameObject(this.canvasWidth/10,this.canvasHeight/7, 150, 65, undefined, true, true)
         this.returnButton.setSprite('../Assets/Sprites/return_button.png')
         this.initElements()
+        AudioManager.playMusic('credits')
     }
 
     initElements(){

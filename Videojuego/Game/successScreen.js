@@ -1,6 +1,7 @@
 import Menus from './Menus.js';
 import TextLabel from './TextLabel.js';
 import { canvas } from './Return.js';
+import AudioManager from './AudioManager.js';
 
 // End screen displayed when every enemy in the encounter is defeated. Clicking
 // returns to the castle map (the room just cleared is marked complete by the
@@ -12,6 +13,7 @@ export default class successScreen extends Menus{
         this.prompt = new TextLabel(canvasWidth/2, canvasHeight/2 + 80, '28px Academia', 'white', undefined, 'Click to continue', false)
         this._click = this.handleClick.bind(this)
         canvas.addEventListener('click', this._click)
+        AudioManager.playMusic('victory')
     }
 
     handleClick(e){

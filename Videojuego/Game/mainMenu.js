@@ -1,6 +1,7 @@
 import Menus from './Menus.js';
 import GameObject from './GameObject.js';
 import TextLabel from './TextLabel.js';
+import AudioManager from './AudioManager.js';
 
 // Title screen that exposes navigation entries for new game, continue, options and credits
 export default class mainMenu extends Menus{
@@ -12,7 +13,7 @@ export default class mainMenu extends Menus{
         this.textElements = []
         this.imgElements = []
         this.initElements()
-        
+        AudioManager.playMusic('intro')
     }
 
     update(deltaTime){

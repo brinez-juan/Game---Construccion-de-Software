@@ -3,6 +3,7 @@ import TextLabel from './TextLabel.js';
 import {canvas} from './Return.js';
 import ItemCard from './ItemCard.js';
 import Action from './Action.js';
+import AudioManager from './AudioManager.js';
 
 // End screen displayed when the player health drops to zero
 export default class gameOverScreen extends Menus{
@@ -40,6 +41,7 @@ constructor(canvasWidth = 0, canvasHeight = 0, stats = { floorsCompleted: 0, ene
     this.boundClick = this.handleClick.bind(this);
     canvas.addEventListener('mousemove', this.boundMouseMove);
     canvas.addEventListener('click', this.boundClick);
+    AudioManager.playMusic('gameover')
     }
     handleMouseMove(e){
     const rect = canvas.getBoundingClientRect();
