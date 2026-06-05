@@ -33,7 +33,7 @@ CREATE TABLE `active_deck_cards` (
   KEY `fk_deck_card` (`card_id`),
   CONSTRAINT `fk_deck_card` FOREIGN KEY (`card_id`) REFERENCES `cards` (`id`),
   CONSTRAINT `fk_deck_session` FOREIGN KEY (`room_session_id`) REFERENCES `room_sessions` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=400 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=450 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -42,7 +42,7 @@ CREATE TABLE `active_deck_cards` (
 
 LOCK TABLES `active_deck_cards` WRITE;
 /*!40000 ALTER TABLE `active_deck_cards` DISABLE KEYS */;
-INSERT INTO `active_deck_cards` VALUES (1,1,1,1),(2,1,4,2),(3,2,1,1),(4,2,4,2),(5,3,1,1),(6,3,4,2),(7,3,6,3),(8,4,1,1),(9,4,4,2),(10,4,6,3),(11,5,1,1),(12,5,4,2),(13,5,6,3),(14,6,2,1),(15,6,4,2),(16,7,2,1),(17,7,4,2),(18,7,7,3),(19,8,2,1),(20,8,4,2),(21,8,7,3),(22,9,3,1),(23,9,5,2),(24,10,3,1),(25,10,5,2),(26,10,8,3),(27,11,3,1),(28,11,5,2),(29,11,8,3),(30,12,3,1),(31,12,5,2),(32,12,8,3),(33,13,1,1),(34,13,4,2),(35,14,1,1),(36,14,4,2),(37,15,1,1),(38,15,4,2),(39,15,6,3),(40,15,9,4),(41,15,11,5),(42,16,1,1),(43,16,4,2),(44,16,6,3),(45,16,9,4),(46,16,11,5),(47,17,1,1),(48,17,4,2),(49,17,6,3),(50,17,9,4),(51,17,11,5),(52,18,6,1),(53,18,4,2),(54,18,9,3),(55,18,11,4),(56,19,6,1),(57,19,4,2),(58,19,9,3),(59,19,11,4),(60,20,2,1),(61,20,4,2),(89,28,1,1),(90,28,4,2),(91,28,6,3),(92,28,19,4),(93,29,1,1),(94,29,4,2),(95,29,6,3),(96,29,19,4),(104,32,1,1),(105,32,4,2),(106,32,6,3),(107,32,19,4),(108,33,1,1),(109,33,4,2),(110,33,6,3),(111,33,19,4),(128,38,17,1),(129,38,18,2),(130,38,16,3),(131,38,20,4),(132,39,17,1),(133,39,18,2),(134,39,16,3),(135,39,20,4),(136,40,17,1),(137,40,18,2),(138,40,16,3),(139,40,20,4),(176,50,17,1),(177,50,18,2),(178,50,16,3),(179,50,20,4),(180,51,17,1),(181,51,18,2),(182,51,16,3),(183,51,20,4),(184,52,17,1),(185,52,18,2),(186,52,16,3),(187,52,20,4),(188,53,17,1),(189,53,18,2),(190,53,16,3),(191,53,20,4),(192,54,17,1),(193,54,18,2),(194,54,16,3),(195,54,20,4),(196,55,17,1),(197,55,18,2),(198,55,16,3),(199,55,20,4),(236,65,17,1),(237,65,18,2),(238,65,16,3),(239,65,20,4),(240,66,17,1),(241,66,18,2),(242,66,16,3),(243,66,20,4),(352,95,17,1),(353,95,18,2),(354,95,16,3),(355,95,20,4),(356,96,17,1),(357,96,18,2),(358,96,16,3),(359,96,20,4),(376,101,17,1),(377,101,18,2),(378,101,16,3),(379,101,20,4),(380,102,17,1),(381,102,18,2),(382,102,16,3),(383,102,20,4),(384,103,17,1),(385,103,18,2),(386,103,16,3),(387,103,20,4),(388,104,17,1),(389,104,18,2),(390,104,16,3),(391,104,20,4),(392,105,17,1),(393,105,18,2),(394,105,16,3),(395,105,20,4),(396,106,17,1),(397,106,18,2),(398,106,16,3),(399,106,20,4);
+INSERT INTO `active_deck_cards` VALUES (1,1,1,1),(2,1,4,2),(3,2,1,1),(4,2,4,2),(5,3,1,1),(6,3,4,2),(8,4,1,1),(9,4,4,2),(11,5,1,1),(12,5,4,2),(14,6,2,1),(15,6,4,2),(16,7,2,1),(17,7,4,2),(19,8,2,1),(20,8,4,2),(22,9,3,1),(23,9,5,2),(24,10,3,1),(25,10,5,2),(27,11,3,1),(28,11,5,2),(30,12,3,1),(31,12,5,2),(33,13,1,1),(34,13,4,2),(35,14,1,1),(36,14,4,2),(37,15,1,1),(38,15,4,2),(42,16,1,1),(43,16,4,2),(47,17,1,1),(48,17,4,2),(53,18,4,2),(57,19,4,2),(60,20,2,1),(61,20,4,2),(89,28,1,1),(90,28,4,2),(93,29,1,1),(94,29,4,2),(104,32,1,1),(105,32,4,2),(108,33,1,1),(109,33,4,2),(435,114,1,1),(436,114,2,2),(437,114,3,3),(438,114,4,4),(439,114,5,5),(440,115,1,1),(441,115,2,2),(442,115,3,3),(443,115,4,4),(444,115,5,5),(445,116,1,1),(446,116,2,2),(447,116,3,3),(448,116,4,4),(449,116,5,5);
 /*!40000 ALTER TABLE `active_deck_cards` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -65,7 +65,7 @@ CREATE TABLE `attributes` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `player_id` (`player_id`),
   CONSTRAINT `fk_attr_player` FOREIGN KEY (`player_id`) REFERENCES `player_profiles` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -74,7 +74,7 @@ CREATE TABLE `attributes` (
 
 LOCK TABLES `attributes` WRITE;
 /*!40000 ALTER TABLE `attributes` DISABLE KEYS */;
-INSERT INTO `attributes` VALUES (2,2,3,4,1,5,8,'2026-04-02 10:00:00'),(3,3,1,3,10,3,2,'2026-04-03 10:00:00'),(4,4,4,4,1,2,1,'2026-04-05 10:00:00'),(5,5,1,1,1,1,2,'2026-04-07 10:00:00'),(6,6,1,2,7,2,1,'2026-04-10 10:00:00'),(7,7,10,9,1,8,3,'2026-04-12 10:00:00'),(8,8,2,3,1,3,5,'2026-04-15 10:00:00'),(9,9,1,4,8,3,2,'2026-04-18 10:00:00'),(10,10,3,3,1,2,1,'2026-04-20 10:00:00'),(12,12,4,4,0,3,2,'2026-05-28 06:57:30'),(24,24,3,2,0,2,1,'2026-05-29 13:27:39'),(37,37,3,2,0,2,1,'2026-06-04 05:08:16');
+INSERT INTO `attributes` VALUES (2,2,3,4,1,5,8,'2026-04-02 10:00:00'),(3,3,1,3,10,3,2,'2026-04-03 10:00:00'),(4,4,4,4,1,2,1,'2026-04-05 10:00:00'),(5,5,1,1,1,1,2,'2026-04-07 10:00:00'),(6,6,1,2,7,2,1,'2026-04-10 10:00:00'),(7,7,10,9,1,8,3,'2026-04-12 10:00:00'),(8,8,2,3,1,3,5,'2026-04-15 10:00:00'),(9,9,1,4,8,3,2,'2026-04-18 10:00:00'),(10,10,3,3,1,2,1,'2026-04-20 10:00:00'),(12,12,4,4,0,3,2,'2026-05-28 06:57:30'),(40,40,0,1,3,2,1,'2026-06-04 06:42:13'),(42,42,3,2,0,2,1,'2026-06-04 07:13:14');
 /*!40000 ALTER TABLE `attributes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -89,17 +89,21 @@ CREATE TABLE `cards` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
   `description` text,
-  `action_type` enum('ATTACK_PHYSIC','ATTACK_MAGIC','DEFEND_PHYSIC','DEFEND_MAGIC') NOT NULL,
+  `action_type` enum('ATTACK_PHYSIC','ATTACK_MAGIC','DEFEND_PHYSIC','DEFEND_MAGIC','AOE_PHYSIC','AOE_MAGIC','HEALING') NOT NULL,
   `stamina_cost` int NOT NULL,
   `base_damage` int DEFAULT '0',
   `rarity` enum('COMMON','UNCOMMON','RARE','EPIC','LEGENDARY') NOT NULL,
+  `sprite_name` varchar(100) DEFAULT NULL COMMENT 'Art filename stem in Assets/Sprites/cards, e.g. battle_axe',
   `scales_with` varchar(20) DEFAULT NULL COMMENT 'Attribute name that boosts this card, e.g. STRENGTH',
   `scaling_factor` decimal(5,2) DEFAULT '0.00' COMMENT 'Damage multiplier per attribute point',
   `required_attribute` varchar(20) DEFAULT NULL COMMENT 'e.g. INTELLIGENCE',
   `required_value` int DEFAULT '0',
   `is_boss_reward` tinyint(1) DEFAULT '0' COMMENT 'True for cards dropped exclusively by bosses',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `enemy` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_carta_enemigo` (`enemy`),
+  CONSTRAINT `fk_carta_enemigo` FOREIGN KEY (`enemy`) REFERENCES `enemies` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -108,7 +112,7 @@ CREATE TABLE `cards` (
 
 LOCK TABLES `cards` WRITE;
 /*!40000 ALTER TABLE `cards` DISABLE KEYS */;
-INSERT INTO `cards` VALUES (1,'Slash','Corte rápido con espada','ATTACK_PHYSIC',10,8,'COMMON','STRENGTH',1.20,NULL,0,0),(2,'Quick Stab','Estocada veloz con daga','ATTACK_PHYSIC',8,6,'COMMON','DEXTERITY',1.10,NULL,0,0),(3,'Fire Bolt','Proyectil ígneo básico','ATTACK_MAGIC',12,10,'COMMON','INTELLIGENCE',1.30,NULL,0,0),(4,'Iron Guard','Defensa física con escudo','DEFEND_PHYSIC',8,0,'COMMON','ENDURANCE',0.80,NULL,0,0),(5,'Arcane Ward','Barrera mágica básica','DEFEND_MAGIC',10,0,'COMMON','INTELLIGENCE',0.90,NULL,0,0),(6,'Heavy Strike','Golpe pesado a dos manos','ATTACK_PHYSIC',18,16,'UNCOMMON','STRENGTH',1.50,'STRENGTH',3,0),(7,'Piercing Shot','Flecha que perfora armadura','ATTACK_PHYSIC',14,12,'UNCOMMON','DEXTERITY',1.40,'DEXTERITY',4,0),(8,'Frost Lance','Lanza de hielo penetrante','ATTACK_MAGIC',16,14,'UNCOMMON','INTELLIGENCE',1.45,'INTELLIGENCE',4,0),(9,'Stone Skin','Piel pétrea, reduce daño físico','DEFEND_PHYSIC',14,0,'RARE','VIGOR',1.20,'VIGOR',5,0),(10,'Mirror Shield','Refleja parte del daño mágico recibido','DEFEND_MAGIC',16,0,'RARE','INTELLIGENCE',1.30,'INTELLIGENCE',5,0),(11,'Crimson Cleave','Tajo ensangrentado, alto daño','ATTACK_PHYSIC',22,24,'RARE','STRENGTH',1.80,'STRENGTH',6,0),(12,'Storm Volley','Lluvia de flechas eléctricas','ATTACK_PHYSIC',28,30,'EPIC','DEXTERITY',2.00,'DEXTERITY',8,0),(13,'Meteor','Invocación de roca incandescente','ATTACK_MAGIC',35,45,'EPIC','INTELLIGENCE',2.20,'INTELLIGENCE',8,1),(14,'Aegis','Escudo legendario de los guardianes','DEFEND_PHYSIC',30,0,'EPIC','ENDURANCE',2.00,'ENDURANCE',7,1),(15,'King\'s Wrath','El golpe final del rey caído','ATTACK_PHYSIC',45,70,'LEGENDARY','STRENGTH',2.50,'STRENGTH',12,1),(16,'Basic Attack','Simple physical strike.','ATTACK_PHYSIC',15,10,'COMMON','STRENGTH',1.00,NULL,0,0),(17,'Heavy Strike','Powerful blow.','ATTACK_PHYSIC',30,25,'UNCOMMON','STRENGTH',1.50,'STRENGTH',3,0),(18,'Shield Block','Brace for incoming hit.','DEFEND_PHYSIC',8,0,'COMMON','STRENGTH',1.00,NULL,0,0),(19,'Fireball','Hurl flame.','ATTACK_MAGIC',25,20,'UNCOMMON','INTELLIGENCE',1.20,'INTELLIGENCE',3,0),(20,'Recover','Mend wounds.','DEFEND_MAGIC',10,0,'COMMON','VIGOR',1.50,NULL,0,0);
+INSERT INTO `cards` VALUES (1,'Vicious Sword','Corte rápido con una espada afilada.','ATTACK_PHYSIC',10,10,'COMMON','vicious_sword','STRENGTH',1.20,NULL,0,0,NULL),(2,'Battle Axe','Golpe pesado a dos manos con un hacha de guerra.','ATTACK_PHYSIC',18,18,'UNCOMMON','battle_axe','STRENGTH',1.50,NULL,0,0,NULL),(3,'Hunter Bow','Disparo certero con un arco de cazador.','ATTACK_PHYSIC',12,12,'COMMON','hunter_bow','DEXTERITY',1.30,NULL,0,0,NULL),(4,'Fireball','Proyectil ígneo que estalla al impactar.','AOE_MAGIC',16,14,'UNCOMMON','fireball','INTELLIGENCE',1.30,NULL,0,0,NULL),(5,'Knight Shield','Defensa física tras un escudo de caballero.','DEFEND_PHYSIC',8,0,'COMMON','knight_shield','ENDURANCE',0.90,NULL,0,0,NULL),(6,'Dark Sword','Corte pesado con una espada maldita','ATTACK_PHYSIC',19,20,'UNCOMMON','dark_sword','STRENGTH',1.50,'STRENGTH',5,0,NULL),(21,'Rusted Longsword','A battered knightly blade. Reliable, simple, and inexpensive to play.','ATTACK_PHYSIC',2,6,'COMMON','rusted_longsword','strength',0.55,NULL,0,0,1),(22,'Kite-Shield Ram','A shield used as a blunt weapon. Low damage, but ideal for a future stagger or guard-gain effect.','ATTACK_PHYSIC',2,4,'COMMON','dark_shield','strength',0.45,NULL,0,0,1),(23,'Mushroomcap Bonk','A deceptively heavy fungal club. A cheap early-game strike inspired by the forest critter.','ATTACK_PHYSIC',1,3,'COMMON','mushroom_bonk','strength',0.35,NULL,0,0,0),(24,'Pestilent Hook-Flail','A spiked flail recovered from a masked scavenger. Its description can later support a poison status effect.','ATTACK_PHYSIC',2,5,'COMMON','hooked_flail','dexterity',0.45,NULL,0,0,10),(25,'Crystal Knuckle','A shard-covered gauntlet carved from a crystal gargoyle. Heavy enough to crack armor.','ATTACK_PHYSIC',2,5,'COMMON','crystal_knuckle','strength',0.50,NULL,0,0,9),(26,'Ravenwood Crook','A crooked staff crowned by a crimson familiar. A basic occult projectile weapon.','ATTACK_MAGIC',3,8,'UNCOMMON','ravenwood_staff','magic',0.70,NULL,0,0,5),(27,'Sentinel Twinblades','Matched silver blades with gold trim. Fast, elegant, and suited to dexterity builds.','ATTACK_PHYSIC',3,8,'UNCOMMON','sentinel_twinblades','dexterity',0.70,NULL,0,0,11),(28,'Orcish Meat-Cleaver','An oversized butcher weapon built for raw force rather than finesse.','ATTACK_PHYSIC',4,11,'UNCOMMON','orc_club','strength',0.80,NULL,0,0,7),(29,'Pale Lancer Pike','A long spear used by an armored revenant. Excellent reach with a demanding stamina cost.','AOE_PHYSIC',3,9,'UNCOMMON','lance_pike','dexterity',0.75,NULL,0,0,2),(30,'Moonlit Crescent Blade','A curved ritual blade with a pale edge. It feels halfway between a duelist weapon and a ceremonial relic.','ATTACK_PHYSIC',3,8,'UNCOMMON','moonlit_blade','dexterity',0.65,NULL,0,0,3),(31,'Hidden Execution Axe','A brutal axe drawn from beneath a horned warrior\'s cloak. Slow, direct, and punishing.','ATTACK_PHYSIC',5,15,'RARE','execution_axe','strength',1.00,'strength',4,0,4),(32,'Herald Eye-Wand','A one-eyed focus wrapped in violet cloth. Its future effect could mark enemies for amplified damage.','ATTACK_MAGIC',4,13,'RARE','eye_wand','magic',0.95,'magic',4,0,3),(33,'Rotten Wraith Chain','A spectral chain soaked in grave-cold residue. Designed as a mid-game magic weapon with a decay theme.','AOE_MAGIC',4,12,'RARE','rotted_chain','magic',0.90,'magic',4,0,10),(34,'Crystalheart Maul','A dense hammer assembled from golden crystal growths. Expensive, but excellent against durable enemies.','ATTACK_PHYSIC',5,16,'RARE','crystal_maul','strength',1.05,'strength',5,0,9),(35,'Draconic Rose Staff','A living crimson staff wielded by a draconic maiden. A premium spell weapon suited to burn-themed effects.','ATTACK_MAGIC',6,20,'EPIC','draconic_staff','magic',1.25,'magic',6,1,8),(37,'Galahad Twin Axes','A paired set of ceremonial war axes taken from the horned champion. Built for a strength-focused boss reward.','ATTACK_PHYSIC',6,21,'EPIC','twin_axes','strength',1.30,'strength',6,1,4),(38,'Sentinel Sunblades','The radiant upgrade to the sentinel\'s matched weapons. Fast enough for a future multi-hit effect.','ATTACK_PHYSIC',5,18,'EPIC','sentinel_sunblades','dexterity',1.15,'dexterity',6,1,11),(39,'Giant Shield','A giant Iron shield that protects from any attack','DEFEND_PHYSIC',15,0,'RARE','giant_shield','STRENGTH',1.60,'STRENGTH',20,0,6),(40,'Giant Shield','A giant Iron shield that protects from any attack','DEFEND_PHYSIC',15,0,'RARE','giant_shield','STRENGTH',1.60,'STRENGTH',20,0,6);
 /*!40000 ALTER TABLE `cards` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -229,7 +233,7 @@ CREATE TABLE `player_cards` (
   CONSTRAINT `fk_pcard_card` FOREIGN KEY (`card_id`) REFERENCES `cards` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_pcard_player` FOREIGN KEY (`player_id`) REFERENCES `player_profiles` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_pcard_run` FOREIGN KEY (`obtained_at_run`) REFERENCES `runs` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=140 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=165 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -238,7 +242,7 @@ CREATE TABLE `player_cards` (
 
 LOCK TABLES `player_cards` WRITE;
 /*!40000 ALTER TABLE `player_cards` DISABLE KEYS */;
-INSERT INTO `player_cards` VALUES (1,1,1,NULL,NULL,1),(2,1,4,NULL,NULL,1),(3,1,6,2,1,1),(4,2,2,NULL,NULL,1),(5,2,4,NULL,NULL,1),(6,2,7,4,2,1),(7,2,13,3,1,1),(8,3,3,NULL,NULL,1),(9,3,5,NULL,NULL,1),(10,3,8,5,2,1),(11,3,14,5,2,1),(12,3,15,6,3,1),(13,4,1,NULL,NULL,1),(14,4,4,NULL,NULL,1),(15,5,2,NULL,NULL,1),(16,5,4,NULL,NULL,1),(17,6,3,NULL,NULL,1),(18,6,5,NULL,NULL,1),(19,6,8,9,2,1),(20,7,1,NULL,NULL,1),(21,7,4,NULL,NULL,1),(22,7,6,10,1,1),(23,7,9,10,2,1),(24,7,11,10,2,1),(25,7,15,10,3,1),(26,8,2,NULL,NULL,1),(27,8,4,NULL,NULL,1),(28,9,3,NULL,NULL,1),(29,9,5,NULL,NULL,1),(30,9,14,12,2,1),(39,12,1,NULL,NULL,1),(40,12,4,NULL,NULL,1),(41,12,6,NULL,NULL,1),(42,12,19,NULL,NULL,1),(43,12,19,NULL,NULL,1),(44,12,19,NULL,NULL,1),(90,24,17,NULL,NULL,1),(91,24,18,NULL,NULL,1),(92,24,16,NULL,NULL,1),(93,24,16,NULL,NULL,1),(94,24,20,NULL,NULL,1),(135,37,17,NULL,NULL,1),(136,37,18,NULL,NULL,1),(137,37,16,NULL,NULL,1),(138,37,16,NULL,NULL,1),(139,37,20,NULL,NULL,1);
+INSERT INTO `player_cards` VALUES (1,1,1,NULL,NULL,1),(2,1,4,NULL,NULL,1),(4,2,2,NULL,NULL,1),(5,2,4,NULL,NULL,1),(8,3,3,NULL,NULL,1),(9,3,5,NULL,NULL,1),(13,4,1,NULL,NULL,1),(14,4,4,NULL,NULL,1),(15,5,2,NULL,NULL,1),(16,5,4,NULL,NULL,1),(17,6,3,NULL,NULL,1),(18,6,5,NULL,NULL,1),(20,7,1,NULL,NULL,1),(21,7,4,NULL,NULL,1),(26,8,2,NULL,NULL,1),(27,8,4,NULL,NULL,1),(28,9,3,NULL,NULL,1),(29,9,5,NULL,NULL,1),(39,12,1,NULL,NULL,1),(40,12,4,NULL,NULL,1),(150,40,1,NULL,NULL,1),(151,40,2,NULL,NULL,1),(152,40,3,NULL,NULL,1),(153,40,4,NULL,NULL,1),(154,40,5,NULL,NULL,1),(160,42,1,NULL,NULL,1),(161,42,2,NULL,NULL,1),(162,42,3,NULL,NULL,1),(163,42,4,NULL,NULL,1),(164,42,5,NULL,NULL,1);
 /*!40000 ALTER TABLE `player_cards` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -296,7 +300,7 @@ CREATE TABLE `player_profiles` (
   PRIMARY KEY (`id`),
   KEY `fk_profile_user` (`user_id`),
   CONSTRAINT `fk_profile_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Persistent profile that survives individual runs (roguelite meta-progression).';
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Persistent profile that survives individual runs (roguelite meta-progression).';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -305,7 +309,7 @@ CREATE TABLE `player_profiles` (
 
 LOCK TABLES `player_profiles` WRITE;
 /*!40000 ALTER TABLE `player_profiles` DISABLE KEYS */;
-INSERT INTO `player_profiles` VALUES (1,1,'SOLDIER',2400,5,2,'2026-03-01 10:05:00'),(2,2,'ARCHER',5600,8,0,'2026-03-02 11:20:00'),(3,3,'MAGE',12800,12,3,'2026-03-03 09:35:00'),(4,4,'SOLDIER',900,3,1,'2026-03-05 14:50:00'),(5,5,'ARCHER',150,1,4,'2026-03-07 18:25:00'),(6,6,'MAGE',4100,7,0,'2026-03-10 08:05:00'),(7,7,'SOLDIER',18900,15,1,'2026-03-12 22:15:00'),(8,8,'ARCHER',1300,4,2,'2026-03-15 16:35:00'),(9,9,'MAGE',7200,9,0,'2026-03-18 13:05:00'),(10,10,'SOLDIER',500,2,3,'2026-03-20 19:55:00'),(12,11,'SOLDIER',0,1,0,'2026-05-20 14:05:28'),(24,11,'SOLDIER',0,1,0,'2026-05-29 13:27:39'),(37,11,'SOLDIER',0,1,0,'2026-06-04 05:08:16');
+INSERT INTO `player_profiles` VALUES (1,1,'SOLDIER',2400,5,2,'2026-03-01 10:05:00'),(2,2,'ARCHER',5600,8,0,'2026-03-02 11:20:00'),(3,3,'MAGE',12800,12,3,'2026-03-03 09:35:00'),(4,4,'SOLDIER',900,3,1,'2026-03-05 14:50:00'),(5,5,'ARCHER',150,1,4,'2026-03-07 18:25:00'),(6,6,'MAGE',4100,7,0,'2026-03-10 08:05:00'),(7,7,'SOLDIER',18900,15,1,'2026-03-12 22:15:00'),(8,8,'ARCHER',1300,4,2,'2026-03-15 16:35:00'),(9,9,'MAGE',7200,9,0,'2026-03-18 13:05:00'),(10,10,'SOLDIER',500,2,3,'2026-03-20 19:55:00'),(12,11,'SOLDIER',0,1,0,'2026-05-20 14:05:28'),(40,11,'MAGE',0,1,0,'2026-06-04 06:42:13'),(42,11,'SOLDIER',225,2,0,'2026-06-04 07:13:14');
 /*!40000 ALTER TABLE `player_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -333,7 +337,7 @@ CREATE TABLE `room_sessions` (
   CONSTRAINT `fk_session_reward` FOREIGN KEY (`card_reward_id`) REFERENCES `cards` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_session_room` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`),
   CONSTRAINT `fk_session_run` FOREIGN KEY (`run_id`) REFERENCES `runs` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=107 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Active deck cards are stored in active_deck_cards.';
+) ENGINE=InnoDB AUTO_INCREMENT=117 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Active deck cards are stored in active_deck_cards.';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -342,7 +346,7 @@ CREATE TABLE `room_sessions` (
 
 LOCK TABLES `room_sessions` WRITE;
 /*!40000 ALTER TABLE `room_sessions` DISABLE KEYS */;
-INSERT INTO `room_sessions` VALUES (1,1,1,'2026-04-01 10:00:00','2026-04-01 10:08:00','WIN',3,120,NULL),(2,1,2,'2026-04-01 10:09:00','2026-04-01 10:18:00','LOSS',2,60,NULL),(3,2,1,'2026-04-03 11:00:00','2026-04-03 11:09:00','WIN',3,140,NULL),(4,2,2,'2026-04-03 11:10:00','2026-04-03 11:20:00','WIN',3,170,6),(5,2,3,'2026-04-03 11:22:00','2026-04-03 11:35:00','WIN',1,500,13),(6,3,1,'2026-04-02 14:00:00','2026-04-02 14:08:00','WIN',3,130,NULL),(7,3,2,'2026-04-02 14:09:00','2026-04-02 14:18:00','WIN',3,160,NULL),(8,3,3,'2026-04-02 14:20:00','2026-04-02 14:25:00','LOSS',1,80,NULL),(9,5,1,'2026-04-03 18:00:00','2026-04-03 18:12:00','WIN',3,150,NULL),(10,5,3,'2026-04-03 18:30:00','2026-04-03 18:50:00','WIN',1,520,8),(11,5,4,'2026-04-03 19:00:00','2026-04-03 19:10:00','WIN',3,200,NULL),(12,5,6,'2026-04-03 19:15:00','2026-04-03 19:30:00','WIN',1,870,14),(13,7,1,'2026-04-05 09:00:00','2026-04-05 09:07:00','WIN',3,110,NULL),(14,7,2,'2026-04-05 09:08:00','2026-04-05 09:15:00','LOSS',1,30,NULL),(15,10,1,'2026-04-12 21:00:00','2026-04-12 21:10:00','WIN',3,160,NULL),(16,10,3,'2026-04-12 21:25:00','2026-04-12 21:45:00','WIN',1,530,6),(17,10,6,'2026-04-12 22:30:00','2026-04-12 22:55:00','WIN',1,880,9),(18,10,9,'2026-04-12 23:20:00','2026-04-12 23:42:00','WIN',1,1340,11),(19,10,12,'2026-04-12 23:50:00','2026-04-13 00:00:00','WIN',1,2520,15),(20,8,3,'2026-04-07 13:22:00','2026-04-07 13:30:00','LOSS',1,70,NULL),(28,18,4,'2026-05-29 13:05:44',NULL,NULL,0,NULL,NULL),(29,18,4,'2026-05-29 13:05:52',NULL,NULL,0,NULL,NULL),(32,18,4,'2026-05-29 13:11:27',NULL,NULL,0,NULL,NULL),(33,18,4,'2026-05-29 13:11:38',NULL,NULL,0,NULL,NULL),(38,25,1,'2026-05-29 13:27:56',NULL,NULL,0,NULL,NULL),(39,25,4,'2026-05-29 13:29:29',NULL,NULL,0,NULL,NULL),(40,25,4,'2026-05-29 14:03:00',NULL,NULL,0,NULL,NULL),(50,25,4,'2026-05-29 15:51:23',NULL,NULL,0,NULL,NULL),(51,25,4,'2026-05-29 15:52:23',NULL,NULL,0,NULL,NULL),(52,25,5,'2026-05-29 15:52:43',NULL,NULL,0,NULL,NULL),(53,25,6,'2026-05-29 15:53:03',NULL,NULL,0,NULL,NULL),(54,25,7,'2026-05-29 15:55:24',NULL,NULL,0,NULL,NULL),(55,25,8,'2026-05-29 15:55:57',NULL,NULL,0,NULL,NULL),(65,25,8,'2026-05-31 10:27:11',NULL,NULL,0,NULL,NULL),(66,31,4,'2026-05-31 10:28:55',NULL,NULL,0,NULL,NULL),(95,31,4,'2026-06-03 17:12:41',NULL,NULL,0,NULL,NULL),(96,31,4,'2026-06-03 17:12:48',NULL,NULL,0,NULL,NULL),(101,42,1,'2026-06-04 05:08:29',NULL,NULL,0,NULL,NULL),(102,42,4,'2026-06-04 05:10:13',NULL,NULL,0,NULL,NULL),(103,42,5,'2026-06-04 05:12:00',NULL,NULL,0,NULL,NULL),(104,42,5,'2026-06-04 05:12:25',NULL,NULL,0,NULL,NULL),(105,42,5,'2026-06-04 05:12:35',NULL,NULL,0,NULL,NULL),(106,42,6,'2026-06-04 05:13:19',NULL,NULL,0,NULL,NULL);
+INSERT INTO `room_sessions` VALUES (1,1,1,'2026-04-01 10:00:00','2026-04-01 10:08:00','WIN',3,120,NULL),(2,1,2,'2026-04-01 10:09:00','2026-04-01 10:18:00','LOSS',2,60,NULL),(3,2,1,'2026-04-03 11:00:00','2026-04-03 11:09:00','WIN',3,140,NULL),(4,2,2,'2026-04-03 11:10:00','2026-04-03 11:20:00','WIN',3,170,NULL),(5,2,3,'2026-04-03 11:22:00','2026-04-03 11:35:00','WIN',1,500,NULL),(6,3,1,'2026-04-02 14:00:00','2026-04-02 14:08:00','WIN',3,130,NULL),(7,3,2,'2026-04-02 14:09:00','2026-04-02 14:18:00','WIN',3,160,NULL),(8,3,3,'2026-04-02 14:20:00','2026-04-02 14:25:00','LOSS',1,80,NULL),(9,5,1,'2026-04-03 18:00:00','2026-04-03 18:12:00','WIN',3,150,NULL),(10,5,3,'2026-04-03 18:30:00','2026-04-03 18:50:00','WIN',1,520,NULL),(11,5,4,'2026-04-03 19:00:00','2026-04-03 19:10:00','WIN',3,200,NULL),(12,5,6,'2026-04-03 19:15:00','2026-04-03 19:30:00','WIN',1,870,NULL),(13,7,1,'2026-04-05 09:00:00','2026-04-05 09:07:00','WIN',3,110,NULL),(14,7,2,'2026-04-05 09:08:00','2026-04-05 09:15:00','LOSS',1,30,NULL),(15,10,1,'2026-04-12 21:00:00','2026-04-12 21:10:00','WIN',3,160,NULL),(16,10,3,'2026-04-12 21:25:00','2026-04-12 21:45:00','WIN',1,530,NULL),(17,10,6,'2026-04-12 22:30:00','2026-04-12 22:55:00','WIN',1,880,NULL),(18,10,9,'2026-04-12 23:20:00','2026-04-12 23:42:00','WIN',1,1340,NULL),(19,10,12,'2026-04-12 23:50:00','2026-04-13 00:00:00','WIN',1,2520,NULL),(20,8,3,'2026-04-07 13:22:00','2026-04-07 13:30:00','LOSS',1,70,NULL),(28,18,4,'2026-05-29 13:05:44',NULL,NULL,0,NULL,NULL),(29,18,4,'2026-05-29 13:05:52',NULL,NULL,0,NULL,NULL),(32,18,4,'2026-05-29 13:11:27',NULL,NULL,0,NULL,NULL),(33,18,4,'2026-05-29 13:11:38',NULL,NULL,0,NULL,NULL),(114,47,1,'2026-06-04 07:13:23',NULL,NULL,0,NULL,NULL),(115,47,4,'2026-06-04 07:16:27',NULL,NULL,0,NULL,NULL),(116,47,4,'2026-06-04 07:16:37',NULL,NULL,0,NULL,NULL);
 /*!40000 ALTER TABLE `room_sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -400,7 +404,7 @@ CREATE TABLE `runs` (
   CONSTRAINT `fk_run_card` FOREIGN KEY (`permanent_card_chosen_id`) REFERENCES `cards` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_run_death_enemy` FOREIGN KEY (`death_cause`) REFERENCES `enemies` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_run_player` FOREIGN KEY (`player_id`) REFERENCES `player_profiles` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -409,7 +413,7 @@ CREATE TABLE `runs` (
 
 LOCK TABLES `runs` WRITE;
 /*!40000 ALTER TABLE `runs` DISABLE KEYS */;
-INSERT INTO `runs` VALUES (1,1,'2026-04-01 10:00:00','2026-04-01 10:18:00',1080,1,2,0,NULL,NULL),(2,1,'2026-04-03 11:00:00','2026-04-03 11:35:00',2100,1,3,1,NULL,13),(3,2,'2026-04-02 14:00:00','2026-04-02 14:25:00',1500,1,3,0,NULL,13),(4,2,'2026-04-04 15:00:00','2026-04-04 16:10:00',4200,2,1,0,NULL,NULL),(5,3,'2026-04-03 18:00:00','2026-04-03 19:30:00',5400,2,3,1,NULL,14),(6,3,'2026-04-08 20:00:00','2026-04-08 22:15:00',8100,3,3,0,NULL,15),(7,4,'2026-04-05 09:00:00','2026-04-05 09:15:00',900,1,2,0,NULL,NULL),(8,5,'2026-04-07 13:00:00','2026-04-07 13:30:00',1800,1,3,0,NULL,NULL),(9,6,'2026-04-10 19:00:00','2026-04-10 20:00:00',3600,2,2,0,NULL,NULL),(10,7,'2026-04-12 21:00:00','2026-04-13 00:00:00',10800,3,3,1,NULL,15),(11,8,'2026-04-15 17:00:00','2026-04-15 17:25:00',1500,1,3,0,NULL,NULL),(12,9,'2026-04-18 14:00:00','2026-04-18 15:20:00',4800,2,3,0,NULL,14),(18,12,'2026-05-29 13:04:10',NULL,NULL,NULL,NULL,0,NULL,NULL),(25,24,'2026-05-29 13:27:39',NULL,NULL,2,1,0,NULL,NULL),(31,24,'2026-05-31 10:28:31',NULL,NULL,NULL,NULL,0,NULL,NULL),(42,37,'2026-06-04 05:08:16',NULL,NULL,1,2,0,NULL,NULL);
+INSERT INTO `runs` VALUES (1,1,'2026-04-01 10:00:00','2026-04-01 10:18:00',1080,1,2,0,NULL,NULL),(2,1,'2026-04-03 11:00:00','2026-04-03 11:35:00',2100,1,3,1,NULL,NULL),(3,2,'2026-04-02 14:00:00','2026-04-02 14:25:00',1500,1,3,0,NULL,NULL),(4,2,'2026-04-04 15:00:00','2026-04-04 16:10:00',4200,2,1,0,NULL,NULL),(5,3,'2026-04-03 18:00:00','2026-04-03 19:30:00',5400,2,3,1,NULL,NULL),(6,3,'2026-04-08 20:00:00','2026-04-08 22:15:00',8100,3,3,0,NULL,NULL),(7,4,'2026-04-05 09:00:00','2026-04-05 09:15:00',900,1,2,0,NULL,NULL),(8,5,'2026-04-07 13:00:00','2026-04-07 13:30:00',1800,1,3,0,NULL,NULL),(9,6,'2026-04-10 19:00:00','2026-04-10 20:00:00',3600,2,2,0,NULL,NULL),(10,7,'2026-04-12 21:00:00','2026-04-13 00:00:00',10800,3,3,1,NULL,NULL),(11,8,'2026-04-15 17:00:00','2026-04-15 17:25:00',1500,1,3,0,NULL,NULL),(12,9,'2026-04-18 14:00:00','2026-04-18 15:20:00',4800,2,3,0,NULL,NULL),(18,12,'2026-05-29 13:04:10',NULL,NULL,NULL,NULL,0,NULL,NULL),(45,40,'2026-06-04 06:42:13',NULL,NULL,NULL,NULL,0,NULL,NULL),(47,42,'2026-06-04 07:13:14',NULL,NULL,1,1,0,NULL,NULL);
 /*!40000 ALTER TABLE `runs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -438,7 +442,7 @@ CREATE TABLE `saved_games` (
   CONSTRAINT `fk_save_run` FOREIGN KEY (`current_run_id`) REFERENCES `runs` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_save_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `chk_slot_range` CHECK ((`slot_number` between 1 and 3))
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -447,7 +451,7 @@ CREATE TABLE `saved_games` (
 
 LOCK TABLES `saved_games` WRITE;
 /*!40000 ALTER TABLE `saved_games` DISABLE KEYS */;
-INSERT INTO `saved_games` VALUES (3,11,1,'Cards Test',12,18,'2026-05-29 13:04:10','2026-05-20 14:05:28'),(15,11,3,'New Run',24,31,'2026-05-31 10:28:31','2026-05-29 13:26:49'),(28,11,2,'New Run',37,42,'2026-06-04 05:08:16','2026-06-04 05:08:09');
+INSERT INTO `saved_games` VALUES (3,11,1,'Cards Test',12,18,'2026-05-29 13:04:10','2026-05-20 14:05:28'),(31,11,3,'New Run',40,45,'2026-06-04 06:42:13','2026-06-04 06:42:11'),(33,11,2,'New Run',42,47,'2026-06-04 07:13:14','2026-06-04 07:13:11');
 /*!40000 ALTER TABLE `saved_games` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -521,4 +525,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-06-04  6:18:19
+-- Dump completed on 2026-06-05 17:47:57
