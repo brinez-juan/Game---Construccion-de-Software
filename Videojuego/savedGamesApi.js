@@ -74,6 +74,18 @@ export default class SavedGamesAPI {
     await parseOrThrow(res);
   }
 
+  // US25: on death, promote ONE collected run card to permanent so it survives the
+  // reset-on-death wipe and is available in every future run. Must be called BEFORE
+  // resetRunOnDeath, which deletes the remaining run-only cards.
+  async makeCardPermanent(slotId, cardId) {
+    const res = await fetch(`/api/saved-games/${slotId}/permanent-card`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({ card_id: cardId })
+    });
+    await parseOrThrow(res);
+  }
+
   // Persists the chosen archetype with its seeded attributes and links the profile to the slot
   async createProfile(slotId, { archetype, attributes = {}, attributePoints = 0 }) {
     const res = await fetch(`/api/saved-games/${slotId}/profile`, {

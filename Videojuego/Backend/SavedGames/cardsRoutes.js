@@ -224,6 +224,56 @@ router.post('/api/saved-games/:id/reset-on-death', requireAuth, async (req, res)
   }
 });
 
+// US25 — Issue #62: promote one collected card to permanent on death.
+// The roguelite rules let the player keep a single run card after dying. Setting
+// is_permanent = TRUE makes the card survive the reset-on-death wipe (which only
+// deletes is_permanent = FALSE rows) and surface in every future run's inventory
+// (GET /cards returns all permanent cards regardless of run). Scoped to the current
+// run so a tampered request can't promote a card from another run or one the player
+// doesn't own. There is no separate permanent_inventory table — is_permanent on
+// player_cards is how this schema models meta-progression.
+// Body: { card_id }
+router.patch('/api/saved-games/:id/permanent-card', requireAuth, async (req, res) => {
+  const { card_id } = req.body || {};
+
+  if (!Number.isInteger(card_id) || card_id <= 0) {
+    return res.status(400).json({ success: false, message: 'card_id (int) is required.' });
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    const { profileId, runId, error } = await slotContext(conn, req.params.id, req.user.id);
+    if (error) return res.status(404).json({ success: false, message: 'Save not found.' });
+    if (!profileId) {
+      return res.status(409).json({
+        success: false,
+        message: 'Slot has no profile yet — pick an archetype first.'
+      });
+    }
+
+    const [result] = await conn.query(
+      `UPDATE player_cards
+          SET is_permanent = TRUE
+        WHERE player_id = ?
+          AND card_id = ?
+          AND is_permanent = FALSE
+          AND obtained_at_run = ?`,
+      [profileId, card_id, runId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Card not found in this run inventory.' });
+    }
+
+    return res.json({ success: true, card_id });
+  } catch (error) {
+    console.error('make-permanent error:', error);
+    return res.status(500).json({ success: false, message: 'Could not save permanent card.' });
+  } finally {
+    conn.release();
+  }
+});
+
 // Persist run progress after a room is cleared so the slot card shows the
 // furthest floor/room reached and Continue can resume the map at the right
 // place. Scoped to the authenticated user via the run's player_profile.

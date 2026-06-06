@@ -316,17 +316,29 @@ class Game {
             this.currentMenu = new battleScreen(background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(this.currentRoom), this, !!this.currentRoom?.isBoss)
         }
         else if(state === 7){
-            // Snapshot the run summary BEFORE resetting (resetRunOnDeath clears these),
+            // Snapshot the run summary BEFORE the wipe (resetRunOnDeath clears these),
             // so the Game Over screen shows the real floor/kills/level instead of defaults.
             const stats = {
                 floorsCompleted: this.runProgress?.floor ?? this.currentRoom?.floorNumber ?? 0,
                 enemiesDefeated: this.enemiesDefeated,
                 finalLevel: this.player?.level ?? 1
             }
-            // Reset the run on death (wipe run inventory, end run, reset map/HP/stamina)
-            // before showing the Game Over screen. Best-effort; mirrors state 8's persist.
-            this.resetRunOnDeath()
-            this.currentMenu = new gameOverScreen(this.canvasWidth, this.canvasHeight, stats)
+            // US25: the player may rescue ONE collected (non-permanent) card before the run
+            // inventory is wiped. Gather the eligible cards from both the inventory and the
+            // active deck (a run card can be sitting in the deck), de-duped by cardId — this
+            // excludes the starting 5 / already-permanent cards. The wipe (resetRunOnDeath)
+            // is now deferred to the Game Over screen's Continue, AFTER any promotion, so the
+            // cards are still present to choose from here.
+            const seen = new Set()
+            const eligibleCards = []
+            for(const card of [...(this.player?.inventory ?? []), ...(this.player?.activeDeck ?? [])]){
+                if(card && !card.isPermanent && !seen.has(card.cardId)){
+                    seen.add(card.cardId)
+                    eligibleCards.push(card)
+                }
+            }
+            this.currentMenu = new gameOverScreen(this.canvasWidth, this.canvasHeight, stats,
+                eligibleCards, this.api, this.activeSlotId, this)
         }
         else if(state === 8){
             // Read the per-battle summary off the outgoing battle screen BEFORE it's
