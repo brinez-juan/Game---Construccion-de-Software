@@ -23,6 +23,10 @@ export default class battleScreen extends Menus{
         // id of every spawned enemy here because this.enemies is emptied by
         // checkEnemyStatus before the victory check fires. Guard so drops grant once.
         this.dropsGranted = false
+        // Per-battle summary surfaced on the victory screen (gameWonBattleScreen).
+        this.cardsWon = []
+        this.xpAwardedThisBattle = 0
+        this.enemiesDefeatedThisBattle = 0
         // Snapshot how many enemies this room started with so kills can be tallied at
         // the end regardless of how many were filtered out mid-fight.
         this.initialEnemyCount = this.enemies.length
@@ -211,11 +215,13 @@ export default class battleScreen extends Menus{
         if(this.game){
             const alive = this.enemies.filter(enemy => enemy.health > 0).length
             const killed = this.initialEnemyCount - alive
+            this.enemiesDefeatedThisBattle = killed
             this.game.enemiesDefeated += killed
             // US16: award XP for the enemies defeated this battle (full roster XP on a
             // clear) so the player's level/XP can be persisted in the victory path.
             if(killed > 0 && this.initialEnemyCount > 0 && typeof this.game.awardExperience === 'function'){
-                this.game.awardExperience(Math.round(this.totalEnemyXp * killed / this.initialEnemyCount))
+                this.xpAwardedThisBattle = Math.round(this.totalEnemyXp * killed / this.initialEnemyCount)
+                this.game.awardExperience(this.xpAwardedThisBattle)
             }
         }
     }
@@ -252,6 +258,7 @@ export default class battleScreen extends Menus{
             const card = normalizeCatalogCard(chosen)
             owned.add(card.cardId)
             player.inventory.push(card)
+            this.cardsWon.push(card)
             if(this.game.api && this.game.activeSlotId != null){
                 this.game.api.addCard(this.game.activeSlotId, {
                     cardId: card.cardId, isPermanent: false, obtainedAtFloor: floor

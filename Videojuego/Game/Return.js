@@ -5,7 +5,8 @@ import selectionMenu from './selectionMenu.js';
 import optionsMenu from './optionsMenu.js';
 import creditScreen from './creditScreen.js';
 import gameOverScreen from './gameOverScreen.js';
-import successScreen from './successScreen.js';
+import gameWonBattleScreen from './gameWonBattleScreen.js';
+import gameCompletionScreen from './gameCompletionScreen.js';
 import battleLobby from './battleLobby.js';
 import archetypeScreen from './archetypeScreen.js';
 import mapScreen, { MapManager } from './mapScreen.js';
@@ -320,6 +321,16 @@ class Game {
             this.currentMenu = new gameOverScreen(this.canvasWidth, this.canvasHeight, stats)
         }
         else if(state === 8){
+            // Read the per-battle summary off the outgoing battle screen BEFORE it's
+            // replaced (it's still this.currentMenu here): XP gained, kills and the cards
+            // its defeated enemies dropped, shown on the victory screen.
+            const battle = this.currentMenu
+            const wonStats = {
+                xpGained: battle?.xpAwardedThisBattle ?? 0,
+                enemiesDefeated: battle?.enemiesDefeatedThisBattle ?? 0,
+                finalLevel: this.player?.level ?? 1
+            }
+            const cardsWon = battle?.cardsWon ?? []
             // Record progress before showing the victory screen. The forest tutorial
             // (floor 0) is off-map, so only castle rooms advance the map manager.
             if(this.mapManager && this.currentRoom && this.currentRoom.floorNumber !== 0){
@@ -329,7 +340,19 @@ class Game {
             // the XP/level earned this battle (US16) so progression survives the session.
             this.persistProgress()
             this.persistExperience()
-            this.currentMenu = new successScreen(this.canvasWidth, this.canvasHeight)
+            // Clearing the castle's last boss room (floor 3 boss) beats the whole game, so
+            // show the completion screen instead of the per-battle victory screen.
+            const isFinalRoom = this.currentRoom && this.currentRoom.floorNumber === 3 && this.currentRoom.isBoss
+            if(isFinalRoom){
+                const completionStats = {
+                    enemiesDefeated: this.enemiesDefeated,
+                    finalLevel: this.player?.level ?? 1,
+                    totalXP: this.player?.experience ?? 0
+                }
+                this.currentMenu = new gameCompletionScreen(this.canvasWidth, this.canvasHeight, completionStats, cardsWon)
+            } else {
+                this.currentMenu = new gameWonBattleScreen(this.canvasWidth, this.canvasHeight, wonStats, cardsWon)
+            }
         }
         else if(state === 9){
             this.currentMenu = new archetypeScreen(BG.main, this.canvasWidth, this.canvasHeight, this)
