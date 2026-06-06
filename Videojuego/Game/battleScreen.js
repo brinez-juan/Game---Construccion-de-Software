@@ -164,12 +164,14 @@ export default class battleScreen extends Menus{
         }
         if(this.player.health <= 0){
             this.removeEventListeners()
+            this.ParryBar.dispose()
             this.reportEnemiesDefeated()
             this.state = 7
             return
         }
         if(this.enemies.every(enemy => enemy.health <= 0)){
             this.removeEventListeners()
+            this.ParryBar.dispose()
             this.reportEnemiesDefeated()
             this.grantEnemyDrops()
             this.state = 8
@@ -311,13 +313,15 @@ export default class battleScreen extends Menus{
 
             this.currentEnemyIndex++
             if(this.currentEnemyIndex < this.enemies.length){
+                this.ParryBar.dispose()
                 this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, this.player.stamina, this.player.maxStamina)
             }
         }
         else{
             this.currentEnemyIndex = 0
+            this.ParryBar.dispose()
             this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, this.player.stamina, this.player.maxStamina)
-            this.turn = 'player' 
+            this.turn = 'player'
             this.player.setSprite('../Assets/Sprites/characters/player.png') 
         }
     }

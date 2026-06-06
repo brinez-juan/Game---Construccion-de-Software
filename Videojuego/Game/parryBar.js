@@ -16,21 +16,26 @@ export default class ParryBar{
         this.missParryIndicator.setSprite('../Assets/Sprites/miss_parry.png')
         this.parryIcon = new GameObject(canvasWidth/2 - 120, CanvasHeight/2 + 45, 45, 45);
         this.parryIcon.setSprite('../Assets/Sprites/parry_icon.png')
-        this.state = null; 
-        this.handleKeyDown = this.handleKeyDown.bind(this);
-        window.addEventListener('keydown', this.handleKeyDown);
+        this.state = null;
+        // Becomes true once the bar starts animating during the enemy turn (see update).
+        // Gates clicks so ordinary clicks during the player's own turn (card selection)
+        // don't prematurely resolve the parry.
+        this.started = false;
+        this.handleClick = this.handleClick.bind(this);
+        canvas.addEventListener('click', this.handleClick);
     }
 
-    // Triggers the parry check when the player presses Space
-    handleKeyDown(event) {
-        if (event.code === 'Space') {
+    // Triggers the parry check on left click, but only while the bar is live (animating
+    // during the enemy turn) and hasn't resolved yet.
+    handleClick(event) {
+        if (this.started && !this.state) {
             this.checkState();
         }
     }
 
-    // Removes the keyboard listener so this bar stops reacting to input
+    // Removes the click listener so this bar stops reacting to input
     dispose() {
-        window.removeEventListener('keydown', this.handleKeyDown);
+        canvas.removeEventListener('click', this.handleClick);
     }
 
     // Reduces or negates incoming damage according to the parry result
@@ -71,6 +76,8 @@ export default class ParryBar{
 
     // Moves the parry icon across the bar at a speed modulated by stamina and dexterity
     update(deltaTime, playerDexterity = 0){
+        // The bar is now live and accepting parry clicks.
+        this.started = true;
         if(!this.state){
             this.parryIcon.x += (1*(this.maxStamina/this.stamina) - 0.01*playerDexterity)
         }
