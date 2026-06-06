@@ -15,6 +15,7 @@ const { default: attributesRouter } = await import('./SavedGames/attributesRoute
 const { default: cardsRouter } = await import('./SavedGames/cardsRoutes.js');
 const { default: roomsRouter } = await import('./SavedGames/roomsRoutes.js');
 const { default: catalogRouter } = await import('./SavedGames/catalogRoutes.js');
+const { default: globalStatisticsRouter } = await import('./SavedGames/globalStatisticsRoutes.js');
 
 const webPageDir = path.resolve(__dirname, '..', 'WebPage');
 const videojuegoDir = path.resolve(__dirname, '..');
