@@ -8,7 +8,6 @@ import Action from "./Action.js";
 import { canvas } from "./Return.js";
 import GameObject from "./GameObject.js";
 import { MAX_DECK_SIZE } from "./GlobalVariables.js";
-import AudioManager from './AudioManager.js';
 //import { text } from "express";
 
 // Lobby menu displayed between battles to show player progression and allow attribute upgrades
@@ -64,7 +63,6 @@ export default class battleLobby extends Menus{
         // "Start battle" enters the chosen room. Bottom-centre, clickable label.
         this.startButton = new textLabel(this.canvasWidth/2, this.canvasHeight - 30, '34px Academia', 'black', undefined, 'Start battle', true)
         this.addEventListeners()
-        AudioManager.playMusic('lobby')
     }
 
     experienceBarSpawn(exp, level, expToNextLevel){

@@ -1,12 +1,13 @@
 import Menus from './Menus.js';
 import GameObject from './GameObject.js';
-import AudioManager from './AudioManager.js';
 
 // Settings screen that toggles audio fields and adds an exit shortcut in pause mode
 export default class optionsMenu extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0, menuType){
         super(background, canvasWidth, canvasHeight)
         this.type = menuType 
+        this.volumeMusic;
+        this.volumeSFX; 
         this.initElements(); 
     }
 
@@ -16,10 +17,8 @@ export default class optionsMenu extends Menus{
         let offsetY = 30
         this.sfxField = new GameObject(this.canvasWidth/2, 2*this.canvasHeight/4, 180, 80, 'on', undefined, undefined);
         this.soundField = new GameObject(this.canvasWidth/2, this.sfxField.y + this.sfxField.height + offsetY, 180, 80, 'on', undefined, undefined);
-        this.sfxField.setSprite(AudioManager.sfxEnabled ? '../Assets/Sprites/sfx_on.png' : '../Assets/Sprites/sfx_off.png')
-        this.sfxField.type = AudioManager.sfxEnabled ? 'on' : 'off'
-        this.soundField.setSprite(AudioManager.musicEnabled ? '../Assets/Sprites/music_on.png' : '../Assets/Sprites/music_off.png')
-        this.soundField.type = AudioManager.musicEnabled ? 'on' : 'off'
+        this.sfxField.setSprite('../Assets/Sprites/sfx_on.png')
+        this.soundField.setSprite('../Assets/Sprites/music_on.png')
         if(this.type === 'pause'){
             this.exitField = new GameObject(this.canvasWidth/2, this.soundField.y + this.soundField.height + offsetY, 180, 80, undefined, undefined, undefined);
             this.exitField.setSprite('../Assets/Sprites/exit_button.png')
@@ -61,22 +60,22 @@ export default class optionsMenu extends Menus{
         if(this.sfxField.hovered && this.sfxField.type === 'on'){
                 this.sfxField.setSprite('../Assets/Sprites/sfx_off.png')
                 this.sfxField.type = 'off'
-                AudioManager.setSFXEnabled(false)
+                //Add logic to set volume
         }
         else if(this.sfxField.hovered){
             this.sfxField.setSprite('../Assets/Sprites/sfx_on.png')
             this.sfxField.type = 'on'
-            AudioManager.setSFXEnabled(true)
+            //Add logic to set volume
         }
         if(this.soundField.hovered && this.soundField.type === 'on'){
                 this.soundField.setSprite('../Assets/Sprites/music_off.png')
                 this.soundField.type = 'off'
-                AudioManager.setMusicEnabled(false)
+                //Add logic to set volume
         }
         else if(this.soundField.hovered){
             this.soundField.setSprite('../Assets/Sprites/music_on.png')
             this.soundField.type = 'on'
-            AudioManager.setMusicEnabled(true)
+            //Add logic to set volume
         }
         if(this.exitField && this.exitField.hovered){
             this.state = 0

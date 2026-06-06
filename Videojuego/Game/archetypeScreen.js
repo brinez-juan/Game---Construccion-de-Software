@@ -3,7 +3,6 @@ import GameObject from "./GameObject.js";
 import TextLabel from "./TextLabel.js";
 import {ARCHETYPES} from "./GlobalVariables.js"
 import {canvas} from "./Return.js";
-import AudioManager from './AudioManager.js';
 
 // Archetype selection screen that shows the three available classes and their
 // starting stats. Picking one persists the player_profile (archetype + seeded
@@ -19,7 +18,6 @@ export default class archetypeScreen extends Menus{
         this.returnButton;
         this.busy = false
         this.initElements()
-        AudioManager.playMusic('intro')
     }
 
     initElements(){

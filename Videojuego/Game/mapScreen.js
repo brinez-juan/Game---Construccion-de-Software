@@ -1,6 +1,5 @@
 import Menus from './Menus.js';
 import { canvas } from './Return.js';
-import AudioManager from './AudioManager.js';
 
 // State the map jumps to when a room is picked: the battle lobby (deck prep),
 // which then starts the actual battle. Kept in sync with Return.js screenManager.
@@ -145,7 +144,6 @@ export default class mapScreen extends Menus {
         this._onClick = this._onClick.bind(this);
         canvas.addEventListener('mousemove', this._onMove);
         canvas.addEventListener('click',     this._onClick);
-        AudioManager.playMusic('map')
     }
 
     _hit(mx, my) {

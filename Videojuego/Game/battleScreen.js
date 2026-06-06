@@ -5,7 +5,6 @@ import ParryBar from './parryBar.js';
 import ItemCard from './ItemCard.js';
 import {canvas} from './Return.js';
 import TextLabel from './TextLabel.js';
-import AudioManager from './AudioManager.js';
 
 // Main combat scene that orchestrates player turn, enemy turn, parry timing and end conditions
 export default class battleScreen extends Menus{
@@ -33,7 +32,7 @@ export default class battleScreen extends Menus{
         this.playerDefending = false;
         this.parryLabel = null;
         this.parryLabelTimer = 0;
-        AudioManager.playMusic('battle')
+        this.failedSelection = new Audio('../Assets/Audio/SYS_buzzer.ogg')
     }
 
     // Routes cursor movement to deck cards and to enemies during the targeting phase
@@ -83,7 +82,7 @@ export default class battleScreen extends Menus{
                     }
                 }
             }
-            AudioManager.playSFX('buzzer')
+            this.failedSelection.play()
             return
         }
 
@@ -268,6 +267,10 @@ export default class battleScreen extends Menus{
     // Instantiates Enemy objects from raw pool data and lays them out on the canvas.
     // Boss rooms always spawn a single enemy; regular rooms spawn 1-3.
     enemyMaker(enemyData, isBoss = false){
+        if(!enemyData || enemyData.length === 0){
+            console.warn('battleScreen: no enemy data available for this room');
+            return;
+        }
         let count = isBoss ? 1 : Math.floor(1 + Math.random() * 3);
         if(count > 1){
             let positionY = this.canvasHeight/2

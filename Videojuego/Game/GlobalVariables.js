@@ -1,3 +1,6 @@
+// Master toggle for background music (used by MusicManager and optionsMenu)
+export let musicEnabled = true;
+
 // Default attribute keys assigned to every Character at creation time
 export const BASE_ATTRIBUTES = {
     STRENGTH: 0, 

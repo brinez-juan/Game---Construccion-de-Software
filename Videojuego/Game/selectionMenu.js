@@ -2,7 +2,6 @@ import Menus from './Menus.js';
 import GameObject from './GameObject.js';
 import TextLabel from './TextLabel.js';
 import { canvas } from './Return.js';
-import AudioManager from './AudioManager.js';
 
 // Save slot picker used for both new-game creation and continuing a stored run.
 // Slots come from the backend (GET /api/saved-games); the three on-screen fields
@@ -23,7 +22,6 @@ export default class selectionMenu extends Menus{
         this.pendingSlot = null          // { slotNumber, existing } awaiting overwrite confirm
         this.initElements()
         this.loadSlots()
-        AudioManager.playMusic('intro')
     }
 
     initElements(){
