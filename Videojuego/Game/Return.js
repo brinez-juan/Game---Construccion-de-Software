@@ -15,7 +15,8 @@ import {
     buildRoomStateMap,
     buildEnemyPoolByFloor,
     buildFloorRoomModel,
-    buildCardSlugToId
+    buildCardSlugToId,
+    buildEnemyCardDrops
 } from './dataAdapter.js';
 
 // Context of the Canvas
@@ -55,6 +56,7 @@ class Game {
         this.enemyPoolByFloor = boot.enemyPoolByFloor;  // floorNumber -> { regular, boss }
         this.cardCatalog = boot.cardCatalog;
         this.cardSlugToId = boot.cardSlugToId;          // starting-card slug -> card id
+        this.enemyCardDrops = buildEnemyCardDrops(boot.cardCatalog); // enemyId -> droppable cards
         this.slots = boot.slots;                        // for main-menu Continue gating
 
         // Per-run state, filled as the player progresses.

@@ -2,11 +2,37 @@
 // the canvas game consumes at runtime. Pure functions — the SavedGamesAPI instance
 // is always passed in so this module stays free of fetch/transport concerns.
 
-// Card art that actually ships in Assets/Sprites/cards. Anything else falls back.
+// Card art that actually ships in Assets/Sprites/cards. The DB sprite_name is a bare
+// stem (e.g. "rusted_longsword"); the files use mixed extensions (the original five are
+// .jpeg, the newer enemy-drop art is .png), so this maps each known stem to its real
+// filename. Anything not listed here falls back to the neutral shield art.
 const CARD_SPRITE_DIR = '../Assets/Sprites/cards/';
-const AVAILABLE_CARD_SPRITES = new Set([
-    'battle_axe', 'fireball', 'hunter_bow', 'knight_shield', 'vicious_sword'
-]);
+const CARD_SPRITE_FILES = {
+    battle_axe:          'battle_axe.jpeg',
+    crystal_knuckle:     'crystal_knuckle.png',
+    crystal_maul:        'crystal_maul.png',
+    dark_shield:         'dark_shield.png',
+    dark_sword:          'dark_sword.png',
+    draconic_staff:      'draconic_staff.png',
+    execution_axe:       'execution_axe.png',
+    eye_wand:            'eye_wand.png',
+    fireball:            'fireball.jpeg',
+    giant_shield:        'giant_shield.png',
+    hooked_flail:        'hooked_flail.png',
+    hunter_bow:          'hunter_bow.jpeg',
+    knight_shield:       'knight_shield.jpeg',
+    lance_pike:          'lance_pike.png',
+    moonlit_blade:       'moonlit_blade.png',
+    mushroom_bonk:       'mushroom_bonk.png',
+    orc_club:            'orc_club.png',
+    ravenwood_staff:     'ravenwood_staff.png',
+    rotted_chain:        'rotted_chain.png',
+    rusted_longsword:    'rusted_longsword.png',
+    sentinel_sunblades:  'sentinel_sunblades.png',
+    sentinel_twinblades: 'sentinel_twinblades.png',
+    twin_axes:           'twin_axes.png',
+    vicious_sword:       'vicious_sword.jpeg'
+};
 const FALLBACK_CARD_SPRITE = CARD_SPRITE_DIR + 'knight_shield.jpeg';
 
 // Enemy art ships in Assets/Sprites/characters/ as <name>_<floor>.png. The exact
@@ -29,9 +55,8 @@ function slugify(name) {
 // to slugifying the display name for cards seeded before that column existed.
 function spritePathFor(spriteName, name) {
     const slug = spriteName ? slugify(spriteName) : slugify(name);
-    return AVAILABLE_CARD_SPRITES.has(slug)
-        ? `${CARD_SPRITE_DIR}${slug}.jpeg`
-        : FALLBACK_CARD_SPRITE;
+    const file = CARD_SPRITE_FILES[slug];
+    return file ? CARD_SPRITE_DIR + file : FALLBACK_CARD_SPRITE;
 }
 
 // Resolves an enemy's art from its DB-pinned filename (enemies.sprite). Enemies
@@ -68,6 +93,42 @@ export function normalizeCard(apiCard) {
         isPermanent: !!apiCard.is_permanent,
         spritePath: spritePathFor(apiCard.sprite_name, apiCard.name)
     };
+}
+
+// One row from SavedGamesAPI.listCardCatalog() (cards table: `id`, no is_permanent)
+// -> the same runtime card shape normalizeCard produces. Used for enemy drops, where
+// the source is the global catalog instead of a player_cards inventory row. Delegates
+// to normalizeCard so coercion stays in one place; drops default to run-only (not
+// permanent), matching how addCard persists in-run pickups.
+export function normalizeCatalogCard(row, { isPermanent = false } = {}) {
+    return normalizeCard({
+        card_id: row.id,
+        name: row.name,
+        description: row.description,
+        action_type: row.action_type,
+        stamina_cost: row.stamina_cost,
+        base_damage: row.base_damage,
+        scales_with: row.scales_with,
+        scaling_factor: row.scaling_factor,
+        required_attribute: row.required_attribute,
+        required_value: row.required_value,
+        rarity: row.rarity,
+        is_permanent: isPermanent,
+        sprite_name: row.sprite_name
+    });
+}
+
+// Groups the card catalog by the enemy that drops each card (cards.enemy -> enemies.id)
+// into a Map<enemyId, catalogRow[]> so a cleared battle can grant one card per defeated
+// enemy. Rows with no linked enemy (enemy null) are skipped.
+export function buildEnemyCardDrops(catalog) {
+    const map = new Map();
+    for (const card of (catalog || [])) {
+        if (card.enemy == null) continue;
+        if (!map.has(card.enemy)) map.set(card.enemy, []);
+        map.get(card.enemy).push(card);
+    }
+    return map;
 }
 
 // Room states ------------------------------------------------------------------

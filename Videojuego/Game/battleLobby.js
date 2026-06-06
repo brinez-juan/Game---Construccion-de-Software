@@ -10,6 +10,10 @@ import GameObject from "./GameObject.js";
 import { MAX_DECK_SIZE } from "./GlobalVariables.js";
 //import { text } from "express";
 
+// Pixels a selected card lifts above its row to signal selection (mirrors battleScreen's
+// cardInAction lift).
+const SELECT_RAISE = 15
+
 // Lobby menu displayed between battles to show player progression and allow attribute upgrades
 
 export default class battleLobby extends Menus{
@@ -192,8 +196,20 @@ export default class battleLobby extends Menus{
             console.error('Could not persist room session/deck:', err)
         }
 
-        // Hand the assembled deck to the battle screen via the shared player object.
-        if(this.game?.player){ this.game.player.activeDeck = deckCards }
+        // Hand the assembled deck to the battle screen via the shared player object, and
+        // keep the inventory DISJOINT from it: the lobby's this.inventory already excludes
+        // the deck cards, so the player's run inventory becomes those cards minus anything
+        // that ended up in the deck (the fallback can pull deck cards from the inventory).
+        // Without this the next lobby (post-battle) would list the deck cards in BOTH the
+        // Deck and Inventory rows — the duplication that only cleared on a reload, because
+        // loadSlotData re-splits the saved deck out of the inventory the same way.
+        if(this.game?.player){
+            this.game.player.activeDeck = deckCards
+            const deckIds = new Set(deckCards.map(c => c.cardId))
+            this.game.player.inventory = this.inventory
+                .map(c => c.sourceCard)
+                .filter(card => card && !deckIds.has(card.cardId))
+        }
         this.dispose()
         this.state = this.currentRoom ? this.currentRoom.stateCode : 6
     }
@@ -285,37 +301,35 @@ export default class battleLobby extends Menus{
                 return; 
             }
 
+            // Card exchange (US: 5-card deck <-> inventory). The player clicks one card,
+            // then clicks the card to exchange it for: clicking a card in one zone while a
+            // card in the OTHER zone is already selected falls through to the swap block
+            // below, so the exchange happens on that second click. Clicking the same
+            // selected card reopens its info popup; clicking a different card in the same
+            // zone just moves the selection.
             for(let card of this.inventoryStack){
                 if(card.hovered){
-                    if(!this.cardSelectedInventory){
-                        this.cardSelectedInventory = card
-                        return
-                    }
-                    else if(card === this.cardSelectedInventory){
+                    if(card === this.cardSelectedInventory){
                         this.attributeShow(card)
+                        this.lowerSelection('inventory')
                         return
                     }
-                    else{
-                        this.cardSelectedInventory = card
-                        return
-                    }
+                    this.raiseSelection('inventory', card)
+                    if(!this.cardSelectedDeck){ return }  // wait for the deck card to swap with
+                    break
                 }
             }
 
             for(let card of this.deck){
                 if(card.hovered){
-                    if(!this.cardSelectedDeck){
-                        this.cardSelectedDeck = card
-                        return
-                    }
-                    else if(card === this.cardSelectedDeck){
+                    if(card === this.cardSelectedDeck){
                         this.attributeShow(card)
+                        this.lowerSelection('deck')
                         return
                     }
-                    else{
-                        this.cardSelectedDeck = card
-                        return
-                    }
+                    this.raiseSelection('deck', card)
+                    if(!this.cardSelectedInventory){ return }  // wait for the inventory card
+                    break
                 }
             }
 
@@ -325,7 +339,8 @@ export default class battleLobby extends Menus{
                 // swap and tell the player which attribute is short.
                 if(!this.cardSelectedInventory.meetsRequirements(this.attributes)){
                     this.requirementWarning(this.cardSelectedInventory)
-                    this.cardSelectedInventory = null
+                    this.lowerSelection('inventory')
+                    this.lowerSelection('deck')
                     return
                 }
                 let deckIndex = this.deck.indexOf(this.cardSelectedDeck)
@@ -338,6 +353,10 @@ export default class battleLobby extends Menus{
                 this.cardSelectedDeck.y = this.cardSelectedInventory.y
                 this.cardSelectedInventory.x = deckX
                 this.cardSelectedInventory.y = deckY
+                // Both cards are still lifted from being selected; drop them back so they
+                // sit flat in their new slots.
+                this.cardSelectedDeck.y += SELECT_RAISE
+                this.cardSelectedInventory.y += SELECT_RAISE
 
                 this.deck[deckIndex] = this.cardSelectedInventory                                                                              
                 this.inventory[inventoryIndex] = this.cardSelectedDeck                                                                         
@@ -348,6 +367,26 @@ export default class battleLobby extends Menus{
                 this.cardSelectedDeck = null                                                                                                   
                 this.cardSelectedInventory = null
             }
+        }
+    }
+
+    // Lifts the newly selected card slightly above its row to signal selection (mirrors
+    // the battle screen's cardInAction lift). Lowers the previously selected card in the
+    // same zone first, so only one card per zone is ever raised.
+    raiseSelection(zone, card){
+        const key = zone === 'deck' ? 'cardSelectedDeck' : 'cardSelectedInventory'
+        if(this[key] === card){ return }
+        if(this[key]){ this[key].y += SELECT_RAISE }
+        card.y -= SELECT_RAISE
+        this[key] = card
+    }
+
+    // Drops the currently selected card in a zone back onto its row and clears the selection.
+    lowerSelection(zone){
+        const key = zone === 'deck' ? 'cardSelectedDeck' : 'cardSelectedInventory'
+        if(this[key]){
+            this[key].y += SELECT_RAISE
+            this[key] = null
         }
     }
 

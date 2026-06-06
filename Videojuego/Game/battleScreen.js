@@ -5,6 +5,7 @@ import ParryBar from './parryBar.js';
 import ItemCard from './ItemCard.js';
 import {canvas} from './Return.js';
 import TextLabel from './TextLabel.js';
+import { normalizeCatalogCard } from './dataAdapter.js';
 
 // Main combat scene that orchestrates player turn, enemy turn, parry timing and end conditions
 export default class battleScreen extends Menus{
@@ -18,6 +19,10 @@ export default class battleScreen extends Menus{
         this.playerMaker(playerData)
         this.player.deckMaker(playerData.activeDeck, this.canvasWidth/2, 4*this.canvasHeight/5, 100*0.75, 100, 15)
         this.enemyMaker(enemies, isBoss)
+        // Enemy card drops (US: one card per defeated enemy). enemyMaker records the DB
+        // id of every spawned enemy here because this.enemies is emptied by
+        // checkEnemyStatus before the victory check fires. Guard so drops grant once.
+        this.dropsGranted = false
         // Snapshot how many enemies this room started with so kills can be tallied at
         // the end regardless of how many were filtered out mid-fight.
         this.initialEnemyCount = this.enemies.length
@@ -162,6 +167,7 @@ export default class battleScreen extends Menus{
         if(this.enemies.every(enemy => enemy.health <= 0)){
             this.removeEventListeners()
             this.reportEnemiesDefeated()
+            this.grantEnemyDrops()
             this.state = 8
             return
         }
@@ -210,6 +216,46 @@ export default class battleScreen extends Menus{
             // clear) so the player's level/XP can be persisted in the victory path.
             if(killed > 0 && this.initialEnemyCount > 0 && typeof this.game.awardExperience === 'function'){
                 this.game.awardExperience(Math.round(this.totalEnemyXp * killed / this.initialEnemyCount))
+            }
+        }
+    }
+
+    // Grants one card per enemy defeated when the room is cleared. For each spawned
+    // enemy, looks up the cards linked to it (cards.enemy) and adds exactly one — chosen
+    // at random — to the player's inventory, even if several cards are linked. Enemies
+    // with no linked card drop nothing. Only fires on full victory (the state-8 path);
+    // guarded so it grants once. The in-memory push makes the card show up immediately
+    // in the next Battle Lobby; the addCard call persists it to player_cards (run-scoped)
+    // so it survives a Continue. Persistence is best-effort (fire-and-forget).
+    grantEnemyDrops(){
+        if(this.dropsGranted){ return }
+        this.dropsGranted = true
+        if(!this.game || !this.game.enemyCardDrops || !this.game.player){ return }
+        const player = this.game.player
+        const floor = this.game.currentRoom?.floorNumber ?? null
+        // Only one copy of each card is ever held, so collect the card ids the player
+        // already owns (inventory + active deck) and never drop a duplicate. The set is
+        // updated as we grant, so two enemies in the same room can't both drop the same
+        // card either.
+        const owned = new Set([
+            ...(player.inventory || []).map(c => c.cardId),
+            ...(player.activeDeck || []).map(c => c.cardId)
+        ])
+        for(const enemyId of this.spawnedEnemyIds){
+            const linked = this.game.enemyCardDrops.get(enemyId)
+            if(!linked || linked.length === 0){ continue }
+            // Restrict the random roll to linked cards the player doesn't already own; if
+            // every linked card is owned, this enemy drops nothing.
+            const candidates = linked.filter(c => !owned.has(c.id))
+            if(candidates.length === 0){ continue }
+            const chosen = candidates[Math.floor(Math.random() * candidates.length)]
+            const card = normalizeCatalogCard(chosen)
+            owned.add(card.cardId)
+            player.inventory.push(card)
+            if(this.game.api && this.game.activeSlotId != null){
+                this.game.api.addCard(this.game.activeSlotId, {
+                    cardId: card.cardId, isPermanent: false, obtainedAtFloor: floor
+                }).catch(err => console.error('Could not persist card drop:', err))
             }
         }
     }
@@ -277,6 +323,10 @@ export default class battleScreen extends Menus{
     // Instantiates Enemy objects from raw pool data and lays them out on the canvas.
     // Boss rooms always spawn a single enemy; regular rooms spawn 1-3.
     enemyMaker(enemyData, isBoss = false){
+        // DB ids of every enemy spawned, so a cleared battle can map each defeated
+        // enemy back to its droppable cards (this.enemies is filtered down to empty
+        // by victory time, so the ids can't be read from it then).
+        this.spawnedEnemyIds = []
         let count = isBoss ? 1 : Math.floor(1 + Math.random() * 3);
         if(count > 1){
             let positionY = this.canvasHeight/2
@@ -285,14 +335,18 @@ export default class battleScreen extends Menus{
             let offSetY = 50
             for(let i = 0; i < count; i++){
                 let enemyIndex = Math.floor(Math.random() * enemyData.length)
-                this.enemies.push(this.makeEnemy(enemyData[enemyIndex], positionX, positionY, 120, 300))
+                let datum = enemyData[enemyIndex]
+                this.enemies.push(this.makeEnemy(datum, positionX, positionY, 120, 300))
+                this.spawnedEnemyIds.push(datum.id)
                 positionX += offSetX
                 positionY += offSetY
             }
         }
         else{
             let enemyIndex = Math.floor(Math.random() * enemyData.length)
-            this.enemies.push(this.makeEnemy(enemyData[enemyIndex], 3*this.canvasWidth/4, this.player.y, 200, 300))
+            let datum = enemyData[enemyIndex]
+            this.enemies.push(this.makeEnemy(datum, 3*this.canvasWidth/4, this.player.y, 200, 300))
+            this.spawnedEnemyIds.push(datum.id)
         }
     }
 
