@@ -159,13 +159,21 @@ class Game {
     async persistProgress(){
         if(!this.api || this.runId == null || !this.currentRoom){ return; }
         const victory = (this.currentRoom.floorNumber === 3 && this.currentRoom.isBoss) ? true : undefined;
+        // Non-boss rooms are replayable, so the room just cleared can be EARLIER than the
+        // furthest reached. Never regress the saved progress (it drives the map rebuild on
+        // Continue) — persist the furthest of the previous progress and the current room.
+        const cur = { floor: this.currentRoom.floorNumber, room: this.currentRoom.roomNumber };
+        const prev = this.runProgress;
+        const isFurther = !prev || cur.floor > prev.floor ||
+            (cur.floor === prev.floor && cur.room > prev.room);
+        const furthest = isFurther ? cur : prev;
         try {
             await this.api.updateRunProgress(this.runId, {
-                finalFloor: this.currentRoom.floorNumber,
-                finalRoom: this.currentRoom.roomNumber,
+                finalFloor: furthest.floor,
+                finalRoom: furthest.room,
                 victory
             });
-            this.runProgress = { floor: this.currentRoom.floorNumber, room: this.currentRoom.roomNumber };
+            this.runProgress = furthest;
         } catch(err){
             console.error('Could not persist run progress:', err);
         }
