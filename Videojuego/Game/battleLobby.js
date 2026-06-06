@@ -258,6 +258,9 @@ export default class battleLobby extends Menus{
                         try {
                             const res = await this.api.spendAttribute(this.slotId, key)
                             this.availablePoints = res.availablePoints
+                            // Keep the shared Game pool in sync so re-entering the lobby
+                            // (without a battle in between) doesn't show a stale count.
+                            if(this.game){ this.game.availablePoints = res.availablePoints }
                             this.attributes[key] = res.attributes[key]
                             attribute.attributeValueLabel.text = res.attributes[key]
                             this.pointsLabel.text = `Points: ${this.availablePoints}`

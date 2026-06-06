@@ -133,20 +133,27 @@ export default class SavedGamesAPI {
     };
   }
 
-  // US16: persists the player's accumulated XP + level after a battle. Both
-  // fields are optional; omitted ones leave the stored value untouched. Returns
-  // the refreshed { total_experience, level } the server stored.
-  async updateExperience(slotId, { totalExperience, level } = {}) {
+  // US16: persists the player's accumulated XP + level after a battle, and any
+  // attribute points earned from leveling up this battle. All fields are optional;
+  // omitted XP/level leave the stored value untouched, and attributePointsGranted is
+  // applied as a server-side increment (so it never clobbers point-spending). Returns
+  // the refreshed { totalExperience, level, availablePoints } the server stored.
+  async updateExperience(slotId, { totalExperience, level, attributePointsGranted } = {}) {
     const body = {};
     if (totalExperience != null) body.total_experience = totalExperience;
     if (level != null) body.level = level;
+    if (attributePointsGranted != null) body.attribute_points_granted = attributePointsGranted;
     const res = await fetch(`/api/saved-games/${slotId}/experience`, {
       method: 'PATCH',
       headers: authHeaders(),
       body: JSON.stringify(body)
     });
     const data = await parseOrThrow(res);
-    return { totalExperience: data.total_experience, level: data.level };
+    return {
+      totalExperience: data.total_experience,
+      level: data.level,
+      availablePoints: data.attribute_points
+    };
   }
 
   // Opens a fresh run record on the backend and binds it to the current slot

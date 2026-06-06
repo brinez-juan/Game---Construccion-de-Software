@@ -107,6 +107,7 @@ router.get('/api/saved-games/:id/cards', requireAuth, async (req, res) => {
               c.stamina_cost,
               c.base_damage,
               c.rarity,
+              c.sprite_name,
               c.scales_with,
               c.scaling_factor,
               c.required_attribute,

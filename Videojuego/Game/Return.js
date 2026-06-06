@@ -66,6 +66,9 @@ class Game {
         this.mapManager = null;
         this.runProgress = null;   // { floor, room } furthest reached, from the DB
         this.availablePoints = 0;
+        // Attribute points earned from leveling up since the last persist; flushed to the
+        // DB (as an increment) by persistExperience after a battle. See awardExperience.
+        this.pendingAttributePoints = 0;
         this.enemiesDefeated = 0;  // accumulated across the run, shown on Game Over
         this.player = this.blankPlayer();
 
@@ -93,6 +96,7 @@ class Game {
         // Furthest (floor, room) reached, used to rebuild the map on Continue.
         this.runProgress = slot.run ? { floor: slot.run.floor, room: slot.run.room } : null;
         this.availablePoints = attrs.availablePoints ?? 0;
+        this.pendingAttributePoints = 0;  // authoritative pool just loaded; nothing pending
         this.enemiesDefeated = 0;   // fresh run summary starts from zero
 
         // Restore the last Battle Deck saved for this run so Continue resumes with the
@@ -175,6 +179,7 @@ class Game {
     // `experienceToNextLevel` tracks the current level's bar size for the HUD.
     awardExperience(amount){
         if(!this.player || !amount || amount <= 0){ return; }
+        const previousLevel = this.player.level;
         this.player.experience += amount;
         let level = 1;
         while(this.player.experience >= 200 * (Math.pow(1.5, level) - 1)){
@@ -182,6 +187,14 @@ class Game {
         }
         this.player.level = level;
         this.player.experienceToNextLevel = Math.round(100 * Math.pow(1.5, level - 1));
+        // Leveling up grants one spendable attribute point per level gained. Tracked in
+        // memory so the lobby shows it immediately, and queued in pendingAttributePoints
+        // so persistExperience can flush it to the DB as an increment after the battle.
+        const levelsGained = level - previousLevel;
+        if(levelsGained > 0){
+            this.availablePoints += levelsGained;
+            this.pendingAttributePoints += levelsGained;
+        }
     }
 
     // US16: persists the player's accumulated XP + level onto the slot's player_profile
@@ -190,10 +203,18 @@ class Game {
     async persistExperience(){
         if(!this.api || this.activeSlotId == null || !this.player){ return; }
         try {
-            await this.api.updateExperience(this.activeSlotId, {
+            const res = await this.api.updateExperience(this.activeSlotId, {
                 totalExperience: this.player.experience,
-                level: this.player.level
+                level: this.player.level,
+                attributePointsGranted: this.pendingAttributePoints
             });
+            // The server applied the grant as an increment and returned the authoritative
+            // remaining pool; adopt it so the in-memory count can't drift from the DB
+            // (e.g. after a stale read), and clear what we just flushed.
+            if(res && typeof res.availablePoints === 'number'){
+                this.availablePoints = res.availablePoints;
+            }
+            this.pendingAttributePoints = 0;
         } catch(err){
             console.error('Could not persist experience:', err);
         }
@@ -224,6 +245,9 @@ class Game {
         this.player.activeDeck = [];
         // Fresh run summary; level and experience are intentionally left untouched.
         this.enemiesDefeated = 0;
+        // Drop any level-up grant from the fatal battle that was never persisted, so it
+        // can't be flushed onto the next victory (XP/level aren't persisted on death).
+        this.pendingAttributePoints = 0;
     }
 
     // Picks the floor-appropriate enemy pool for a room (boss list for boss rooms).

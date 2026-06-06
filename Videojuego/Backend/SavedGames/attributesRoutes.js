@@ -236,7 +236,7 @@ router.patch('/api/saved-games/:id/attributes', requireAuth, async (req, res) =>
 // Both fields are optional so a caller can patch one without the other; the
 // COALESCE keeps the omitted column untouched.
 router.patch('/api/saved-games/:id/experience', requireAuth, async (req, res) => {
-  const { total_experience, level } = req.body || {};
+  const { total_experience, level, attribute_points_granted } = req.body || {};
 
   // Normalize: clamp XP to a non-negative int and level to >= 1. null means
   // "leave this column as-is" so a single-field patch is possible.
@@ -246,11 +246,18 @@ router.patch('/api/saved-games/:id/experience', requireAuth, async (req, res) =>
   const lvl = level == null
     ? null
     : Math.max(1, Math.trunc(Number(level)));
+  // Attribute points earned this battle from leveling up. Applied as an INCREMENT
+  // (not an overwrite) so it composes correctly with point-spending that happens
+  // between battles — the client never has to know the authoritative total. A
+  // non-positive/omitted value is a no-op.
+  const grant = attribute_points_granted == null
+    ? 0
+    : Math.max(0, Math.trunc(Number(attribute_points_granted)));
 
-  if (xp == null && lvl == null) {
+  if (xp == null && lvl == null && grant === 0) {
     return res.status(400).json({
       success: false,
-      message: 'Provide total_experience and/or level.'
+      message: 'Provide total_experience, level and/or attribute_points_granted.'
     });
   }
 
@@ -267,14 +274,16 @@ router.patch('/api/saved-games/:id/experience', requireAuth, async (req, res) =>
     await conn.query(
       `UPDATE player_profiles
           SET total_experience = COALESCE(?, total_experience),
-              level            = COALESCE(?, level)
+              level            = COALESCE(?, level),
+              attribute_points = attribute_points + ?
         WHERE id = ?`,
-      [xp, lvl, profileId]
+      [xp, lvl, grant, profileId]
     );
 
     // Read the stored values back so the client can sync without a second GET.
+    // attribute_points is the authoritative remaining pool after the grant.
     const [after] = await conn.query(
-      'SELECT total_experience, level FROM player_profiles WHERE id = ?',
+      'SELECT total_experience, level, attribute_points FROM player_profiles WHERE id = ?',
       [profileId]
     );
 
