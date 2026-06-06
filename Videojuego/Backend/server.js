@@ -32,6 +32,7 @@ app.use(attributesRouter);
 app.use(cardsRouter);
 app.use(roomsRouter);
 app.use(catalogRouter);
+app.use(globalStatisticsRouter);
 
 // Keep .env, dbconfig and auth source out of the public surface.
 app.use('/Backend', (req, res) => res.status(404).send('Not found'));

@@ -8,13 +8,13 @@ const router = express.Router();
 // the global progress made in the game from multiple users
 
 // Endpoint to get the parry stats globally
-router.get('/api/global-stats/parry-stats',requireAuth, async (req, res) => {
+router.get('/api/global-stats/parry-stats', async (req, res) => {
     try{
         const [parryStats] = await pool.query(
             `SELECT
                 global_perfect_parries,
                 global_normal_parries,
-                global_missed_parries
+                global_poor_parries
                 FROM global_stats
             `
             
@@ -23,19 +23,19 @@ router.get('/api/global-stats/parry-stats',requireAuth, async (req, res) => {
     }
     catch(err){
         console.error('Failed to get total parries:', err);
-        return res.status(500).json({ success: false, message: 'Failed to obtain stats.' });
+        return res.status(500).json({ success: false, message: 'Failed to obtain stats.' + err.message });
     }
 });
 
 // Endpoint to get the global archetype distribution 
-router.get('/api/global-stats/archetype-distribution',requireAuth, async (req, res) => {
+router.get('/api/global-stats/archetype-distribution', async (req, res) => {
     try{
         const [archetypeDistribution] = await pool.query(
             `SELECT *
                 FROM archetypes_selected
             ` 
         );
-        return res.json({ success: true, archetypeDistribution: archetypeDistribution[0]}); 
+        return res.json({ success: true, archetypeDistribution: archetypeDistribution}); 
     }
     catch(err){
         console.error('Failed to get archetype distribution:', err);
@@ -43,7 +43,7 @@ router.get('/api/global-stats/archetype-distribution',requireAuth, async (req, r
     }
 });
 
-router.get('/api/global-stats/average_completion_time',requireAuth, async (req, res) => {
+router.get('/api/global-stats/average_completion_time', async (req, res) => {
     try{
         const [averageCompletionTime] = await pool.query(
             `SELECT 
