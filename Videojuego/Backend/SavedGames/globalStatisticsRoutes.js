@@ -59,15 +59,15 @@ router.get('/api/global-stats/average_completion_time', async (req, res) => {
     }
 }); 
 
-router.get('/api/global-stats/cards-collected-avg',requireAuth, async (req, res) => {
+router.get('/api/global-stats/cards-collected-avg', async (req, res) => {
     try{
         const [cardsCollectedAvg] = await pool.query(
             `SELECT 
-            cards_avg FROM 
+            card_avg FROM 
             global_stats
             `
         );
-        return res.json({ success: true, cardsCollectedAvg: cardsCollectedAvg[0].cards_avg });
+        return res.json({ success: true, cardsCollectedAvg: cardsCollectedAvg[0]["card_avg"] });
     }
     catch(err){
         console.error('Failed to get average cards collected:', err);
@@ -75,19 +75,19 @@ router.get('/api/global-stats/cards-collected-avg',requireAuth, async (req, res)
     }
 }); 
 
-router.get('/api/global-stats/top-completion-times',requireAuth, async (req, res) => {
+router.get('/api/global-stats/top-players', async (req, res) => {
     try{
-        const [topCompletionTimes] = await pool.query(
-            `SELECT U.username, PG.best_completion_time_seconds
+        const [topPlayers] = await pool.query(
+            `SELECT U.username, PG.best_completion_time_seconds, PG.total_perfect_parries, PG.total_cards_collected
             FROM return_game.users AS U INNER JOIN
             return_game.player_profiles AS PP ON U.id = PP.user_id INNER JOIN
             return_game.player_global_stats AS PG ON PP.id = PG.player_id
             WHERE PG.best_completion_time_seconds IS NOT NULL
-            ORDER BY PG.best_completion_time_seconds ASC
+            ORDER BY PG.best_completion_time_seconds ASC, PG.total_perfect_parries DESC, PG.total_cards_collected DESC
             LIMIT 5;
             `
         );
-        return res.json({ success: true, topCompletionTimes });
+        return res.json({ success: true, topPlayers });
     }
     catch(err){
         console.error('Failed to get top completion times:', err);
