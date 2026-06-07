@@ -128,6 +128,10 @@ export default class mapScreen extends Menus {
         this.onRoomSelected = onRoomSelected;
         this.state          = undefined;
         this.hoveredCell    = null;
+        // Transient banner shown when the player clicks an already-beaten boss room
+        // (boss rooms are one-time only). Counts down in update().
+        this.bossMessage      = null;
+        this.bossMessageTimer = 0;
 
         // Only keep cells whose DB room actually exists; convert to pixel rects once.
         this.cells = ROOM_LAYOUT
@@ -161,9 +165,11 @@ export default class mapScreen extends Menus {
 
     _roomState(cell) {
         const room = this.mapManager.getRoom(cell.floorNumber, cell.roomNumber);
-        if (!room)          return 'locked';
-        if (room.completed) return 'completed';
-        if (room.unlocked)  return 'unlocked';
+        if (!room)                          return 'locked';
+        // Boss rooms are one-time: once beaten they're not enterable (but render plain).
+        if (room.isBoss && room.completed)  return 'bossCleared';
+        // A completed non-boss room keeps its unlocked flag, so it stays replayable.
+        if (room.unlocked)                  return 'unlocked';
         return 'locked';
     }
 
@@ -177,14 +183,27 @@ export default class mapScreen extends Menus {
     _onClick(e) {
         const { mx, my } = this._coords(e);
         const cell = this._hit(mx, my);
-        if (!cell || this._roomState(cell) !== 'unlocked') return;
+        if (!cell) return;
+        const rs = this._roomState(cell);
+        if (rs === 'bossCleared') {
+            // Tell the player why nothing happened instead of silently ignoring the click.
+            this.bossMessage = 'Boss rooms can only be played once';
+            this.bossMessageTimer = 2000;
+            return;
+        }
+        if (rs !== 'unlocked') return;
         const room = this.mapManager.getRoom(cell.floorNumber, cell.roomNumber);
         this.onRoomSelected?.(room);
         this.dispose();
         this.state = LOBBY_STATE;
     }
 
-    update(_dt) {}
+    update(dt) {
+        if (this.bossMessageTimer > 0) {
+            this.bossMessageTimer -= dt;
+            if (this.bossMessageTimer <= 0) this.bossMessage = null;
+        }
+    }
 
     draw(ctx) {
         this.background.draw(ctx);
@@ -202,15 +221,6 @@ export default class mapScreen extends Menus {
                 ctx.fillStyle    = 'rgba(255,255,255,0.25)';
                 ctx.fillText('🔒', cell.x + cell.w / 2, cell.y + cell.h / 2);
 
-            } else if (rs === 'completed') {
-                ctx.fillStyle    = 'rgba(30,90,40,0.45)';
-                ctx.fillRect(cell.x, cell.y, cell.w, cell.h);
-                ctx.font         = 'bold 32px serif';
-                ctx.textAlign    = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillStyle    = 'rgba(100,220,120,0.85)';
-                ctx.fillText('✓', cell.x + cell.w / 2, cell.y + cell.h / 2);
-
             } else if (cell === this.hoveredCell) {
                 ctx.fillStyle   = 'rgba(200,160,60,0.22)';
                 ctx.fillRect(cell.x, cell.y, cell.w, cell.h);
@@ -218,7 +228,28 @@ export default class mapScreen extends Menus {
                 ctx.lineWidth   = 3;
                 ctx.strokeRect(cell.x, cell.y, cell.w, cell.h);
             }
+            // 'bossCleared' and non-hovered 'unlocked' rooms render plain (no overlay).
 
+            ctx.restore();
+        }
+
+        // Transient "boss already beaten" banner, centered near the top.
+        if (this.bossMessage) {
+            ctx.save();
+            ctx.font         = 'bold 26px Academia, serif';
+            ctx.textAlign    = 'center';
+            ctx.textBaseline = 'middle';
+            const cx = this.canvasWidth / 2;
+            const cy = this.canvasHeight * 0.12;
+            const padX = 24, padY = 12;
+            const textW = ctx.measureText(this.bossMessage).width;
+            ctx.fillStyle = 'rgba(26,20,16,0.85)';   // dark parchment backdrop
+            ctx.fillRect(cx - textW / 2 - padX, cy - 13 - padY, textW + padX * 2, 26 + padY * 2);
+            ctx.strokeStyle = 'rgba(201,162,90,0.9)'; // antique gold border
+            ctx.lineWidth = 2;
+            ctx.strokeRect(cx - textW / 2 - padX, cy - 13 - padY, textW + padX * 2, 26 + padY * 2);
+            ctx.fillStyle = '#f3ead0';                // parchment text
+            ctx.fillText(this.bossMessage, cx, cy);
             ctx.restore();
         }
     }

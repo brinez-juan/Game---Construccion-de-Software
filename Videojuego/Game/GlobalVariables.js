@@ -52,22 +52,24 @@ export const PARRY_RESULTS = {
 // Maximum number of cards the player can carry in the active deck
 export const MAX_DECK_SIZE = 5;
 
-// Starter loadouts offered during character creation
+// Starter loadouts offered during character creation. Every card now carries an
+// attribute requirement, so each archetype gets a deck whose requirements it can meet
+// at creation (slugs are slugify(cards.name) in the DB — the key buildCardSlugToId uses).
 export const ARCHETYPES = {
     SOLDIER: {
         id: "soldier",
         attributes: { STRENGTH: 3, DEXTERITY: 1, INTELLIGENCE: 0, VIGOR: 2, ENDURANCE: 2 },
-        startingCards: ["heavy_strike", "shield_block", "basic_attack", "basic_attack", "recover"]
+        startingCards: ["vicious_sword", "battle_axe", "knight_shield"]
     },
     ARCHER: {
         id: "archer",
         attributes: { STRENGTH: 1, DEXTERITY: 3, INTELLIGENCE: 0, VIGOR: 1, ENDURANCE: 2 },
-        startingCards: ["precise_shot", "dodge_roll", "basic_attack", "basic_attack", "recover"]
+        startingCards: ["hunter_bow", "pestilent_hook_flail", "knight_shield"]
     },
     MAGE: {
         id: "mage",
         attributes: { STRENGTH: 0, DEXTERITY: 1, INTELLIGENCE: 3, VIGOR: 1, ENDURANCE: 2 },
-        startingCards: ["fireball", "magic_shield", "basic_attack", "basic_attack", "recover"]
+        startingCards: ["fireball", "ravenwood_crook", "knight_shield"]
     }
 };
 

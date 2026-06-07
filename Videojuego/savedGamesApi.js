@@ -74,6 +74,18 @@ export default class SavedGamesAPI {
     await parseOrThrow(res);
   }
 
+  // US25: on death, promote ONE collected run card to permanent so it survives the
+  // reset-on-death wipe and is available in every future run. Must be called BEFORE
+  // resetRunOnDeath, which deletes the remaining run-only cards.
+  async makeCardPermanent(slotId, cardId) {
+    const res = await fetch(`/api/saved-games/${slotId}/permanent-card`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({ card_id: cardId })
+    });
+    await parseOrThrow(res);
+  }
+
   // Persists the chosen archetype with its seeded attributes and links the profile to the slot
   async createProfile(slotId, { archetype, attributes = {}, attributePoints = 0 }) {
     const res = await fetch(`/api/saved-games/${slotId}/profile`, {
@@ -130,6 +142,29 @@ export default class SavedGamesAPI {
         ENDURANCE:    data.endurance,
         DEXTERITY:    data.dexterity
       }
+    };
+  }
+
+  // US16: persists the player's accumulated XP + level after a battle, and any
+  // attribute points earned from leveling up this battle. All fields are optional;
+  // omitted XP/level leave the stored value untouched, and attributePointsGranted is
+  // applied as a server-side increment (so it never clobbers point-spending). Returns
+  // the refreshed { totalExperience, level, availablePoints } the server stored.
+  async updateExperience(slotId, { totalExperience, level, attributePointsGranted } = {}) {
+    const body = {};
+    if (totalExperience != null) body.total_experience = totalExperience;
+    if (level != null) body.level = level;
+    if (attributePointsGranted != null) body.attribute_points_granted = attributePointsGranted;
+    const res = await fetch(`/api/saved-games/${slotId}/experience`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify(body)
+    });
+    const data = await parseOrThrow(res);
+    return {
+      totalExperience: data.total_experience,
+      level: data.level,
+      availablePoints: data.attribute_points
     };
   }
 

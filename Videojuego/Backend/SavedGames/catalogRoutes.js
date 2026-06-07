@@ -17,8 +17,8 @@ router.get('/api/cards', requireAuth, async (req, res) => {
   try {
     const [cards] = await pool.query(
       `SELECT id, name, description, action_type, stamina_cost, base_damage,
-              rarity, scales_with, scaling_factor, required_attribute,
-              required_value, is_boss_reward
+              rarity, sprite_name, scales_with, scaling_factor, required_attribute,
+              required_value, is_boss_reward, enemy
          FROM cards
         ORDER BY id`
     );

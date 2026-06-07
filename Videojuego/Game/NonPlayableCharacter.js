@@ -50,6 +50,9 @@ export class Enemy extends Character {
         this.experienceReward = experienceReward;
         this.cardReward = cardReward;
         this.isBoss = isBoss;
+        // Active typed guard from a defend action ('physic' | 'magic' | null). Boosts the
+        // matching defense for the player's next turn; shattered by a wrong-type attack.
+        this.guardType = null;
         this.setSprite(`../Assets/Sprites/${name}.png`)
         this.healthBar = new Bar(this.x, this.y -this.height/2 - 20, this.width, 20, '../Assets/Sprites/health_bar.png', this.maxHealth);
         this.indicator = new GameObject(this.x, this.y - this.height/2 - 50, 30, 30);
@@ -64,73 +67,57 @@ export class Enemy extends Character {
     decideAction(player) {
         const healthRatio = this.health / this.maxHealth;
 
-        // Detect dominant player damage type
+        // Detect the player's threat type from their build: a STRENGTH-leaning character is a
+        // physical threat, an INTELLIGENCE-leaning one is a magic threat (player has no direct
+        // physical/magic damage stat). Equal/zero reads as balanced.
+        const str = player.attributes?.STRENGTH ?? 0;
+        const int = player.attributes?.INTELLIGENCE ?? 0;
         let playerType;
-        if (player.physicalDamage > player.magicDamage) {
+        if (str > int) {
             playerType = "physical";
-        } else if (player.magicDamage > player.physicalDamage) {
+        } else if (int > str) {
             playerType = "magic";
         } else {
             playerType = "balanced";
         }
 
-        // Classify the enemy health state to bias the chosen behavior
-        let state;
+        // The attack this enemy throws. A pure physical/magical enemy uses its only school;
+        // a HYBRID (both schools > 0) picks one at random each turn so the player can't
+        // safely pre-commit a single-school defend against it — that's the "make you think".
+        let attack = null;
+        if (this.physicalDamage > 0 && this.magicDamage > 0) {
+            attack = Math.random() < 0.5 ? ACTION_TYPES.ATTACK_MAGIC : ACTION_TYPES.ATTACK_PHYSIC;
+        } else if (this.magicDamage > 0) {
+            attack = ACTION_TYPES.ATTACK_MAGIC;
+        } else if (this.physicalDamage > 0) {
+            attack = ACTION_TYPES.ATTACK_PHYSIC;
+        }
+
+        // The defense that best counters the player's school. Against a balanced player (or when
+        // the matching defense stat is missing) fall back to whichever defense the enemy has.
+        let defend = null;
+        if (playerType === "physical" && this.physicalDefense > 0) defend = ACTION_TYPES.DEFEND_PHYSIC;
+        else if (playerType === "magic" && this.magicDefense > 0) defend = ACTION_TYPES.DEFEND_MAGIC;
+        else if (this.physicalDefense > 0) defend = ACTION_TYPES.DEFEND_PHYSIC;
+        else if (this.magicDefense > 0) defend = ACTION_TYPES.DEFEND_MAGIC;
+
+        // Chance of defending (vs attacking) by health state. Low HP leans defensive but is no
+        // longer a guaranteed turtle: the player can still close out the fight, and the enemy
+        // keeps attacking often enough that there's always a parry to recover stamina on.
+        let defendChance;
         if (healthRatio > 0.6) {
-            state = "aggressive";
+            defendChance = 0.15;   // healthy: mostly presses the attack
         } else if (healthRatio > 0.3) {
-            state = "neutral";
+            defendChance = 0.5;    // balanced: 50/50 defend vs attack
         } else {
-            state = "defensive";
+            defendChance = 0.65;   // low HP: defends 65% of the time
         }
 
-        // Build the list of actions this enemy is currently capable of
-        const options = [];
-        if (this.physicalDamage > 0) options.push(ACTION_TYPES.ATTACK_PHYSIC);
-        if (this.magicDamage > 0) options.push(ACTION_TYPES.ATTACK_MAGIC);
-        if (this.physicalDefense > 0) options.push(ACTION_TYPES.DEFEND_PHYSIC);
-        if (this.magicDefense > 0) options.push(ACTION_TYPES.DEFEND_MAGIC);
-
-        // Small random chance to pick any viable option to keep behavior unpredictable
-        if (Math.random() < 0.2 && options.length > 0) {
-            return options[Math.floor(Math.random() * (options.length-1))];
-        }
-
-        // DEFENSIVE STATE
-        if (state === "defensive") {
-            if (playerType === "physical" && this.physicalDefense > 0) {
-                return ACTION_TYPES.DEFEND_PHYSIC;
-            }
-            if (playerType === "magic" && this.magicDefense > 0) {
-                return ACTION_TYPES.DEFEND_MAGIC;
-            }
-        }
-
-        // AGGRESSIVE STATE
-        if (state === "aggressive") {
-            if (this.physicalDamage > this.magicDamage && this.physicalDamage > 0) {
-                return ACTION_TYPES.ATTACK_PHYSIC;
-            }
-            if (this.magicDamage > this.physicalDamage && this.magicDamage > 0) {
-                return ACTION_TYPES.ATTACK_MAGIC;
-            }
-        }
-
-        // NEUTRAL / BALANCED
-        if (playerType === "physical") {
-            return this.physicalDefense > 0
-                ? ACTION_TYPES.DEFEND_PHYSIC
-                : ACTION_TYPES.ATTACK_MAGIC;
-        }
-
-        if (playerType === "magic") {
-            return this.magicDefense > 0
-                ? ACTION_TYPES.DEFEND_MAGIC
-                : ACTION_TYPES.ATTACK_PHYSIC;
-        }
-
-        // Fallback for balanced players where no clear counter exists
-        return options[Math.floor(Math.random() * options.length)];
+        // Roll defend vs attack, falling back to whatever the enemy can actually do.
+        const wantDefend = Math.random() < defendChance;
+        if (wantDefend && defend) return defend;
+        if (!wantDefend && attack) return attack;
+        return attack ?? defend ?? ACTION_TYPES.ATTACK_PHYSIC;
     }
 
     // Multiplies the reward yield when this enemy is a boss
