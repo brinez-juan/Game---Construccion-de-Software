@@ -49,7 +49,10 @@ const FALLBACK_ENEMY_SPRITE = ENEMY_SPRITE_DIR + 'corrupt_knight_1.png';
 const ENEMY_SPRITE_OVERRIDES = {
     'crystal_gargoyle_3.png':       { defend: 'crytsal_gargoyle_defend_3.png' },
     'rotten_spirit_3.png':          { attack: 'rottens_spirit_attack_3.png' },
-    'Isolde_draconic_maiden_2.png': { defend: 'Isolde_draconic_maiden_defense_2.png' }
+    'Isolde_draconic_maiden_2.png': { defend: 'Isolde_draconic_maiden_defense_2.png' },
+    // Galahad's special art ships under a misspelled stem ("galahan"), so the derived
+    // galahad_hidden_axe_special_1.png wouldn't resolve — pin the real filename.
+    'galahad_hidden_axe_1.png':     { special: 'galahan_hidden_axe_special_1.png' }
 };
 
 // "Fire Bolt" -> "fire_bolt"
@@ -113,11 +116,17 @@ function deriveVariantFile(idleFile, tag) {
 function enemySpriteStatesFor(apiEnemy) {
     const idleFile = (apiEnemy && apiEnemy.sprite) || 'corrupt_knight_1.png';
     const override = ENEMY_SPRITE_OVERRIDES[idleFile] || {};
-    return {
+    const states = {
         idle:   ENEMY_SPRITE_DIR + idleFile,
         attack: ENEMY_SPRITE_DIR + (override.attack || deriveVariantFile(idleFile, 'attack')),
         defend: ENEMY_SPRITE_DIR + (override.defend || deriveVariantFile(idleFile, 'defend'))
     };
+    // Only bosses use a special-attack pose; derive it (with the same per-enemy override hook)
+    // just for them so non-boss art doesn't 404 requesting a _special file that never ships.
+    if (apiEnemy && apiEnemy.is_boss) {
+        states.special = ENEMY_SPRITE_DIR + (override.special || deriveVariantFile(idleFile, 'special'));
+    }
+    return states;
 }
 
 // Midpoint of an inclusive [min, max] range, rounded; tolerates null/equal bounds.

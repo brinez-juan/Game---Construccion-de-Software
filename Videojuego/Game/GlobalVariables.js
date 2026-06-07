@@ -26,6 +26,7 @@ export const ACTION_TYPES = {
     ATTACK_MAGIC: "attack_magic",
     DEFEND_PHYSIC: "defend_physic",
     DEFEND_MAGIC: "defend_magic",
+    ATTACK_SPECIAL: "attack_special",
     HEALING: "healing",
     AOE_PHYSIC: "aoe_physic",
     AOE_MAGIC: "aoe_magic"

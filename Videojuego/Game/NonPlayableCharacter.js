@@ -3,6 +3,9 @@ import { ACTION_TYPES } from "./GlobalVariables.js";
 import Bar from "./Bar.js";
 import GameObject from "./GameObject.js";
 
+// Per-turn probability that a boss (isBoss) throws its special attack instead of a normal action.
+const SPECIAL_ATTACK_CHANCE = 0.25;
+
 // Friendly character used to deliver scripted dialogue lines
 export class NPC extends Character {
     constructor(name = "", dialogue = []) {
@@ -65,6 +68,13 @@ export class Enemy extends Character {
 
     // Picks an action type based on the enemy health ratio and the player damage profile
     decideAction(player) {
+        // Bosses have a chance each turn to unleash a special attack instead of acting
+        // normally. The special's damage is computed by battleScreen (half the player's
+        // health) and it plays the boss's dedicated _special pose.
+        if (this.isBoss && Math.random() < SPECIAL_ATTACK_CHANCE) {
+            return ACTION_TYPES.ATTACK_SPECIAL;
+        }
+
         const healthRatio = this.health / this.maxHealth;
 
         // Detect the player's threat type from their build: a STRENGTH-leaning character is a
