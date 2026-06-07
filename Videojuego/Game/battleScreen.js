@@ -55,7 +55,7 @@ export default class battleScreen extends Menus{
         this.enemies = []
         this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, playerData.stamina, playerData.maxStamina)
         this.playerMaker(playerData)
-        this.player.deckMaker(playerData.activeDeck, this.canvasWidth/2, 4*this.canvasHeight/5, 100*0.75, 100, 15)
+        this.player.deckMaker(playerData.activeDeck, this.canvasWidth/2, 4*this.canvasHeight/5 + 50, 100*0.75, 100, 15)
         this.enemyMaker(enemies, isBoss)
         // Enemy card drops (US: one card per defeated enemy). enemyMaker records the DB
         // id of every spawned enemy here because this.enemies is emptied by
@@ -143,11 +143,13 @@ export default class battleScreen extends Menus{
                             const dealt = this.applyEnemyDefense(enemy, damageDone, attackType)
                             enemy.health -= dealt
                             enemy.healthBar.calculateCurrentIndicatorSubstraction(dealt)
+                            enemy.shake()   // every enemy hit by the AOE recoils
                         }
                         this.player.stamina = this.player.stamina - card.staminaCost > 0 ? this.player.stamina - card.staminaCost : 0
                         this.player.staminaBar.calculateCurrentIndicatorSubstraction(card.staminaCost)
                         this.playSfx(card.action.sfxPath)
                         this.player.playState('attack')
+                        this.player.lunge(1)   // hop toward the enemies on the right
                         this.beginEnemyTurn()
                         return
                     }
@@ -181,6 +183,8 @@ export default class battleScreen extends Menus{
                 this.player.staminaBar.calculateCurrentIndicatorSubstraction(this.cardInAction.staminaCost)
                 this.playSfx(this.cardInAction.action.sfxPath)
                 this.player.playState('attack')
+                this.player.lunge(1)        // hop toward the enemies on the right
+                enemy.shake()               // the struck enemy recoils
                 this.cardInAction.y += 15
                 this.cardInAction = null
                 this.beginEnemyTurn()
@@ -227,6 +231,12 @@ export default class battleScreen extends Menus{
     }
     // Per-frame loop that detects end conditions and advances either the player or the enemy turn
     update(deltaTime){
+        // Advance the cosmetic lunge/shake offsets for everyone every frame, regardless of
+        // whose turn it is, so attack hops and hurt shakes play out smoothly to completion.
+        this.player.updateAnimation(deltaTime)
+        for(let enemy of this.enemies){
+            enemy.updateAnimation(deltaTime)
+        }
         if(this.parryLabelTimer > 0){
             this.parryLabelTimer -= deltaTime;
             if(this.parryLabelTimer <= 0){
@@ -436,9 +446,13 @@ export default class battleScreen extends Menus{
         const playerDef = (school === 'magic' ? this.player.magicDefense : this.player.physicalDefense) || 0
         const armoredDamage = this.currentDamage * DEFENSE_K / (DEFENSE_K + playerDef)
         const finalDamage = this.ParryBar.calculateDamagePlayer(this.player, armoredDamage)
+        // The attacker hops toward the player (left) at the moment of impact; the player only
+        // recoils if the hit actually landed (a perfect parry takes no damage = no shake).
+        if(this.enemyAttacking){ this.enemyAttacking.lunge(-1) }
         if(finalDamage > 0){
             this.player.health -= finalDamage
             this.player.healthBar.calculateCurrentIndicatorSubstraction(finalDamage)
+            this.player.shake()
         }
 
         const staminaChange = this.ParryBar.calculateStamina(this.player)
@@ -453,8 +467,10 @@ export default class battleScreen extends Menus{
         if (this.ParryBar.state === 'perfect') {
             this.playSfx('../Assets/Audio/SFX_dodge.mp3');
         }
-        // The attack has resolved — drop the attacker back to idle while the result label holds.
-        if(this.enemyAttacking){ this.enemyAttacking.playState('idle') }
+        // Keep the attacker in its ATTACK pose through the lunge + result-label hold, then
+        // revert to idle once the label clears (handled in update via pendingIdleEnemy). This
+        // way the lunge plays in the attack stance instead of snapping to idle first.
+        if(this.enemyAttacking){ this.pendingIdleEnemy = this.enemyAttacking }
 
         const labelData = { perfect: ['Perfect!', 'green'], normal: ['Good!', 'yellow'], miss: ['Miss!', 'red'] }
         const [text, color] = labelData[this.ParryBar.state] ?? labelData.miss
@@ -501,7 +517,7 @@ export default class battleScreen extends Menus{
     }
 
     playerMaker(playerData){
-        this.player = new Player(this.canvasWidth/5, this.canvasHeight/2 + 30, 180, 300, playerData.maxHealth, playerData.health, playerData.maxStamina, playerData.stamina, playerData.attributes, playerData.level, playerData.experience, playerData.experienceToNextLevel)
+        this.player = new Player(this.canvasWidth/5, this.canvasHeight/2 + 30, 150, 260, playerData.maxHealth, playerData.health, playerData.maxStamina, playerData.stamina, playerData.attributes, playerData.level, playerData.experience, playerData.experienceToNextLevel)
         this.player.setSpriteStates(playerSpriteStatesFor(playerData.archetype))
     }
 
@@ -518,21 +534,27 @@ export default class battleScreen extends Menus{
         this.spawnedEnemyIds = []
         // Every enemy is drawn at the same full size as a lone enemy — no shrinking when the
         // room is crowded (the attack/defend poses share this box, so they stay full size too).
-        const ENEMY_WIDTH = 200
-        const ENEMY_HEIGHT = 300
+        const ENEMY_WIDTH = 160
+        const ENEMY_HEIGHT = 260
+        // Floor 1 / room 1's background has a wall the topmost enemy of a diagonal lands on,
+        // which reads oddly. Nudge that room's enemies down a touch; every other room is fine.
+        const room = this.game?.currentRoom
+        const wallYOffset = (room?.floorNumber === 1 && room?.roomNumber === 1) ? 40 : 0
         let count = isBoss ? 1 : Math.floor(1 + Math.random() * 3);
         if(count > 1){
-            // Spread the group along a gentle downward diagonal on the right side. The
-            // outermost enemies are pinned just clear of the player (left) and the canvas
-            // edge (right); inner ones are spaced evenly between, so spacing tightens as the
-            // count grows. With the canvas only 800 wide a few may touch or slightly overlap,
-            // but the vertical stagger keeps them from sitting directly on top of each other.
-            const leftCenter = this.player.x + this.player.width/2 + ENEMY_WIDTH/2
-            const rightCenter = this.canvasWidth - ENEMY_WIDTH/2
-            const offSetX = (rightCenter - leftCenter) / (count - 1)
+            // Lay the group out CENTERED on the right side instead of pinning the outermost
+            // enemies to the player (left) and the canvas edge (right) — that left two enemies
+            // split awkwardly with one on top of the player and one on the far edge. Use a
+            // fixed spacing, clamped so the cluster always fits in the region between the
+            // player and the right edge, and center the row in that region. The diagonal is
+            // also centered vertically on the player's line so the cluster reads as a group.
+            const regionLeft = this.player.x + this.player.width/2 + ENEMY_WIDTH/2
+            const regionRight = this.canvasWidth - ENEMY_WIDTH/2
+            const regionCenter = (regionLeft + regionRight) / 2
+            const offSetX = Math.min(150, (regionRight - regionLeft) / (count - 1))
             const offSetY = 50
-            let positionX = leftCenter
-            let positionY = this.canvasHeight/2
+            let positionX = regionCenter - offSetX * (count - 1) / 2
+            let positionY = this.player.y - offSetY * (count - 1) / 2 + wallYOffset
             for(let i = 0; i < count; i++){
                 let enemyIndex = Math.floor(Math.random() * enemyData.length)
                 let datum = enemyData[enemyIndex]
@@ -545,7 +567,7 @@ export default class battleScreen extends Menus{
         else{
             let enemyIndex = Math.floor(Math.random() * enemyData.length)
             let datum = enemyData[enemyIndex]
-            this.enemies.push(this.makeEnemy(datum, 3*this.canvasWidth/4, this.player.y, ENEMY_WIDTH, ENEMY_HEIGHT))
+            this.enemies.push(this.makeEnemy(datum, 3*this.canvasWidth/4, this.player.y + wallYOffset, ENEMY_WIDTH, ENEMY_HEIGHT))
             this.spawnedEnemyIds.push(datum.id)
         }
     }
