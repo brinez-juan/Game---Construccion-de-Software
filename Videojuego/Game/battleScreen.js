@@ -516,16 +516,27 @@ export default class battleScreen extends Menus{
         // enemy back to its droppable cards (this.enemies is filtered down to empty
         // by victory time, so the ids can't be read from it then).
         this.spawnedEnemyIds = []
+        // Every enemy is drawn at the same full size as a lone enemy — no shrinking when the
+        // room is crowded (the attack/defend poses share this box, so they stay full size too).
+        const ENEMY_WIDTH = 200
+        const ENEMY_HEIGHT = 300
         let count = isBoss ? 1 : Math.floor(1 + Math.random() * 3);
         if(count > 1){
+            // Spread the group along a gentle downward diagonal on the right side. The
+            // outermost enemies are pinned just clear of the player (left) and the canvas
+            // edge (right); inner ones are spaced evenly between, so spacing tightens as the
+            // count grows. With the canvas only 800 wide a few may touch or slightly overlap,
+            // but the vertical stagger keeps them from sitting directly on top of each other.
+            const leftCenter = this.player.x + this.player.width/2 + ENEMY_WIDTH/2
+            const rightCenter = this.canvasWidth - ENEMY_WIDTH/2
+            const offSetX = (rightCenter - leftCenter) / (count - 1)
+            const offSetY = 50
+            let positionX = leftCenter
             let positionY = this.canvasHeight/2
-            let positionX = this.canvasWidth/2
-            let offSetX = 150
-            let offSetY = 50
             for(let i = 0; i < count; i++){
                 let enemyIndex = Math.floor(Math.random() * enemyData.length)
                 let datum = enemyData[enemyIndex]
-                this.enemies.push(this.makeEnemy(datum, positionX, positionY, 120, 300))
+                this.enemies.push(this.makeEnemy(datum, positionX, positionY, ENEMY_WIDTH, ENEMY_HEIGHT))
                 this.spawnedEnemyIds.push(datum.id)
                 positionX += offSetX
                 positionY += offSetY
@@ -534,7 +545,7 @@ export default class battleScreen extends Menus{
         else{
             let enemyIndex = Math.floor(Math.random() * enemyData.length)
             let datum = enemyData[enemyIndex]
-            this.enemies.push(this.makeEnemy(datum, 3*this.canvasWidth/4, this.player.y, 200, 300))
+            this.enemies.push(this.makeEnemy(datum, 3*this.canvasWidth/4, this.player.y, ENEMY_WIDTH, ENEMY_HEIGHT))
             this.spawnedEnemyIds.push(datum.id)
         }
     }
