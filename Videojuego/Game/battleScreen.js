@@ -5,6 +5,7 @@ import ParryBar from './parryBar.js';
 import ItemCard from './ItemCard.js';
 import {canvas} from './Return.js';
 import TextLabel from './TextLabel.js';
+import { sfxEnabled } from './GlobalVariables.js';
 import { normalizeCatalogCard } from './dataAdapter.js';
 
 // Enemy defense tuning. Mitigation follows the classic armor curve damage*K/(K+def): never
@@ -68,6 +69,11 @@ export default class battleScreen extends Menus{
         this.parryLabel = null;
         this.parryLabelTimer = 0;
         this.failedSelection = new Audio('../Assets/Audio/SYS_buzzer.ogg')
+        this.playSfx = (path) => {
+            if (!sfxEnabled || !path) return;
+            const audio = new Audio(path);
+            audio.play().catch(err => console.warn('SFX play failed:', path, err));
+        }
     }
 
     // Routes cursor movement to deck cards and to enemies during the targeting phase
@@ -96,6 +102,7 @@ export default class battleScreen extends Menus{
                         this.playerDefenseType = damageSchool(card.action.actionType)
                         this.player.stamina = this.player.stamina - card.staminaCost > 0 ? this.player.stamina - card.staminaCost : 0
                         this.player.staminaBar.calculateCurrentIndicatorSubstraction(card.staminaCost)
+                        this.playSfx(card.action.sfxPath)
                         this.turn = 'enemy'
                         this.player.setSprite('../Assets/Sprites/characters/player_defend.png')
                         console.log(this.player.spriteImage)
@@ -111,6 +118,7 @@ export default class battleScreen extends Menus{
                         }
                         this.player.stamina = this.player.stamina - card.staminaCost > 0 ? this.player.stamina - card.staminaCost : 0
                         this.player.staminaBar.calculateCurrentIndicatorSubstraction(card.staminaCost)
+                        this.playSfx(card.action.sfxPath)
                         this.turn = 'enemy'
                         return
                     }
@@ -121,7 +129,7 @@ export default class battleScreen extends Menus{
                     }
                 }
             }
-            this.failedSelection.play()
+            if (sfxEnabled) this.failedSelection.play()
             return
         }
 
@@ -143,6 +151,7 @@ export default class battleScreen extends Menus{
                 this.player.stamina = this.player.stamina - this.cardInAction.staminaCost > 0 ? this.player.stamina - this.cardInAction.staminaCost : 0
                 this.player.staminaBar.calculateCurrentIndicatorSubstraction(this.cardInAction.staminaCost)
                 console.log(this.player.staminaBar.missingAttributeBar.width)
+                this.playSfx(this.cardInAction.action.sfxPath)
                 this.cardInAction.y += 15
                 this.cardInAction = null
                 this.turn = 'enemy'
@@ -388,6 +397,9 @@ export default class battleScreen extends Menus{
             this.player.staminaBar.calculateCurrentIndicatorSubstraction(Math.abs(staminaChange))
         }
 
+        if (this.ParryBar.state === 'perfect') {
+            this.playSfx('../Assets/Audio/SFX_dodge.mp3');
+        }
         const labelData = { perfect: ['Perfect!', 'green'], normal: ['Good!', 'yellow'], miss: ['Miss!', 'red'] }
         const [text, color] = labelData[this.ParryBar.state] ?? labelData.miss
         this.showActionLabel(text, color, 1500)
@@ -423,13 +435,17 @@ export default class battleScreen extends Menus{
     }
 
     playerMaker(playerData){
-        this.player = new Player(this.canvasWidth/5, this.canvasHeight/2 + 30, 120, 300, playerData.maxHealth, playerData.health, playerData.maxStamina, playerData.stamina, playerData.attributes, playerData.level, playerData.experience, playerData.experienceToNextLevel)
+        this.player = new Player(this.canvasWidth/5, this.canvasHeight/2 + 30, 180, 300, playerData.maxHealth, playerData.health, playerData.maxStamina, playerData.stamina, playerData.attributes, playerData.level, playerData.experience, playerData.experienceToNextLevel)
         this.player.setSprite('../Assets/Sprites/characters/player.png')
     }
 
     // Instantiates Enemy objects from raw pool data and lays them out on the canvas.
     // Boss rooms always spawn a single enemy; regular rooms spawn 1-3.
     enemyMaker(enemyData, isBoss = false){
+        if(!enemyData || enemyData.length === 0){
+            console.warn('battleScreen: no enemy data available for this room');
+            return;
+        }
         // DB ids of every enemy spawned, so a cleared battle can map each defeated
         // enemy back to its droppable cards (this.enemies is filtered down to empty
         // by victory time, so the ids can't be read from it then).

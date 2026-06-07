@@ -14,7 +14,8 @@ export default class Action {
         baseHealing = 0,
         scalingAttribute = "STRENGTH",
         scaleFactor = 1.0,
-        target = null
+        target = null,
+        sfxPath = null
     ) {
         this.name = name;
         this.description = description;
@@ -28,6 +29,7 @@ export default class Action {
         this.scalingAttribute = scalingAttribute;
         this.scaleFactor = scaleFactor;
         this.target = target;
+        this.sfxPath = sfxPath;
     }
 
     calculateDamage(attributes = {}) {

@@ -50,6 +50,28 @@ function slugify(name) {
         .replace(/^_+|_+$/g, '');
 }
 
+// Resolves the SFX path for a card from its action type and name.
+function resolveSfxPath(actionType, name) {
+    const slug = slugify(name);
+    // Arrow cards (e.g. Precise Shot) always get the arrow SFX
+    if (slug.includes('arrow') || slug.includes('bow') || slug.includes('shot')) {
+        return '../Assets/Audio/SFX_arrow.mp3';
+    }
+    // Magic attacks -> potion SFX
+    if (actionType === 'attack_magic') {
+        return '../Assets/Audio/SFX_potion.mp3';
+    }
+    // Defense cards (physical and magic) -> shield SFX
+    if (actionType === 'defend_physic' || actionType === 'defend_magic') {
+        return '../Assets/Audio/SFX_Shield.mp3';
+    }
+    // Physical attacks -> sword SFX
+    if (actionType === 'attack_physic') {
+        return '../Assets/Audio/SFX_Sword.mp3';
+    }
+    return null;
+}
+
 // Sprite path relative to pages/game.html, or a neutral fallback when the DB
 // card has no matching art file. Prefers the DB-pinned sprite_name; falls back
 // to slugifying the display name for cards seeded before that column existed.
@@ -78,11 +100,12 @@ function midRange(min, max) {
 // action_type is lowercased to match ACTION_TYPES; scales_with stays UPPERCASE to
 // match the canonical attribute keys so Action scaling resolves correctly.
 export function normalizeCard(apiCard) {
+    const actionType = String(apiCard.action_type || '').toLowerCase().trim();
     return {
         cardId: apiCard.card_id,
         name: apiCard.name,
         description: apiCard.description,
-        action_type: String(apiCard.action_type || '').toLowerCase(),
+        action_type: actionType,
         stamina_cost: Number(apiCard.stamina_cost) || 0,
         base_damage: Number(apiCard.base_damage) || 0,
         scales_with: apiCard.scales_with ? String(apiCard.scales_with).toUpperCase() : null,
@@ -91,7 +114,8 @@ export function normalizeCard(apiCard) {
         required_value: Number(apiCard.required_value) || 0,
         rarity: apiCard.rarity,
         isPermanent: !!apiCard.is_permanent,
-        spritePath: spritePathFor(apiCard.sprite_name, apiCard.name)
+        spritePath: spritePathFor(apiCard.sprite_name, apiCard.name),
+        sfxPath: resolveSfxPath(actionType, apiCard.name)
     };
 }
 
