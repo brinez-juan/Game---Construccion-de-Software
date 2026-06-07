@@ -39,24 +39,24 @@ export const PARRY_RESULTS = {
 // Maximum number of cards the player can carry in the active deck
 export const MAX_DECK_SIZE = 5;
 
-// Starter loadouts offered during character creation
+// Starter loadouts offered during character creation. Every card now carries an
+// attribute requirement, so each archetype gets a deck whose requirements it can meet
+// at creation (slugs are slugify(cards.name) in the DB — the key buildCardSlugToId uses).
 export const ARCHETYPES = {
-    // Until more card art exists, every archetype starts with the same five
-    // art-backed cards (slugs match cards.sprite_name / slugify(cards.name) in the DB).
     SOLDIER: {
         id: "soldier",
         attributes: { STRENGTH: 3, DEXTERITY: 1, INTELLIGENCE: 0, VIGOR: 2, ENDURANCE: 2 },
-        startingCards: ["vicious_sword", "battle_axe", "hunter_bow", "fireball", "knight_shield"]
+        startingCards: ["vicious_sword", "rusted_longsword", "battle_axe", "crystal_knuckle", "knight_shield"]
     },
     ARCHER: {
         id: "archer",
         attributes: { STRENGTH: 1, DEXTERITY: 3, INTELLIGENCE: 0, VIGOR: 1, ENDURANCE: 2 },
-        startingCards: ["vicious_sword", "battle_axe", "hunter_bow", "fireball", "knight_shield"]
+        startingCards: ["hunter_bow", "pestilent_hook_flail", "moonlit_crescent_blade", "sentinel_twinblades", "knight_shield"]
     },
     MAGE: {
         id: "mage",
         attributes: { STRENGTH: 0, DEXTERITY: 1, INTELLIGENCE: 3, VIGOR: 1, ENDURANCE: 2 },
-        startingCards: ["vicious_sword", "battle_axe", "hunter_bow", "fireball", "knight_shield"]
+        startingCards: ["fireball", "ravenwood_crook", "dark_ward", "hunter_bow", "knight_shield"]
     }
 };
 

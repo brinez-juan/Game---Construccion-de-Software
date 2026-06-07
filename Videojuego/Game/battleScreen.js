@@ -12,6 +12,9 @@ import { normalizeCatalogCard } from './dataAdapter.js';
 // enemy mitigates roughly half. GUARD_DEFENSE_BONUS is the temporary typed bump a defend grants.
 const DEFENSE_K = 25;            // lower = armor matters more
 const GUARD_DEFENSE_BONUS = 15;  // temporary bonus added by a defend action
+// AOE cards hit every enemy, so each hit is throttled: an AOE is crowd utility, not a
+// stronger single-target nuke. Combined with their low base damage in the DB.
+const AOE_FACTOR = 0.6;
 
 // Maps any attack/defend action type to its damage school.
 function damageSchool(actionType){
@@ -99,7 +102,7 @@ export default class battleScreen extends Menus{
                         return
                     }
                     else if(card.action.actionType === 'aoe_magic' || card.action.actionType === 'aoe_physic'){
-                        let damageDone = card.action.calculateDamage(this.player.attributes)
+                        let damageDone = card.action.calculateDamage(this.player.attributes) * AOE_FACTOR
                         const attackType = damageSchool(card.action.actionType)
                         for(let enemy of this.enemies){
                             const dealt = this.applyEnemyDefense(enemy, damageDone, attackType)
@@ -237,7 +240,7 @@ export default class battleScreen extends Menus{
             }
 
             if(!this.ParryBar.state){
-                this.ParryBar.update(deltaTime, this.player.attributes.dexterity)
+                this.ParryBar.update(deltaTime, this.player.attributes.DEXTERITY)
             }
             else{
                 this.resolveEnemyAttack()
@@ -365,7 +368,12 @@ export default class battleScreen extends Menus{
     // normal cuts it to 30%, a miss takes it in full. Stamina is always reconciled, then
     // the result label is shown and the turn advances to the next enemy.
     resolveEnemyAttack(){
-        const finalDamage = this.ParryBar.calculateDamagePlayer(this.player, this.currentDamage)
+        // Mitigate the incoming hit by the player's typed passive armor (same armor curve
+        // as enemies) BEFORE the parry multiplier, so STRENGTH/INTELLIGENCE/VIGOR matter.
+        const school = damageSchool(this.currentDecision)
+        const playerDef = (school === 'magic' ? this.player.magicDefense : this.player.physicalDefense) || 0
+        const armoredDamage = this.currentDamage * DEFENSE_K / (DEFENSE_K + playerDef)
+        const finalDamage = this.ParryBar.calculateDamagePlayer(this.player, armoredDamage)
         if(finalDamage > 0){
             this.player.health -= finalDamage
             this.player.healthBar.calculateCurrentIndicatorSubstraction(finalDamage)

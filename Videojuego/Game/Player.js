@@ -22,6 +22,13 @@ export default class Player extends Character {
         experienceToNextLevel = 100
     ) {
         super("Player", maxHealth, health, maxStamina, stamina, attributes, x, y, width, height);
+        // Derive the real max HP / stamina from the build so VIGOR and ENDURANCE
+        // actually matter (the maxHealth/maxStamina args are now just defaults). Current
+        // health/stamina are kept as-is mid-run, clamped to the freshly computed caps.
+        this.maxHealth = 80 + 10 * (this.attributes.VIGOR ?? 0);
+        this.maxStamina = 70 + 15 * (this.attributes.ENDURANCE ?? 0);
+        this.health = Math.min(this.health, this.maxHealth);
+        this.stamina = Math.min(this.stamina, this.maxStamina);
         this.level = level;
         this.experience = experience;
         this.experienceToNextLevel = experienceToNextLevel;
@@ -29,6 +36,17 @@ export default class Player extends Character {
         this.deck = [];
         this.healthBar = new Bar(this.x, 20, 300, 20, '../Assets/Sprites/health_bar.png', this.maxHealth);
         this.staminaBar = new Bar(this.x, 50, 300, 20, '../Assets/Sprites/stamina_bar.png', this.maxStamina);
+    }
+
+    // Passive armor fed to the same armor curve enemies use (damage*K/(K+def)), so
+    // attribute investment makes the player tankier between defends. VIGOR contributes
+    // to both schools; STRENGTH/INTELLIGENCE to their matching school.
+    get physicalDefense() {
+        return (this.attributes.STRENGTH ?? 0) + Math.floor((this.attributes.VIGOR ?? 0) / 2);
+    }
+
+    get magicDefense() {
+        return (this.attributes.INTELLIGENCE ?? 0) + Math.floor((this.attributes.VIGOR ?? 0) / 2);
     }
 
     gainExperience(amount) {

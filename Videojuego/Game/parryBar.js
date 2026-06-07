@@ -44,7 +44,7 @@ export default class ParryBar{
             return 0
         }
         else if(this.state === 'normal'){
-            return damageDone*0.3 ;
+            return damageDone*0.35 ;
         }
         else{
             return damageDone;
@@ -53,16 +53,19 @@ export default class ParryBar{
 
     // Returns the stamina delta to apply after the parry attempt
     calculateStamina(player){
+        // Refunds are intentionally small: sustained attacking now nets a stamina LOSS,
+        // which (via widthAdjuster = stamina/maxStamina) shrinks the parry zones and
+        // speeds the icon — so spamming an attack makes the next parry harder.
         if(this.state === 'perfect'){
-            let thisStaminaReturn = this.maxStamina*0.3
-            return thisStaminaReturn > this.maxStamina - this.stamina ? thisStaminaReturn - (this.maxStamina - this.stamina) : thisStaminaReturn;
-        }
-        else if(this.state === 'normal'){
             let thisStaminaReturn = this.maxStamina*0.1
             return thisStaminaReturn > this.maxStamina - this.stamina ? thisStaminaReturn - (this.maxStamina - this.stamina) : thisStaminaReturn;
         }
+        else if(this.state === 'normal'){
+            let thisStaminaReturn = this.maxStamina*0.04
+            return thisStaminaReturn > this.maxStamina - this.stamina ? thisStaminaReturn - (this.maxStamina - this.stamina) : thisStaminaReturn;
+        }
         else{
-            let thisStaminaReturn = -this.maxStamina*0.1
+            let thisStaminaReturn = -this.maxStamina*0.12
             return thisStaminaReturn > this.stamina ? -this.stamina : thisStaminaReturn;
         }
     }

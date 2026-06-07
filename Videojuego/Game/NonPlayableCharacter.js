@@ -81,12 +81,16 @@ export class Enemy extends Character {
             playerType = "balanced";
         }
 
-        // The strongest attack this enemy can throw (its higher damage school).
+        // The attack this enemy throws. A pure physical/magical enemy uses its only school;
+        // a HYBRID (both schools > 0) picks one at random each turn so the player can't
+        // safely pre-commit a single-school defend against it — that's the "make you think".
         let attack = null;
-        if (this.physicalDamage > 0 || this.magicDamage > 0) {
-            attack = this.magicDamage > this.physicalDamage
-                ? ACTION_TYPES.ATTACK_MAGIC
-                : ACTION_TYPES.ATTACK_PHYSIC;
+        if (this.physicalDamage > 0 && this.magicDamage > 0) {
+            attack = Math.random() < 0.5 ? ACTION_TYPES.ATTACK_MAGIC : ACTION_TYPES.ATTACK_PHYSIC;
+        } else if (this.magicDamage > 0) {
+            attack = ACTION_TYPES.ATTACK_MAGIC;
+        } else if (this.physicalDamage > 0) {
+            attack = ACTION_TYPES.ATTACK_PHYSIC;
         }
 
         // The defense that best counters the player's school. Against a balanced player (or when
