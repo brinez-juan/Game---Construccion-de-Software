@@ -3,10 +3,11 @@ import Player from './Player.js';
 import { Enemy } from './NonPlayableCharacter.js';
 import ParryBar from './parryBar.js';
 import ItemCard from './ItemCard.js';
+import GameObject from './GameObject.js';
 import {canvas} from './Return.js';
 import TextLabel from './TextLabel.js';
 import { sfxEnabled } from './GlobalVariables.js';
-import { normalizeCatalogCard } from './dataAdapter.js';
+import { normalizeCatalogCard, buildPotions } from './dataAdapter.js';
 
 // Enemy defense tuning. Mitigation follows the classic armor curve damage*K/(K+def): never
 // negative, diminishing returns. K is sized for the DB defense range (~1-21) so a high-armor
@@ -63,6 +64,14 @@ export default class battleScreen extends Menus{
         this.isFinalBossFight = !!(isBoss && this.game?.currentRoom?.floorNumber === 3)
         this.pendingBoss = null
         this.enemyMaker(enemies, isBoss)
+        // Once-per-battle potion: the lobby hands the equipped potion via playerData.potion;
+        // default to the health potion so EVERY battle (including the floor-0 tutorial, which may
+        // be entered without a lobby choice) still has a usable potion. A fresh battleScreen per
+        // battle resets potionUsed automatically, enforcing the 1-per-battle limit.
+        this.potion = playerData.potion ?? buildPotions(this.game?.cardCatalog).HEALTH
+        this.potionUsed = false
+        this.potionCard = new GameObject(70, this.canvasHeight - 90, 75, 100)
+        this.potionCard.setSprite(this.potion.spritePath)
         // Enemy card drops (US: one card per defeated enemy). enemyMaker records the DB
         // id of every spawned enemy here because this.enemies is emptied by
         // checkEnemyStatus before the victory check fires. Guard so drops grant once.
@@ -119,6 +128,9 @@ export default class battleScreen extends Menus{
         for(let card of this.player.deck){
             card.mouseCollition(mouseX, mouseY)
         }
+        if(this.potionCard){
+            this.potionCard.mouseCollition(mouseX, mouseY)
+        }
         if(this.cardInAction){
             for(let enemy of this.enemies){
                 enemy.mouseCollition(mouseX, mouseY)
@@ -129,6 +141,11 @@ export default class battleScreen extends Menus{
     // Handles card selection, target picking and stamina spending during the player turn
     handleClick(e){
         if(!this.cardInAction){
+            // Drink the equipped potion (once per battle); drinking costs the turn.
+            if(this.potionCard && this.potionCard.hovered && !this.potionUsed){
+                this.usePotion()
+                return
+            }
             for(let card of this.player.deck){
                 if(card.hovered && card.staminaCost <= this.player.stamina){
                     if(card.action.actionType === 'defend_physic' || card.action.actionType === 'defend_magic'){
@@ -199,6 +216,28 @@ export default class battleScreen extends Menus{
         }
     }
 
+    // Drinks the equipped potion: restores a % of the relevant max stat, marks it spent for the
+    // rest of the battle, and ends the player's turn (the enemy then acts). The restore percent
+    // comes from the potion (DB base_damage, or the POTIONS fallback). HP/stamina are clamped to
+    // their caps; the HUD bar's addition indicator mirrors the gain.
+    usePotion(){
+        const pct = this.potion.restorePct || 0
+        if(this.potion.actionType === 'recover_stamina'){
+            const amount = Math.round(this.player.maxStamina * pct / 100)
+            this.player.stamina = Math.min(this.player.maxStamina, this.player.stamina + amount)
+            this.player.staminaBar.calculateCurrentIndicatorAddition(amount)
+            this.showActionLabel('Stamina!', 'lime', 1200)
+        } else {
+            const amount = Math.round(this.player.maxHealth * pct / 100)
+            this.player.health = Math.min(this.player.maxHealth, this.player.health + amount)
+            this.player.healthBar.calculateCurrentIndicatorAddition(amount)
+            this.showActionLabel('Healed!', 'lime', 1200)
+        }
+        this.potionUsed = true
+        this.playSfx('../Assets/Audio/SFX_potion.mp3')
+        this.beginEnemyTurn()
+    }
+
     draw(ctx){
         this.background.draw(ctx)
         this.player.draw(ctx)
@@ -211,6 +250,17 @@ export default class battleScreen extends Menus{
         }
         for(let card of this.player.deck){
             card.draw(ctx)
+        }
+        // The once-per-battle potion, dimmed once it's been drunk so it reads as spent.
+        if(this.potionCard){
+            if(this.potionUsed){
+                ctx.save()
+                ctx.globalAlpha = 0.35
+                this.potionCard.draw(ctx)
+                ctx.restore()
+            } else {
+                this.potionCard.draw(ctx)
+            }
         }
         // Only show the parry bar once an ATTACK has actually been decided (currentDecision is
         // set). Without this gate the bar flashes for a frame or two before a defending enemy

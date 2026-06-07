@@ -8,6 +8,7 @@ import Action from "./Action.js";
 import { canvas } from "./Return.js";
 import GameObject from "./GameObject.js";
 import { MAX_DECK_SIZE } from "./GlobalVariables.js";
+import { buildPotions } from "./dataAdapter.js";
 //import { text } from "express";
 
 // Pixels a selected card lifts above its row to signal selection (mirrors battleScreen's
@@ -52,8 +53,10 @@ export default class battleLobby extends Menus{
         }
         this.experienceBarSpawn(experience, level, experienceToNextLevel)
         this.attributeSectionSpawn(attributes)
-        this.deckSectionSpawn(effectiveDeck, this.canvasWidth/10*3 + 20, this.canvasHeight/5, 80*0.75, 80, 10)
-        this.inventorySectionSpawn(effectiveInventory, this.canvasWidth/10*3 + 20, this.canvasHeight/5*3, 80*0.75, 80, 10)
+        this.deckSectionSpawn(effectiveDeck, this.canvasWidth/10*3 + 20, this.canvasHeight/5 - 20, 80*0.75, 80, 10)
+        // One-slot Potion deck where the inventory used to sit; the inventory is shifted down.
+        this.potionSectionSpawn(this.canvasWidth/10*3 + 20, this.canvasHeight/2, 80*0.75, 80)
+        this.inventorySectionSpawn(effectiveInventory, this.canvasWidth/10*3 + 20, this.canvasHeight/5*3 + 90, 80*0.75, 80, 10)
         // Buttons are placed from the row layout, not from card instances, so an
         // inventory with fewer than 5 cards (or none) doesn't blow up.
         this.movetoRightButton = new GameObject(this.inventoryRightX + 60, this.inventoryRowY, 35, 35)
@@ -178,6 +181,25 @@ export default class battleLobby extends Menus{
         }
     }
 
+    // One-slot "Potion" deck: the player toggles the equipped potion (health <-> stamina) by
+    // clicking the slot. The choice is carried into battle (startBattle) and usable once per
+    // fight. Potions live outside the normal deck/inventory, so they don't touch deck persistence.
+    potionSectionSpawn(positionX, positionY, cardWidth, cardHeight){
+        this.potions = buildPotions(this.game?.cardCatalog)
+        this.equippedPotion = this.potions.HEALTH
+        this.potionLabel = new textLabel(positionX, positionY - 50, '30px Academia', 'black', undefined, 'Potion', false)
+        this.potionSlot = new GameObject(positionX, positionY, cardWidth, cardHeight)
+        this.potionSlot.setSprite(this.equippedPotion.spritePath)
+        this.potionNameLabel = new textLabel(positionX, positionY + cardHeight/2 + 16, '20px Academia', 'black', undefined, this.equippedPotion.name, false)
+    }
+
+    // Cycles the equipped potion between the two options and refreshes the slot art + name.
+    togglePotion(){
+        this.equippedPotion = (this.equippedPotion === this.potions.HEALTH) ? this.potions.STAMINA : this.potions.HEALTH
+        this.potionSlot.setSprite(this.equippedPotion.spritePath)
+        this.potionNameLabel.text = this.equippedPotion.name
+    }
+
     // Moves a selected inventory card into an open deck slot, growing the Battle Deck up
     // to MAX_DECK_SIZE. The card leaves the inventory entirely (deck and inventory stay
     // disjoint, mirroring the swap path), then both displays are rebuilt.
@@ -259,6 +281,8 @@ export default class battleLobby extends Menus{
             this.game.player.inventory = this.inventory
                 .map(c => c.sourceCard)
                 .filter(card => card && !deckIds.has(card.cardId))
+            // Carry the equipped potion into battle (in-memory; not part of deck persistence).
+            this.game.player.potion = this.equippedPotion
         }
         this.dispose()
         this.state = this.currentRoom ? this.currentRoom.stateCode : 6
@@ -283,6 +307,7 @@ export default class battleLobby extends Menus{
                 slot.mouseCollition(mouseX, mouseY)
             }
             this.startButton.mouseCollition(mouseX, mouseY)
+            this.potionSlot.mouseCollition(mouseX, mouseY)
             this.movetoLeftButton.mouseCollition(mouseX, mouseY)
             this.movetoRightButton.mouseCollition(mouseX, mouseY)
             for(const key in this.attributeByKey){
@@ -301,6 +326,11 @@ export default class battleLobby extends Menus{
             // Start battle takes priority over the card/attribute interactions.
             if(this.startButton.hovered){
                 await this.startBattle()
+                return
+            }
+            // Toggle the equipped potion (health <-> stamina).
+            if(this.potionSlot.hovered){
+                this.togglePotion()
                 return
             }
             // Spend an attribute point: persist via PATCH, then refresh the value + counter.
@@ -486,6 +516,9 @@ export default class battleLobby extends Menus{
         this.background.draw(ctx)
         this.inventoryLabel.draw(ctx)
         this.deckLabel.draw(ctx)
+        this.potionLabel.draw(ctx)
+        this.potionSlot.draw(ctx)
+        this.potionNameLabel.draw(ctx)
         if(this.inventory.length > 5){
             this.movetoLeftButton.draw(ctx)
             this.movetoRightButton.draw(ctx)

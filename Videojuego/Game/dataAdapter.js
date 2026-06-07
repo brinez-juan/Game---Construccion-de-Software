@@ -2,6 +2,8 @@
 // the canvas game consumes at runtime. Pure functions — the SavedGamesAPI instance
 // is always passed in so this module stays free of fetch/transport concerns.
 
+import { POTIONS } from "./GlobalVariables.js";
+
 // Card art that actually ships in Assets/Sprites/cards. The DB sprite_name is a bare
 // stem (e.g. "rusted_longsword"); the files use mixed extensions (the original five are
 // .jpeg, the newer enemy-drop art is .png), so this maps each known stem to its real
@@ -18,6 +20,7 @@ const CARD_SPRITE_FILES = {
     eye_wand:            'eye_wand.png',
     fireball:            'fireball.jpeg',
     giant_shield:        'giant_shield.png',
+    health_potion:       'health_potion.png',
     hooked_flail:        'hooked_flail.png',
     hunter_bow:          'hunter_bow.jpeg',
     knight_shield:       'knight_shield.jpeg',
@@ -28,6 +31,7 @@ const CARD_SPRITE_FILES = {
     ravenwood_staff:     'ravenwood_staff.png',
     rotted_chain:        'rotted_chain.png',
     rusted_longsword:    'rusted_longsword.png',
+    stamina_potion:      'stamina_potion.png',
     sentinel_sunblades:  'sentinel_sunblades.png',
     sentinel_twinblades: 'sentinel_twinblades.png',
     twin_axes:           'twin_axes.png',
@@ -180,6 +184,26 @@ export function normalizeCatalogCard(row, { isPermanent = false } = {}) {
         is_permanent: isPermanent,
         sprite_name: row.sprite_name
     });
+}
+
+// Builds the two runtime potions (health/stamina) for the lobby's one-slot Potion deck.
+// Prefers the DB catalog rows (matched by action type) so the name/description and restore
+// percent (stored in base_damage) come from the DB; falls back to the built-in POTIONS table
+// when the catalog lacks them, so potions still work offline. spritePath is resolved the same
+// way as any card so the art (Assets/Sprites/cards/health_potion.png etc.) loads.
+export function buildPotions(catalog) {
+    const result = {};
+    for (const def of Object.values(POTIONS)) {
+        const row = (catalog || []).find(c => String(c.action_type).toLowerCase() === def.actionType);
+        result[def.key] = {
+            key: def.key,
+            name: row?.name ?? def.name,
+            actionType: def.actionType,                       // 'healing' | 'recover_stamina'
+            restorePct: Number(row?.base_damage) || def.restorePct,
+            spritePath: spritePathFor(row?.sprite_name ?? def.spriteName, def.name)
+        };
+    }
+    return result;
 }
 
 // Groups the card catalog by the enemy that drops each card (cards.enemy -> enemies.id)
