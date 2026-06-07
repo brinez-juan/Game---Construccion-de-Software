@@ -39,9 +39,9 @@ export default class Character extends GameObject {
     // Preloading (vs GameObject.setSprite's per-swap `new Image()`) avoids the reload
     // flicker when poses change mid-combat; missing variants are simply absent from the
     // cache so playState() can fall back to idle.
-    setSpriteStates({ idle, attack, defend } = {}) {
+    setSpriteStates({ idle, attack, defend, special } = {}) {
         this._spriteCache = {};
-        for (const [state, path] of Object.entries({ idle, attack, defend })) {
+        for (const [state, path] of Object.entries({ idle, attack, defend, special })) {
             if (!path) continue;
             const img = new Image();
             // A derived pose path may point at art that doesn't ship (e.g. an enemy with

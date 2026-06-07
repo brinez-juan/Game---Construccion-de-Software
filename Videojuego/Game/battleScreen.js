@@ -3,10 +3,11 @@ import Player from './Player.js';
 import { Enemy } from './NonPlayableCharacter.js';
 import ParryBar from './parryBar.js';
 import ItemCard from './ItemCard.js';
+import GameObject from './GameObject.js';
 import {canvas} from './Return.js';
 import TextLabel from './TextLabel.js';
 import { sfxEnabled } from './GlobalVariables.js';
-import { normalizeCatalogCard } from './dataAdapter.js';
+import { normalizeCatalogCard, buildPotions } from './dataAdapter.js';
 
 // Enemy defense tuning. Mitigation follows the classic armor curve damage*K/(K+def): never
 // negative, diminishing returns. K is sized for the DB defense range (~1-21) so a high-armor
@@ -56,7 +57,21 @@ export default class battleScreen extends Menus{
         this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, playerData.stamina, playerData.maxStamina)
         this.playerMaker(playerData)
         this.player.deckMaker(playerData.activeDeck, this.canvasWidth/2, 4*this.canvasHeight/5 + 50, 100*0.75, 100, 15)
+        // The castle's final room (floor 3 boss) is a TWO-STAGE fight: Eldric first, then
+        // Lysara appears in the same battle once he falls — both must die in one attempt.
+        // enemyMaker spawns Eldric and parks Lysara in pendingBoss; update()'s victory check
+        // brings her in via spawnSecondBoss() instead of ending the battle.
+        this.isFinalBossFight = !!(isBoss && this.game?.currentRoom?.floorNumber === 3)
+        this.pendingBoss = null
         this.enemyMaker(enemies, isBoss)
+        // Once-per-battle potion: the lobby hands the equipped potion via playerData.potion;
+        // default to the health potion so EVERY battle (including the floor-0 tutorial, which may
+        // be entered without a lobby choice) still has a usable potion. A fresh battleScreen per
+        // battle resets potionUsed automatically, enforcing the 1-per-battle limit.
+        this.potion = playerData.potion ?? buildPotions(this.game?.cardCatalog).HEALTH
+        this.potionUsed = false
+        this.potionCard = new GameObject(70, this.canvasHeight - 90, 75, 100)
+        this.potionCard.setSprite(this.potion.spritePath)
         // Enemy card drops (US: one card per defeated enemy). enemyMaker records the DB
         // id of every spawned enemy here because this.enemies is emptied by
         // checkEnemyStatus before the victory check fires. Guard so drops grant once.
@@ -113,6 +128,9 @@ export default class battleScreen extends Menus{
         for(let card of this.player.deck){
             card.mouseCollition(mouseX, mouseY)
         }
+        if(this.potionCard){
+            this.potionCard.mouseCollition(mouseX, mouseY)
+        }
         if(this.cardInAction){
             for(let enemy of this.enemies){
                 enemy.mouseCollition(mouseX, mouseY)
@@ -123,6 +141,11 @@ export default class battleScreen extends Menus{
     // Handles card selection, target picking and stamina spending during the player turn
     handleClick(e){
         if(!this.cardInAction){
+            // Drink the equipped potion (once per battle); drinking costs the turn.
+            if(this.potionCard && this.potionCard.hovered && !this.potionUsed){
+                this.usePotion()
+                return
+            }
             for(let card of this.player.deck){
                 if(card.hovered && card.staminaCost <= this.player.stamina){
                     if(card.action.actionType === 'defend_physic' || card.action.actionType === 'defend_magic'){
@@ -193,6 +216,28 @@ export default class battleScreen extends Menus{
         }
     }
 
+    // Drinks the equipped potion: restores a % of the relevant max stat, marks it spent for the
+    // rest of the battle, and ends the player's turn (the enemy then acts). The restore percent
+    // comes from the potion (DB base_damage, or the POTIONS fallback). HP/stamina are clamped to
+    // their caps; the HUD bar's addition indicator mirrors the gain.
+    usePotion(){
+        const pct = this.potion.restorePct || 0
+        if(this.potion.actionType === 'recover_stamina'){
+            const amount = Math.round(this.player.maxStamina * pct / 100)
+            this.player.stamina = Math.min(this.player.maxStamina, this.player.stamina + amount)
+            this.player.staminaBar.calculateCurrentIndicatorAddition(amount)
+            this.showActionLabel('Stamina!', 'lime', 1200)
+        } else {
+            const amount = Math.round(this.player.maxHealth * pct / 100)
+            this.player.health = Math.min(this.player.maxHealth, this.player.health + amount)
+            this.player.healthBar.calculateCurrentIndicatorAddition(amount)
+            this.showActionLabel('Healed!', 'lime', 1200)
+        }
+        this.potionUsed = true
+        this.playSfx('../Assets/Audio/SFX_potion.mp3')
+        this.beginEnemyTurn()
+    }
+
     draw(ctx){
         this.background.draw(ctx)
         this.player.draw(ctx)
@@ -205,6 +250,17 @@ export default class battleScreen extends Menus{
         }
         for(let card of this.player.deck){
             card.draw(ctx)
+        }
+        // The once-per-battle potion, dimmed once it's been drunk so it reads as spent.
+        if(this.potionCard){
+            if(this.potionUsed){
+                ctx.save()
+                ctx.globalAlpha = 0.35
+                this.potionCard.draw(ctx)
+                ctx.restore()
+            } else {
+                this.potionCard.draw(ctx)
+            }
         }
         // Only show the parry bar once an ATTACK has actually been decided (currentDecision is
         // set). Without this gate the bar flashes for a frame or two before a defending enemy
@@ -262,6 +318,13 @@ export default class battleScreen extends Menus{
             return
         }
         if(this.enemies.every(enemy => enemy.health <= 0)){
+            // Final room: when the first boss falls, the second takes the stage instead of
+            // ending the battle. Only once BOTH are down (pendingBoss cleared) does the
+            // victory path run, so kills/XP/drops are tallied for the whole two-stage fight.
+            if(this.pendingBoss){
+                this.spawnSecondBoss()
+                return
+            }
             this.removeEventListeners()
             this.ParryBar.dispose()
             this.reportEnemiesDefeated()
@@ -406,6 +469,13 @@ export default class battleScreen extends Menus{
         else if(decision === 'attack_magic'){
             damageDone = this.enemyAttacking.magicDamage
         }
+        else if(decision === 'attack_special'){
+            // Boss special: ignores the enemy's normal damage stats and threatens HALF the
+            // player's current health. It still flows through the parry/armor pipeline below,
+            // so a good parry can still cut it down — the only difference from a normal attack
+            // is the damage amount and the _special pose.
+            damageDone = Math.max(1, Math.round(this.player.health * 0.5))
+        }
         else if(decision === 'defend_physic'){
             this.enemyAttacking.guardType = 'physic'
             defended = true
@@ -430,7 +500,9 @@ export default class battleScreen extends Menus{
         }
 
         // An attack holds its pose through the whole parry window; reverted in resolveEnemyAttack.
-        this.enemyAttacking.playState('attack')
+        // A boss special telegraphs with its dedicated _special pose (falls back to attack/idle
+        // if that art is missing); everything else uses the normal attack pose.
+        this.enemyAttacking.playState(decision === 'attack_special' ? 'special' : 'attack')
         this.currentDecision = decision
         this.currentDamage = damageDone
         return true
@@ -540,6 +612,19 @@ export default class battleScreen extends Menus{
         // which reads oddly. Nudge that room's enemies down a touch; every other room is fine.
         const room = this.game?.currentRoom
         const wallYOffset = (room?.floorNumber === 1 && room?.roomNumber === 1) ? 40 : 0
+        // Two-stage final boss: spawn Eldric now and hold Lysara in pendingBoss so she can be
+        // spawned (spawnSecondBoss) when he dies. Both are floor-3 bosses in the same pool, so
+        // pick them out by name rather than at random; the second stage is skipped if Lysara
+        // isn't present (e.g. fallback data with a single boss).
+        if(this.isFinalBossFight){
+            const eldric = enemyData.find(e => /eldric/i.test(e.name)) ?? enemyData[0]
+            const lysara = enemyData.find(e => /lysara/i.test(e.name))
+            this.pendingBoss = (lysara && lysara !== eldric)
+                ? { datum: lysara, width: ENEMY_WIDTH, height: ENEMY_HEIGHT } : null
+            this.enemies.push(this.makeEnemy(eldric, 3*this.canvasWidth/4, this.player.y, ENEMY_WIDTH, ENEMY_HEIGHT))
+            this.spawnedEnemyIds.push(eldric.id)
+            return
+        }
         let count = isBoss ? 1 : Math.floor(1 + Math.random() * 3);
         if(count > 1){
             // Lay the group out CENTERED on the right side instead of pinning the outermost
@@ -570,6 +655,38 @@ export default class battleScreen extends Menus{
             this.enemies.push(this.makeEnemy(datum, 3*this.canvasWidth/4, this.player.y + wallYOffset, ENEMY_WIDTH, ENEMY_HEIGHT))
             this.spawnedEnemyIds.push(datum.id)
         }
+    }
+
+    // Brings in the second final boss (Lysara) after the first (Eldric) falls, in the SAME
+    // battle: the player keeps their current HP/stamina (that's the challenge), the turn
+    // resets to the player with a fresh parry bar, and the end-of-battle tallies are extended
+    // so she counts toward kills + XP. Called from update()'s victory check while a pendingBoss
+    // is queued.
+    spawnSecondBoss(){
+        const { datum, width, height } = this.pendingBoss
+        this.pendingBoss = null
+        // Drop the just-defeated first boss (still in the array on the player turn, where the
+        // victory check fires before checkEnemyStatus runs) so it isn't drawn behind Lysara.
+        this.checkEnemyStatus()
+        const boss = this.makeEnemy(datum, 3*this.canvasWidth/4, this.player.y, width, height)
+        this.enemies.push(boss)
+        this.spawnedEnemyIds.push(datum.id)
+        // Extend the snapshots taken at construction so the second boss is counted at the end.
+        this.initialEnemyCount += 1
+        this.totalEnemyXp += boss.experienceReward || 0
+        // Reset the per-enemy turn state and hand control back to the player.
+        this.currentEnemyIndex = 0
+        this.currentDecision = null
+        this.currentDamage = 0
+        this.enemyAttacking = undefined
+        this.pendingIdleEnemy = null
+        this.pendingIdlePlayer = false
+        this.turn = 'player'
+        this.player.playState('idle')
+        this.ParryBar.dispose()
+        this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, this.player.stamina, this.player.maxStamina)
+        // Dramatic tell that the fight isn't over.
+        this.showActionLabel('Lysara appears!', 'magenta', 1600)
     }
 
     // Builds one Enemy from a normalized datum, forwarding the DB combat stats the

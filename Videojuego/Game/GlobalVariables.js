@@ -26,9 +26,20 @@ export const ACTION_TYPES = {
     ATTACK_MAGIC: "attack_magic",
     DEFEND_PHYSIC: "defend_physic",
     DEFEND_MAGIC: "defend_magic",
+    ATTACK_SPECIAL: "attack_special",
     HEALING: "healing",
+    RECOVER_STAMINA: "recover_stamina",
     AOE_PHYSIC: "aoe_physic",
     AOE_MAGIC: "aoe_magic"
+}
+
+// Once-per-battle potions for the lobby's one-slot Potion deck. Source of truth / fallback
+// for when the DB catalog rows (Database/potions.sql) aren't available. `restorePct` is the
+// percent of the player's max HP / max stamina restored when drunk; `actionType` decides which
+// stat is restored. `spriteName` is the bare stem resolved by dataAdapter (Assets/Sprites/cards).
+export const POTIONS = {
+    HEALTH:  { key: "HEALTH",  name: "Health Potion",  actionType: ACTION_TYPES.HEALING,         restorePct: 40, spriteName: "health_potion" },
+    STAMINA: { key: "STAMINA", name: "Stamina Potion", actionType: ACTION_TYPES.RECOVER_STAMINA, restorePct: 50, spriteName: "stamina_potion" }
 }
 
 
