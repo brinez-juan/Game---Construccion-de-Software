@@ -16,6 +16,29 @@ const GUARD_DEFENSE_BONUS = 15;  // temporary bonus added by a defend action
 // AOE cards hit every enemy, so each hit is throttled: an AOE is crowd utility, not a
 // stronger single-target nuke. Combined with their low base damage in the DB.
 const AOE_FACTOR = 0.6;
+// Pause inserted between the player's action and the enemy turn so the player's
+// attack/defend pose gets its own visible beat (mirrors the hold between enemy actions)
+// before reverting to idle. Tunable.
+const TURN_TRANSITION_MS = 1200;
+
+// Player combat art per archetype. SOLDIER uses the base player_* set; ARCHER and MAGE
+// have their own idle/attack/defend poses. Falls back to SOLDIER for an unknown archetype.
+const CHARACTER_SPRITE_DIR = '../Assets/Sprites/characters/';
+const PLAYER_SPRITES = {
+    SOLDIER: { idle: 'player.png',        attack: 'player_attack.png',        defend: 'player_defend.png' },
+    ARCHER:  { idle: 'player_archer.png', attack: 'player_archer_attack.png', defend: 'player_archer_defend.png' },
+    MAGE:    { idle: 'player_mage.png',   attack: 'player_mage_attack.png',   defend: 'player_mage_defend.png' }
+};
+
+// Resolves an archetype's sprite set to full idle/attack/defend paths.
+function playerSpriteStatesFor(archetype){
+    const set = PLAYER_SPRITES[archetype] ?? PLAYER_SPRITES.SOLDIER;
+    return {
+        idle:   CHARACTER_SPRITE_DIR + set.idle,
+        attack: CHARACTER_SPRITE_DIR + set.attack,
+        defend: CHARACTER_SPRITE_DIR + set.defend
+    };
+}
 
 // Maps any attack/defend action type to its damage school.
 function damageSchool(actionType){
@@ -68,6 +91,12 @@ export default class battleScreen extends Menus{
         this.currentDamage = 0;
         this.parryLabel = null;
         this.parryLabelTimer = 0;
+        // An enemy that just defended, awaiting revert to its idle pose once its
+        // "Defends!" tell (the parry label hold) clears. See update() / decideEnemyAction.
+        this.pendingIdleEnemy = null;
+        // True while the player→enemy transition hold is running, so the player's action
+        // pose reverts to idle when that hold ends (see beginEnemyTurn / update).
+        this.pendingIdlePlayer = false;
         this.failedSelection = new Audio('../Assets/Audio/SYS_buzzer.ogg')
         this.playSfx = (path) => {
             if (!sfxEnabled || !path) return;
@@ -102,10 +131,9 @@ export default class battleScreen extends Menus{
                         this.playerDefenseType = damageSchool(card.action.actionType)
                         this.player.stamina = this.player.stamina - card.staminaCost > 0 ? this.player.stamina - card.staminaCost : 0
                         this.player.staminaBar.calculateCurrentIndicatorSubstraction(card.staminaCost)
+                        this.player.playState('defend')
                         this.playSfx(card.action.sfxPath)
-                        this.turn = 'enemy'
-                        this.player.setSprite('../Assets/Sprites/characters/player_defend.png')
-                        console.log(this.player.spriteImage)
+                        this.beginEnemyTurn()
                         return
                     }
                     else if(card.action.actionType === 'aoe_magic' || card.action.actionType === 'aoe_physic'){
@@ -119,7 +147,8 @@ export default class battleScreen extends Menus{
                         this.player.stamina = this.player.stamina - card.staminaCost > 0 ? this.player.stamina - card.staminaCost : 0
                         this.player.staminaBar.calculateCurrentIndicatorSubstraction(card.staminaCost)
                         this.playSfx(card.action.sfxPath)
-                        this.turn = 'enemy'
+                        this.player.playState('attack')
+                        this.beginEnemyTurn()
                         return
                     }
                     else{
@@ -150,11 +179,11 @@ export default class battleScreen extends Menus{
                 enemy.healthBar.calculateCurrentIndicatorSubstraction(dealt)
                 this.player.stamina = this.player.stamina - this.cardInAction.staminaCost > 0 ? this.player.stamina - this.cardInAction.staminaCost : 0
                 this.player.staminaBar.calculateCurrentIndicatorSubstraction(this.cardInAction.staminaCost)
-                console.log(this.player.staminaBar.missingAttributeBar.width)
                 this.playSfx(this.cardInAction.action.sfxPath)
+                this.player.playState('attack')
                 this.cardInAction.y += 15
                 this.cardInAction = null
-                this.turn = 'enemy'
+                this.beginEnemyTurn()
                 return
             }
         }
@@ -200,7 +229,20 @@ export default class battleScreen extends Menus{
     update(deltaTime){
         if(this.parryLabelTimer > 0){
             this.parryLabelTimer -= deltaTime;
-            if(this.parryLabelTimer <= 0) this.parryLabel = null;
+            if(this.parryLabelTimer <= 0){
+                this.parryLabel = null;
+                // A defending enemy's "Defends!" tell has run its course — revert its pose.
+                if(this.pendingIdleEnemy){
+                    this.pendingIdleEnemy.playState('idle')
+                    this.pendingIdleEnemy = null
+                }
+                // The player's action pose has had its beat — drop back to idle before the
+                // enemy turn actually plays out.
+                if(this.pendingIdlePlayer){
+                    this.player.playState('idle')
+                    this.pendingIdlePlayer = false
+                }
+            }
         }
         if(this.player.health <= 0){
             this.removeEventListeners()
@@ -347,6 +389,7 @@ export default class battleScreen extends Menus{
         this.enemyAttacking.guardType = null
         const decision = this.enemyAttacking.decideAction(this.player)
         let damageDone = 0;
+        let defended = false;
         if(decision === 'attack_physic'){
             damageDone = this.enemyAttacking.physicalDamage
         }
@@ -355,19 +398,29 @@ export default class battleScreen extends Menus{
         }
         else if(decision === 'defend_physic'){
             this.enemyAttacking.guardType = 'physic'
+            defended = true
         }
         else if(decision === 'defend_magic'){
             this.enemyAttacking.guardType = 'magic'
+            defended = true
         }
 
         // No damage means the enemy defended (or has no usable attack): skip the parry bar
-        // entirely — no parry, no stamina drain — and move straight to the next enemy. The
-        // defend has no message for now; per-enemy attack/defend sprites will be the tell.
+        // entirely — no parry, no stamina drain — and move straight to the next enemy. A
+        // defend shows its pose for a brief hold (no text label), reverting to idle once the
+        // hold clears (handled in update via pendingIdleEnemy). The pose itself is the tell.
         if(damageDone <= 0){
+            if(defended){
+                this.enemyAttacking.playState('defend')
+                this.pendingIdleEnemy = this.enemyAttacking
+                this.parryLabelTimer = 900
+            }
             this.advanceEnemy()
             return false
         }
 
+        // An attack holds its pose through the whole parry window; reverted in resolveEnemyAttack.
+        this.enemyAttacking.playState('attack')
         this.currentDecision = decision
         this.currentDamage = damageDone
         return true
@@ -400,6 +453,9 @@ export default class battleScreen extends Menus{
         if (this.ParryBar.state === 'perfect') {
             this.playSfx('../Assets/Audio/SFX_dodge.mp3');
         }
+        // The attack has resolved — drop the attacker back to idle while the result label holds.
+        if(this.enemyAttacking){ this.enemyAttacking.playState('idle') }
+
         const labelData = { perfect: ['Perfect!', 'green'], normal: ['Good!', 'yellow'], miss: ['Miss!', 'red'] }
         const [text, color] = labelData[this.ParryBar.state] ?? labelData.miss
         this.showActionLabel(text, color, 1500)
@@ -423,6 +479,16 @@ export default class battleScreen extends Menus{
         this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, this.player.stamina, this.player.maxStamina)
     }
 
+    // Hands control to the enemies after a short pause, so the player's just-played
+    // attack/defend pose gets a visible beat of its own (the same hold used between enemy
+    // actions) instead of lingering for the whole enemy turn. update() reverts the player
+    // to idle when this hold elapses.
+    beginEnemyTurn(){
+        this.turn = 'enemy'
+        this.pendingIdlePlayer = true
+        this.parryLabelTimer = TURN_TRANSITION_MS
+    }
+
     // Ends the enemy turn: resets the index/bar and returns control to the player.
     endEnemyTurn(){
         this.currentEnemyIndex = 0
@@ -431,12 +497,12 @@ export default class battleScreen extends Menus{
         this.ParryBar.dispose()
         this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, this.player.stamina, this.player.maxStamina)
         this.turn = 'player'
-        this.player.setSprite('../Assets/Sprites/characters/player.png')
+        this.player.playState('idle')
     }
 
     playerMaker(playerData){
         this.player = new Player(this.canvasWidth/5, this.canvasHeight/2 + 30, 180, 300, playerData.maxHealth, playerData.health, playerData.maxStamina, playerData.stamina, playerData.attributes, playerData.level, playerData.experience, playerData.experienceToNextLevel)
-        this.player.setSprite('../Assets/Sprites/characters/player.png')
+        this.player.setSpriteStates(playerSpriteStatesFor(playerData.archetype))
     }
 
     // Instantiates Enemy objects from raw pool data and lays them out on the canvas.
@@ -481,7 +547,8 @@ export default class battleScreen extends Menus{
             datum.health, datum.maxHealth, datum.stamina, datum.maxStamina, datum.attributes,
             datum.physicalDamage, datum.magicDamage, datum.physicalDefense, datum.magicDefense,
             datum.experienceReward, null, datum.isBoss)
-        if(datum.spritePath){ enemy.setSprite(datum.spritePath) }
+        if(datum.spritePaths){ enemy.setSpriteStates(datum.spritePaths) }
+        else if(datum.spritePath){ enemy.setSprite(datum.spritePath) }
         return enemy
     }
 }

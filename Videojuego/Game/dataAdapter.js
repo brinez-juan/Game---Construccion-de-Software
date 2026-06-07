@@ -41,6 +41,17 @@ const FALLBACK_CARD_SPRITE = CARD_SPRITE_DIR + 'knight_shield.jpeg';
 const ENEMY_SPRITE_DIR = '../Assets/Sprites/characters/';
 const FALLBACK_ENEMY_SPRITE = ENEMY_SPRITE_DIR + 'corrupt_knight_1.png';
 
+// Attack/defend art is normally derived from the idle filename by inserting the tag
+// before the trailing tier (`crystal_gargoyle_3.png` -> `crystal_gargoyle_attack_3.png`).
+// A few shipped files break that scheme (stem typos / "defense" vs "defend"), so they're
+// pinned here, keyed by the DB idle filename. Enemies with no variant art aren't listed
+// (and aren't derivable to a real file) — playState() keeps them on idle.
+const ENEMY_SPRITE_OVERRIDES = {
+    'crystal_gargoyle_3.png':       { defend: 'crytsal_gargoyle_defend_3.png' },
+    'rotten_spirit_3.png':          { attack: 'rottens_spirit_attack_3.png' },
+    'Isolde_draconic_maiden_2.png': { defend: 'Isolde_draconic_maiden_defense_2.png' }
+};
+
 // "Fire Bolt" -> "fire_bolt"
 function slugify(name) {
     return String(name)
@@ -87,6 +98,26 @@ function spritePathFor(spriteName, name) {
 function enemySpritePathFor(apiEnemy) {
     const file = apiEnemy && apiEnemy.sprite;
     return file ? ENEMY_SPRITE_DIR + file : FALLBACK_ENEMY_SPRITE;
+}
+
+// Inserts an action tag before the trailing `_<tier>` of an idle filename:
+// `corrupt_knight_1.png` + 'attack' -> `corrupt_knight_attack_1.png`.
+function deriveVariantFile(idleFile, tag) {
+    return idleFile.replace(/_(\d+)(\.[a-z]+)$/i, `_${tag}_$1$2`);
+}
+
+// Resolves an enemy's { idle, attack, defend } poses from its DB-pinned idle filename.
+// Attack/defend default to the derived names, with per-enemy overrides applied on top.
+// All three are returned as full paths; the Enemy's playState() falls back to idle for
+// any pose whose file doesn't exist.
+function enemySpriteStatesFor(apiEnemy) {
+    const idleFile = (apiEnemy && apiEnemy.sprite) || 'corrupt_knight_1.png';
+    const override = ENEMY_SPRITE_OVERRIDES[idleFile] || {};
+    return {
+        idle:   ENEMY_SPRITE_DIR + idleFile,
+        attack: ENEMY_SPRITE_DIR + (override.attack || deriveVariantFile(idleFile, 'attack')),
+        defend: ENEMY_SPRITE_DIR + (override.defend || deriveVariantFile(idleFile, 'defend'))
+    };
 }
 
 // Midpoint of an inclusive [min, max] range, rounded; tolerates null/equal bounds.
@@ -228,7 +259,8 @@ export function normalizeEnemy(apiEnemy) {
         experienceReward: Number(apiEnemy.xp_reward) || 0,
         isBoss: !!apiEnemy.is_boss,
         floorNumber: apiEnemy.floor_number,
-        spritePath: enemySpritePathFor(apiEnemy)
+        spritePath: enemySpritePathFor(apiEnemy),
+        spritePaths: enemySpriteStatesFor(apiEnemy)
     };
 }
 

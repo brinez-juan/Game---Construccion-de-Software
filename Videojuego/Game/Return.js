@@ -84,7 +84,7 @@ class Game {
             maxHealth: 100, health: 100, maxStamina: 100, stamina: 100,
             attributes: { STRENGTH: 0, DEXTERITY: 0, INTELLIGENCE: 0, VIGOR: 0, ENDURANCE: 0 },
             level: 1, experience: 0, experienceToNextLevel: 100,
-            inventory: [], activeDeck: []
+            inventory: [], activeDeck: [], archetype: 'SOLDIER'
         };
     }
 
@@ -131,7 +131,8 @@ class Game {
             // XP bar tracks per-level progress instead of cumulative XP).
             experienceToNextLevel: Math.round(100 * Math.pow(1.5, level - 1)),
             inventory,
-            activeDeck
+            activeDeck,
+            archetype: slot.profile?.archetype ?? 'SOLDIER'
         };
     }
 
