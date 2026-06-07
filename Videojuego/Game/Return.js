@@ -10,6 +10,7 @@ import battleLobby from './battleLobby.js';
 import archetypeScreen from './archetypeScreen.js';
 import mapScreen, { MapManager } from './mapScreen.js';
 import musicManager from './MusicManager.js';
+import { musicEnabled } from './GlobalVariables.js';
 import SavedGamesAPI from '../savedGamesApi.js';
 import {
     normalizeCard,
@@ -294,10 +295,14 @@ class Game {
             this.currentMenu = new battleScreen(room.background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(room), this, !!room?.isBoss)
         }
         // Music routing: intro on non-battle screens, battle/boss on battle screens.
-        if (this.currentMenu instanceof battleScreen) {
-            musicManager.play(this.currentRoom?.isBoss ? 'boss' : 'battle');
+        if (musicEnabled) {
+            if (this.currentMenu instanceof battleScreen) {
+                musicManager.play(this.currentRoom?.isBoss ? 'boss' : 'battle');
+            } else {
+                musicManager.play('intro');
+            }
         } else {
-            musicManager.play('intro');
+            musicManager.stopAll();
         }
 
         this.menuStack.push(this.currentMenu)

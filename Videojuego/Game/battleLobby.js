@@ -110,7 +110,7 @@ export default class battleLobby extends Menus{
         let posX = positionX - 2 * (cardWidth + offSetX)
         let posY = positionY + 60
         for(let card of activeDeck){
-            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null)
+            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null, card.sfxPath)
             // Build a real { ATTR: minValue } requirements object (keys are UPPERCASE,
             // matching this.attributes) so ItemCard.meetsRequirements() can gate equips.
             const requirements = card.required_attribute ? { [card.required_attribute]: card.required_value } : {}
@@ -135,7 +135,7 @@ export default class battleLobby extends Menus{
         this.inventoryRightX = positionX + 2 * (cardWidth + offSetX)
         this.inventoryRowY = posY
         for(let card of inventory){
-            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null)
+            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null, card.sfxPath)
             // Build a real { ATTR: minValue } requirements object (keys are UPPERCASE,
             // matching this.attributes) so ItemCard.meetsRequirements() can gate equips.
             const requirements = card.required_attribute ? { [card.required_attribute]: card.required_value } : {}
