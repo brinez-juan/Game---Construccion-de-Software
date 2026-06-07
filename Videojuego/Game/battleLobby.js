@@ -127,6 +127,23 @@ export default class battleLobby extends Menus{
             this.deck.push(cardInstance)
             posX += cardWidth + offSetX
         }
+        // Remember the deck row layout so the open slots (the deck can start with fewer
+        // than MAX_DECK_SIZE cards) can be placed, drawn and clicked to add a card.
+        this.deckSlotStartX = positionX - 2 * (cardWidth + offSetX)
+        this.deckSlotStep = cardWidth + offSetX
+        this.deckRowY = posY
+        this.deckCardWidth = cardWidth
+        this.deckCardHeight = cardHeight
+        this.rebuildEmptyDeckSlots()
+    }
+
+    // (Re)builds the clickable placeholders for the open deck slots so an inventory card
+    // can be added whenever the deck holds fewer than MAX_DECK_SIZE cards.
+    rebuildEmptyDeckSlots(){
+        this.emptyDeckSlots = []
+        for(let i = this.deck.length; i < MAX_DECK_SIZE; i++){
+            this.emptyDeckSlots.push(new GameObject(this.deckSlotStartX + i*this.deckSlotStep, this.deckRowY, this.deckCardWidth, this.deckCardHeight))
+        }
     }
 
     inventorySectionSpawn(inventory, positionX, positionY, cardWidth, cardHeight, offSetX){
@@ -138,6 +155,10 @@ export default class battleLobby extends Menus{
         this.inventoryLeftX = posX
         this.inventoryRightX = positionX + 2 * (cardWidth + offSetX)
         this.inventoryRowY = posY
+        // Fixed x of each of the 5 visible inventory slots, so the page can be rebuilt
+        // after the inventory changes size (e.g. a card is moved into the deck).
+        this.inventorySlotXs = []
+        for(let i = 0; i < 5; i++){ this.inventorySlotXs.push(posX + i*(cardWidth + offSetX)) }
         for(let card of inventory){
             let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null)
             // Build a real { ATTR: minValue } requirements object (keys are UPPERCASE,
@@ -154,6 +175,35 @@ export default class battleLobby extends Menus{
         // Only the first page (up to 5) of real cards is shown at once.
         for(let i = 0; i < Math.min(5, this.inventory.length); i++){
             this.inventoryStack.push(this.inventory[i])
+        }
+    }
+
+    // Moves a selected inventory card into an open deck slot, growing the Battle Deck up
+    // to MAX_DECK_SIZE. The card leaves the inventory entirely (deck and inventory stay
+    // disjoint, mirroring the swap path), then both displays are rebuilt.
+    addInventoryCardToDeck(card, slot){
+        const invIndex = this.inventory.indexOf(card)
+        if(invIndex !== -1){ this.inventory.splice(invIndex, 1) }
+        card.x = slot.x
+        card.y = slot.y
+        this.deck.push(card)
+        this.cardSelectedInventory = null
+        this.rebuildEmptyDeckSlots()
+        this.refreshInventoryWindow()
+    }
+
+    // Rebuilds the visible inventory page (up to 5 cards) from inventoryCurrentIndex,
+    // re-seating each card onto its slot position. Used after the inventory changes size.
+    refreshInventoryWindow(){
+        this.inventoryStack = []
+        if(this.inventory.length === 0){ this.inventoryCurrentIndex = 0; return }
+        if(this.inventoryCurrentIndex >= this.inventory.length){ this.inventoryCurrentIndex = 0 }
+        const count = Math.min(5, this.inventory.length)
+        for(let i = 0; i < count; i++){
+            const card = this.inventory[(this.inventoryCurrentIndex + i) % this.inventory.length]
+            card.x = this.inventorySlotXs[i]
+            card.y = this.inventoryRowY
+            this.inventoryStack.push(card)
         }
     }
 
@@ -229,6 +279,9 @@ export default class battleLobby extends Menus{
             for(let element of this.inventoryStack){
                 element.mouseCollition(mouseX, mouseY)
             }
+            for(let slot of this.emptyDeckSlots){
+                slot.mouseCollition(mouseX, mouseY)
+            }
             this.startButton.mouseCollition(mouseX, mouseY)
             this.movetoLeftButton.mouseCollition(mouseX, mouseY)
             this.movetoRightButton.mouseCollition(mouseX, mouseY)
@@ -301,7 +354,23 @@ export default class battleLobby extends Menus{
                     this.inventoryStack[indexCurrentShowingCards] = this.inventory[indexInventory]
                     indexCurrentShowingCards++;
                 }
-                return; 
+                return;
+            }
+
+            // Add an inventory card into an open deck slot (the deck can hold fewer than
+            // MAX_DECK_SIZE cards). Requires an inventory card to be selected first; the
+            // same attribute-requirement gate as a swap applies.
+            for(let slot of this.emptyDeckSlots){
+                if(slot.hovered){
+                    if(!this.cardSelectedInventory){ return }
+                    if(!this.cardSelectedInventory.meetsRequirements(this.attributes)){
+                        this.requirementWarning(this.cardSelectedInventory)
+                        this.lowerSelection('inventory')
+                        return
+                    }
+                    this.addInventoryCardToDeck(this.cardSelectedInventory, slot)
+                    return
+                }
             }
 
             // Card exchange (US: 5-card deck <-> inventory). The player clicks one card,
@@ -393,6 +462,26 @@ export default class battleLobby extends Menus{
         }
     }
 
+    // Renders an open deck slot as a dashed outline with a "+", highlighted on hover, so
+    // the player can see there's room and where to drop a selected inventory card.
+    drawEmptyDeckSlot(ctx, slot){
+        const x = slot.x - slot.width/2
+        const y = slot.y - slot.height/2
+        ctx.save()
+        const color = slot.hovered ? '#f5d76e' : 'rgba(0,0,0,0.45)'
+        ctx.strokeStyle = color
+        ctx.lineWidth = 2
+        ctx.setLineDash([6, 4])
+        ctx.strokeRect(x, y, slot.width, slot.height)
+        ctx.setLineDash([])
+        ctx.fillStyle = color
+        ctx.font = '28px Academia'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('+', slot.x, slot.y)
+        ctx.restore()
+    }
+
     draw(ctx){
         this.background.draw(ctx)
         this.inventoryLabel.draw(ctx)
@@ -409,6 +498,9 @@ export default class battleLobby extends Menus{
         }
         for(let element of this.deck){
             element.draw(ctx)
+        }
+        for(let slot of this.emptyDeckSlots){
+            this.drawEmptyDeckSlot(ctx, slot)
         }
         for(let element of this.inventoryStack){
             element.draw(ctx)

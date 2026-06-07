@@ -46,17 +46,17 @@ export const ARCHETYPES = {
     SOLDIER: {
         id: "soldier",
         attributes: { STRENGTH: 3, DEXTERITY: 1, INTELLIGENCE: 0, VIGOR: 2, ENDURANCE: 2 },
-        startingCards: ["vicious_sword", "rusted_longsword", "battle_axe", "crystal_knuckle", "knight_shield"]
+        startingCards: ["vicious_sword", "battle_axe", "knight_shield"]
     },
     ARCHER: {
         id: "archer",
         attributes: { STRENGTH: 1, DEXTERITY: 3, INTELLIGENCE: 0, VIGOR: 1, ENDURANCE: 2 },
-        startingCards: ["hunter_bow", "pestilent_hook_flail", "moonlit_crescent_blade", "sentinel_twinblades", "knight_shield"]
+        startingCards: ["hunter_bow", "pestilent_hook_flail", "knight_shield"]
     },
     MAGE: {
         id: "mage",
         attributes: { STRENGTH: 0, DEXTERITY: 1, INTELLIGENCE: 3, VIGOR: 1, ENDURANCE: 2 },
-        startingCards: ["fireball", "ravenwood_crook", "dark_ward", "hunter_bow", "knight_shield"]
+        startingCards: ["fireball", "ravenwood_crook", "knight_shield"]
     }
 };
 
