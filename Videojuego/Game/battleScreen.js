@@ -7,6 +7,17 @@ import {canvas} from './Return.js';
 import TextLabel from './TextLabel.js';
 import { normalizeCatalogCard } from './dataAdapter.js';
 
+// Enemy defense tuning. Mitigation follows the classic armor curve damage*K/(K+def): never
+// negative, diminishing returns. K is sized for the DB defense range (~1-21) so a high-armor
+// enemy mitigates roughly half. GUARD_DEFENSE_BONUS is the temporary typed bump a defend grants.
+const DEFENSE_K = 25;            // lower = armor matters more
+const GUARD_DEFENSE_BONUS = 15;  // temporary bonus added by a defend action
+
+// Maps any attack/defend action type to its damage school.
+function damageSchool(actionType){
+    return String(actionType).includes('magic') ? 'magic' : 'physic';
+}
+
 // Main combat scene that orchestrates player turn, enemy turn, parry timing and end conditions
 export default class battleScreen extends Menus{
     constructor(background = '', canvasWidth = 0, canvasHeight = 0, playerData, enemies, game = null, isBoss = false){
@@ -43,6 +54,14 @@ export default class battleScreen extends Menus{
         this.listenersActive = false
         this.currentEnemyIndex = 0;
         this.playerDefending = false;
+        // School of the defend card the player committed this turn ('physic' | 'magic'). A
+        // matching incoming attack auto-perfect-parries; a mismatched one auto-misses.
+        this.playerDefenseType = null;
+        // The enemy turn resolves one enemy at a time, deciding each action up front
+        // (decideEnemyAction): a defend resolves immediately with NO parry bar, while an
+        // attack is held in currentDecision/currentDamage until the parry resolves it.
+        this.currentDecision = null;
+        this.currentDamage = 0;
         this.parryLabel = null;
         this.parryLabelTimer = 0;
         this.failedSelection = new Audio('../Assets/Audio/SYS_buzzer.ogg')
@@ -70,6 +89,8 @@ export default class battleScreen extends Menus{
                 if(card.hovered && card.staminaCost <= this.player.stamina){
                     if(card.action.actionType === 'defend_physic' || card.action.actionType === 'defend_magic'){
                         this.playerDefending = true;
+                        // Remember the school so the enemy turn can type-match the parry.
+                        this.playerDefenseType = damageSchool(card.action.actionType)
                         this.player.stamina = this.player.stamina - card.staminaCost > 0 ? this.player.stamina - card.staminaCost : 0
                         this.player.staminaBar.calculateCurrentIndicatorSubstraction(card.staminaCost)
                         this.turn = 'enemy'
@@ -79,9 +100,11 @@ export default class battleScreen extends Menus{
                     }
                     else if(card.action.actionType === 'aoe_magic' || card.action.actionType === 'aoe_physic'){
                         let damageDone = card.action.calculateDamage(this.player.attributes)
+                        const attackType = damageSchool(card.action.actionType)
                         for(let enemy of this.enemies){
-                            enemy.health -= damageDone
-                            enemy.healthBar.calculateCurrentIndicatorSubstraction(damageDone)
+                            const dealt = this.applyEnemyDefense(enemy, damageDone, attackType)
+                            enemy.health -= dealt
+                            enemy.healthBar.calculateCurrentIndicatorSubstraction(dealt)
                         }
                         this.player.stamina = this.player.stamina - card.staminaCost > 0 ? this.player.stamina - card.staminaCost : 0
                         this.player.staminaBar.calculateCurrentIndicatorSubstraction(card.staminaCost)
@@ -110,8 +133,10 @@ export default class battleScreen extends Menus{
         for(let enemy of this.enemies){
             if(enemy.hovered){
                 let damageDone = this.cardInAction.action.calculateDamage(this.player.attributes)
-                enemy.health -= damageDone
-                enemy.healthBar.calculateCurrentIndicatorSubstraction(damageDone)
+                const attackType = damageSchool(this.cardInAction.action.actionType)
+                const dealt = this.applyEnemyDefense(enemy, damageDone, attackType)
+                enemy.health -= dealt
+                enemy.healthBar.calculateCurrentIndicatorSubstraction(dealt)
                 this.player.stamina = this.player.stamina - this.cardInAction.staminaCost > 0 ? this.player.stamina - this.cardInAction.staminaCost : 0
                 this.player.staminaBar.calculateCurrentIndicatorSubstraction(this.cardInAction.staminaCost)
                 console.log(this.player.staminaBar.missingAttributeBar.width)
@@ -136,7 +161,10 @@ export default class battleScreen extends Menus{
         for(let card of this.player.deck){
             card.draw(ctx)
         }
-        if(this.turn === 'enemy' && this.parryLabelTimer <= 0){
+        // Only show the parry bar once an ATTACK has actually been decided (currentDecision is
+        // set). Without this gate the bar flashes for a frame or two before a defending enemy
+        // resolves, since the turn flips to 'enemy' before the decide-first step runs.
+        if(this.turn === 'enemy' && this.parryLabelTimer <= 0 && this.currentDecision != null){
             if(!this.ParryBar.state){
                 this.ParryBar.draw(ctx)
             }
@@ -188,18 +216,31 @@ export default class battleScreen extends Menus{
             this.checkEnemyStatus()
             this.ParryBar.stamina = this.player.stamina
             this.ParryBar.maxStamina = this.player.maxStamina
+
+            // Hold while the previous action's result label is still on screen.
+            if(this.parryLabelTimer > 0){ return }
+
+            // Decide THIS enemy's action up front. A defend resolves immediately with no
+            // parry minigame (decideEnemyAction returns false); only an attack falls
+            // through to spin up the parry bar below.
+            if(this.currentDecision == null && !this.decideEnemyAction()){
+                return
+            }
+
+            // A player defend card auto-resolves the incoming attack by type: a matching school
+            // is a guaranteed perfect parry, a mismatched one can't block at all (auto-miss).
+            // Only reached when an attack is pending, so currentDecision is an attack type.
             if(this.playerDefending){
-                this.ParryBar.state = 'perfect'
+                const attackType = damageSchool(this.currentDecision)
+                this.ParryBar.state = (attackType === this.playerDefenseType) ? 'perfect' : 'miss'
                 this.playerDefending = false;
             }
-            
-            if(this.parryLabelTimer > 0){
-            }
-            else if(!this.ParryBar.state){
+
+            if(!this.ParryBar.state){
                 this.ParryBar.update(deltaTime, this.player.attributes.dexterity)
             }
             else{
-                this.enemyTurn()
+                this.resolveEnemyAttack()
             }
         }
     }
@@ -269,61 +310,108 @@ export default class battleScreen extends Menus{
         }
     }
 
-    // Resolves one enemy attack per call by combining AI decision, parry result and stat changes
-    enemyTurn(){
-        if(this.currentEnemyIndex < this.enemies.length){
-            this.enemyAttacking = this.enemies[this.currentEnemyIndex]
-            let enemyDecision = this.enemyAttacking.decideAction(this.player)
-            let damageDone = 0;
-            if(enemyDecision === 'attack_physic'){
-                damageDone = this.enemyAttacking.physicalDamage
-            }
-            else if(enemyDecision === 'attack_magic'){
-                damageDone = this.enemyAttacking.magicDamage
-            }
-            else if(enemyDecision === 'defend_physic'){
-                damageDone = 0
-                this.enemyAttacking.physicalDefense += 5
-            }
-            else if(enemyDecision === 'defend_magic'){
-                damageDone = 0
-                this.enemyAttacking.magicDefense += 5
-            }
+    // Proportional mitigation of one matching-type attack by an enemy's typed defense (base DB
+    // stat + any matching defend guard), following the armor curve damage*K/(K+def). A wrong-type
+    // guard contributes nothing and is shattered by the attack, so off-type hits land near-full.
+    applyEnemyDefense(enemy, damage, attackType){
+        if(enemy.guardType && enemy.guardType !== attackType){ enemy.guardType = null }
+        const base = (attackType === 'magic' ? enemy.magicDefense : enemy.physicalDefense) || 0
+        const bonus = (enemy.guardType === attackType) ? GUARD_DEFENSE_BONUS : 0
+        const def = base + bonus
+        return Math.max(1, Math.round(damage * DEFENSE_K / (DEFENSE_K + def)))
+    }
 
-            if(damageDone > 0){
-                const finalDamage = this.ParryBar.calculateDamagePlayer(this.player, damageDone)
-                if(finalDamage > 0){
-                    this.player.health -= finalDamage
-                    this.player.healthBar.calculateCurrentIndicatorSubstraction(finalDamage)
-                }
-            }
-            const staminaChange = this.ParryBar.calculateStamina(this.player)
-            if(staminaChange > 0){
-                this.player.stamina = this.player.stamina + staminaChange > this.player.maxStamina ? this.player.maxStamina : this.player.stamina + staminaChange
-                this.player.staminaBar.calculateCurrentIndicatorAddition(staminaChange)
-            } else if(staminaChange < 0){
-                this.player.stamina = this.player.stamina - Math.abs(staminaChange) < 0? 0 : this.player.stamina - Math.abs(staminaChange)
-                this.player.staminaBar.calculateCurrentIndicatorSubstraction(Math.abs(staminaChange))
-            }
-
-            const labelData = { perfect: ['Perfect!', 'green'], normal: ['Good!', 'yellow'], miss: ['Miss!', 'red'] }
-            const [text, color] = labelData[this.ParryBar.state] ?? labelData.miss
-            this.parryLabel = new TextLabel(this.canvasWidth / 2, this.canvasHeight / 2 - 60, 'bold 36px Arial', color, undefined, text)
-            this.parryLabelTimer = 1500
-
-            this.currentEnemyIndex++
-            if(this.currentEnemyIndex < this.enemies.length){
-                this.ParryBar.dispose()
-                this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, this.player.stamina, this.player.maxStamina)
-            }
+    // Decides the current enemy's action BEFORE any parry bar appears. A defend raises a typed
+    // guard and resolves immediately (no parry minigame), returning false so the caller knows
+    // there's nothing to parry this frame. An attack stores its damage and returns true so the
+    // caller spins up the parry bar. When every enemy has acted the turn is handed back.
+    decideEnemyAction(){
+        if(this.currentEnemyIndex >= this.enemies.length){
+            this.endEnemyTurn()
+            return false
         }
-        else{
-            this.currentEnemyIndex = 0
-            this.ParryBar.dispose()
-            this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, this.player.stamina, this.player.maxStamina)
-            this.turn = 'player'
-            this.player.setSprite('../Assets/Sprites/characters/player.png') 
+        this.enemyAttacking = this.enemies[this.currentEnemyIndex]
+        // Last turn's guard expires when this enemy acts again.
+        this.enemyAttacking.guardType = null
+        const decision = this.enemyAttacking.decideAction(this.player)
+        let damageDone = 0;
+        if(decision === 'attack_physic'){
+            damageDone = this.enemyAttacking.physicalDamage
         }
+        else if(decision === 'attack_magic'){
+            damageDone = this.enemyAttacking.magicDamage
+        }
+        else if(decision === 'defend_physic'){
+            this.enemyAttacking.guardType = 'physic'
+        }
+        else if(decision === 'defend_magic'){
+            this.enemyAttacking.guardType = 'magic'
+        }
+
+        // No damage means the enemy defended (or has no usable attack): skip the parry bar
+        // entirely — no parry, no stamina drain — and move straight to the next enemy. The
+        // defend has no message for now; per-enemy attack/defend sprites will be the tell.
+        if(damageDone <= 0){
+            this.advanceEnemy()
+            return false
+        }
+
+        this.currentDecision = decision
+        this.currentDamage = damageDone
+        return true
+    }
+
+    // Applies a decided attack through the player's parry result: perfect negates it,
+    // normal cuts it to 30%, a miss takes it in full. Stamina is always reconciled, then
+    // the result label is shown and the turn advances to the next enemy.
+    resolveEnemyAttack(){
+        const finalDamage = this.ParryBar.calculateDamagePlayer(this.player, this.currentDamage)
+        if(finalDamage > 0){
+            this.player.health -= finalDamage
+            this.player.healthBar.calculateCurrentIndicatorSubstraction(finalDamage)
+        }
+
+        const staminaChange = this.ParryBar.calculateStamina(this.player)
+        if(staminaChange > 0){
+            this.player.stamina = this.player.stamina + staminaChange > this.player.maxStamina ? this.player.maxStamina : this.player.stamina + staminaChange
+            this.player.staminaBar.calculateCurrentIndicatorAddition(staminaChange)
+        } else if(staminaChange < 0){
+            this.player.stamina = this.player.stamina - Math.abs(staminaChange) < 0? 0 : this.player.stamina - Math.abs(staminaChange)
+            this.player.staminaBar.calculateCurrentIndicatorSubstraction(Math.abs(staminaChange))
+        }
+
+        const labelData = { perfect: ['Perfect!', 'green'], normal: ['Good!', 'yellow'], miss: ['Miss!', 'red'] }
+        const [text, color] = labelData[this.ParryBar.state] ?? labelData.miss
+        this.showActionLabel(text, color, 1500)
+
+        this.advanceEnemy()
+    }
+
+    // Shows a centered combat label for `duration` ms. Also paces the enemy turn: while the
+    // label is up the enemy block holds, so consecutive actions don't resolve in one frame.
+    showActionLabel(text, color, duration = 1500){
+        this.parryLabel = new TextLabel(this.canvasWidth / 2, this.canvasHeight / 2 - 60, 'bold 36px Arial', color, undefined, text)
+        this.parryLabelTimer = duration
+    }
+
+    // Moves to the next enemy: clears the decision and hands it a fresh parry bar.
+    advanceEnemy(){
+        this.currentDecision = null
+        this.currentDamage = 0
+        this.currentEnemyIndex++
+        this.ParryBar.dispose()
+        this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, this.player.stamina, this.player.maxStamina)
+    }
+
+    // Ends the enemy turn: resets the index/bar and returns control to the player.
+    endEnemyTurn(){
+        this.currentEnemyIndex = 0
+        this.currentDecision = null
+        this.currentDamage = 0
+        this.ParryBar.dispose()
+        this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, this.player.stamina, this.player.maxStamina)
+        this.turn = 'player'
+        this.player.setSprite('../Assets/Sprites/characters/player.png')
     }
 
     playerMaker(playerData){
