@@ -229,4 +229,71 @@ router.patch('/api/saved-games/:id/attributes', requireAuth, async (req, res) =>
   }
 });
 
+// US16 — Issue #52: persist level + accumulated XP after each battle.
+// XP/level live on player_profiles (the per-run-surviving meta-progression
+// home), reachable from a slot via saved_games.player_profile_id — they are
+// deliberately NOT duplicated into saved_games, so the 3NF check still holds.
+// Both fields are optional so a caller can patch one without the other; the
+// COALESCE keeps the omitted column untouched.
+router.patch('/api/saved-games/:id/experience', requireAuth, async (req, res) => {
+  const { total_experience, level, attribute_points_granted } = req.body || {};
+
+  // Normalize: clamp XP to a non-negative int and level to >= 1. null means
+  // "leave this column as-is" so a single-field patch is possible.
+  const xp = total_experience == null
+    ? null
+    : Math.max(0, Math.trunc(Number(total_experience)));
+  const lvl = level == null
+    ? null
+    : Math.max(1, Math.trunc(Number(level)));
+  // Attribute points earned this battle from leveling up. Applied as an INCREMENT
+  // (not an overwrite) so it composes correctly with point-spending that happens
+  // between battles — the client never has to know the authoritative total. A
+  // non-positive/omitted value is a no-op.
+  const grant = attribute_points_granted == null
+    ? 0
+    : Math.max(0, Math.trunc(Number(attribute_points_granted)));
+
+  if (xp == null && lvl == null && grant === 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Provide total_experience, level and/or attribute_points_granted.'
+    });
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    const { profileId, error } = await getProfileIdForSlot(conn, req.params.id, req.user.id);
+    if (error || !profileId) {
+      return res.status(404).json({
+        success: false,
+        message: error ? 'Save not found.' : 'Slot has no profile yet.'
+      });
+    }
+
+    await conn.query(
+      `UPDATE player_profiles
+          SET total_experience = COALESCE(?, total_experience),
+              level            = COALESCE(?, level),
+              attribute_points = attribute_points + ?
+        WHERE id = ?`,
+      [xp, lvl, grant, profileId]
+    );
+
+    // Read the stored values back so the client can sync without a second GET.
+    // attribute_points is the authoritative remaining pool after the grant.
+    const [after] = await conn.query(
+      'SELECT total_experience, level, attribute_points FROM player_profiles WHERE id = ?',
+      [profileId]
+    );
+
+    return res.json({ success: true, ...after[0] });
+  } catch (error) {
+    console.error('experience update error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update experience.' });
+  } finally {
+    conn.release();
+  }
+});
+
 export default router;

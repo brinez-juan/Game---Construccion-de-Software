@@ -10,6 +10,10 @@ import GameObject from "./GameObject.js";
 import { MAX_DECK_SIZE } from "./GlobalVariables.js";
 //import { text } from "express";
 
+// Pixels a selected card lifts above its row to signal selection (mirrors battleScreen's
+// cardInAction lift).
+const SELECT_RAISE = 15
+
 // Lobby menu displayed between battles to show player progression and allow attribute upgrades
 
 export default class battleLobby extends Menus{
@@ -110,7 +114,7 @@ export default class battleLobby extends Menus{
         let posX = positionX - 2 * (cardWidth + offSetX)
         let posY = positionY + 60
         for(let card of activeDeck){
-            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null)
+            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null, card.sfxPath)
             // Build a real { ATTR: minValue } requirements object (keys are UPPERCASE,
             // matching this.attributes) so ItemCard.meetsRequirements() can gate equips.
             const requirements = card.required_attribute ? { [card.required_attribute]: card.required_value } : {}
@@ -123,6 +127,23 @@ export default class battleLobby extends Menus{
             this.deck.push(cardInstance)
             posX += cardWidth + offSetX
         }
+        // Remember the deck row layout so the open slots (the deck can start with fewer
+        // than MAX_DECK_SIZE cards) can be placed, drawn and clicked to add a card.
+        this.deckSlotStartX = positionX - 2 * (cardWidth + offSetX)
+        this.deckSlotStep = cardWidth + offSetX
+        this.deckRowY = posY
+        this.deckCardWidth = cardWidth
+        this.deckCardHeight = cardHeight
+        this.rebuildEmptyDeckSlots()
+    }
+
+    // (Re)builds the clickable placeholders for the open deck slots so an inventory card
+    // can be added whenever the deck holds fewer than MAX_DECK_SIZE cards.
+    rebuildEmptyDeckSlots(){
+        this.emptyDeckSlots = []
+        for(let i = this.deck.length; i < MAX_DECK_SIZE; i++){
+            this.emptyDeckSlots.push(new GameObject(this.deckSlotStartX + i*this.deckSlotStep, this.deckRowY, this.deckCardWidth, this.deckCardHeight))
+        }
     }
 
     inventorySectionSpawn(inventory, positionX, positionY, cardWidth, cardHeight, offSetX){
@@ -134,8 +155,12 @@ export default class battleLobby extends Menus{
         this.inventoryLeftX = posX
         this.inventoryRightX = positionX + 2 * (cardWidth + offSetX)
         this.inventoryRowY = posY
+        // Fixed x of each of the 5 visible inventory slots, so the page can be rebuilt
+        // after the inventory changes size (e.g. a card is moved into the deck).
+        this.inventorySlotXs = []
+        for(let i = 0; i < 5; i++){ this.inventorySlotXs.push(posX + i*(cardWidth + offSetX)) }
         for(let card of inventory){
-            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null)
+            let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null, card.sfxPath)
             // Build a real { ATTR: minValue } requirements object (keys are UPPERCASE,
             // matching this.attributes) so ItemCard.meetsRequirements() can gate equips.
             const requirements = card.required_attribute ? { [card.required_attribute]: card.required_value } : {}
@@ -150,6 +175,35 @@ export default class battleLobby extends Menus{
         // Only the first page (up to 5) of real cards is shown at once.
         for(let i = 0; i < Math.min(5, this.inventory.length); i++){
             this.inventoryStack.push(this.inventory[i])
+        }
+    }
+
+    // Moves a selected inventory card into an open deck slot, growing the Battle Deck up
+    // to MAX_DECK_SIZE. The card leaves the inventory entirely (deck and inventory stay
+    // disjoint, mirroring the swap path), then both displays are rebuilt.
+    addInventoryCardToDeck(card, slot){
+        const invIndex = this.inventory.indexOf(card)
+        if(invIndex !== -1){ this.inventory.splice(invIndex, 1) }
+        card.x = slot.x
+        card.y = slot.y
+        this.deck.push(card)
+        this.cardSelectedInventory = null
+        this.rebuildEmptyDeckSlots()
+        this.refreshInventoryWindow()
+    }
+
+    // Rebuilds the visible inventory page (up to 5 cards) from inventoryCurrentIndex,
+    // re-seating each card onto its slot position. Used after the inventory changes size.
+    refreshInventoryWindow(){
+        this.inventoryStack = []
+        if(this.inventory.length === 0){ this.inventoryCurrentIndex = 0; return }
+        if(this.inventoryCurrentIndex >= this.inventory.length){ this.inventoryCurrentIndex = 0 }
+        const count = Math.min(5, this.inventory.length)
+        for(let i = 0; i < count; i++){
+            const card = this.inventory[(this.inventoryCurrentIndex + i) % this.inventory.length]
+            card.x = this.inventorySlotXs[i]
+            card.y = this.inventoryRowY
+            this.inventoryStack.push(card)
         }
     }
 
@@ -192,8 +246,20 @@ export default class battleLobby extends Menus{
             console.error('Could not persist room session/deck:', err)
         }
 
-        // Hand the assembled deck to the battle screen via the shared player object.
-        if(this.game?.player){ this.game.player.activeDeck = deckCards }
+        // Hand the assembled deck to the battle screen via the shared player object, and
+        // keep the inventory DISJOINT from it: the lobby's this.inventory already excludes
+        // the deck cards, so the player's run inventory becomes those cards minus anything
+        // that ended up in the deck (the fallback can pull deck cards from the inventory).
+        // Without this the next lobby (post-battle) would list the deck cards in BOTH the
+        // Deck and Inventory rows — the duplication that only cleared on a reload, because
+        // loadSlotData re-splits the saved deck out of the inventory the same way.
+        if(this.game?.player){
+            this.game.player.activeDeck = deckCards
+            const deckIds = new Set(deckCards.map(c => c.cardId))
+            this.game.player.inventory = this.inventory
+                .map(c => c.sourceCard)
+                .filter(card => card && !deckIds.has(card.cardId))
+        }
         this.dispose()
         this.state = this.currentRoom ? this.currentRoom.stateCode : 6
     }
@@ -212,6 +278,9 @@ export default class battleLobby extends Menus{
             }
             for(let element of this.inventoryStack){
                 element.mouseCollition(mouseX, mouseY)
+            }
+            for(let slot of this.emptyDeckSlots){
+                slot.mouseCollition(mouseX, mouseY)
             }
             this.startButton.mouseCollition(mouseX, mouseY)
             this.movetoLeftButton.mouseCollition(mouseX, mouseY)
@@ -242,6 +311,9 @@ export default class battleLobby extends Menus{
                         try {
                             const res = await this.api.spendAttribute(this.slotId, key)
                             this.availablePoints = res.availablePoints
+                            // Keep the shared Game pool in sync so re-entering the lobby
+                            // (without a battle in between) doesn't show a stale count.
+                            if(this.game){ this.game.availablePoints = res.availablePoints }
                             this.attributes[key] = res.attributes[key]
                             attribute.attributeValueLabel.text = res.attributes[key]
                             this.pointsLabel.text = `Points: ${this.availablePoints}`
@@ -282,40 +354,54 @@ export default class battleLobby extends Menus{
                     this.inventoryStack[indexCurrentShowingCards] = this.inventory[indexInventory]
                     indexCurrentShowingCards++;
                 }
-                return; 
+                return;
             }
 
+            // Add an inventory card into an open deck slot (the deck can hold fewer than
+            // MAX_DECK_SIZE cards). Requires an inventory card to be selected first; the
+            // same attribute-requirement gate as a swap applies.
+            for(let slot of this.emptyDeckSlots){
+                if(slot.hovered){
+                    if(!this.cardSelectedInventory){ return }
+                    if(!this.cardSelectedInventory.meetsRequirements(this.attributes)){
+                        this.requirementWarning(this.cardSelectedInventory)
+                        this.lowerSelection('inventory')
+                        return
+                    }
+                    this.addInventoryCardToDeck(this.cardSelectedInventory, slot)
+                    return
+                }
+            }
+
+            // Card exchange (US: 5-card deck <-> inventory). The player clicks one card,
+            // then clicks the card to exchange it for: clicking a card in one zone while a
+            // card in the OTHER zone is already selected falls through to the swap block
+            // below, so the exchange happens on that second click. Clicking the same
+            // selected card reopens its info popup; clicking a different card in the same
+            // zone just moves the selection.
             for(let card of this.inventoryStack){
                 if(card.hovered){
-                    if(!this.cardSelectedInventory){
-                        this.cardSelectedInventory = card
-                        return
-                    }
-                    else if(card === this.cardSelectedInventory){
+                    if(card === this.cardSelectedInventory){
                         this.attributeShow(card)
+                        this.lowerSelection('inventory')
                         return
                     }
-                    else{
-                        this.cardSelectedInventory = card
-                        return
-                    }
+                    this.raiseSelection('inventory', card)
+                    if(!this.cardSelectedDeck){ return }  // wait for the deck card to swap with
+                    break
                 }
             }
 
             for(let card of this.deck){
                 if(card.hovered){
-                    if(!this.cardSelectedDeck){
-                        this.cardSelectedDeck = card
-                        return
-                    }
-                    else if(card === this.cardSelectedDeck){
+                    if(card === this.cardSelectedDeck){
                         this.attributeShow(card)
+                        this.lowerSelection('deck')
                         return
                     }
-                    else{
-                        this.cardSelectedDeck = card
-                        return
-                    }
+                    this.raiseSelection('deck', card)
+                    if(!this.cardSelectedInventory){ return }  // wait for the inventory card
+                    break
                 }
             }
 
@@ -325,7 +411,8 @@ export default class battleLobby extends Menus{
                 // swap and tell the player which attribute is short.
                 if(!this.cardSelectedInventory.meetsRequirements(this.attributes)){
                     this.requirementWarning(this.cardSelectedInventory)
-                    this.cardSelectedInventory = null
+                    this.lowerSelection('inventory')
+                    this.lowerSelection('deck')
                     return
                 }
                 let deckIndex = this.deck.indexOf(this.cardSelectedDeck)
@@ -338,6 +425,10 @@ export default class battleLobby extends Menus{
                 this.cardSelectedDeck.y = this.cardSelectedInventory.y
                 this.cardSelectedInventory.x = deckX
                 this.cardSelectedInventory.y = deckY
+                // Both cards are still lifted from being selected; drop them back so they
+                // sit flat in their new slots.
+                this.cardSelectedDeck.y += SELECT_RAISE
+                this.cardSelectedInventory.y += SELECT_RAISE
 
                 this.deck[deckIndex] = this.cardSelectedInventory                                                                              
                 this.inventory[inventoryIndex] = this.cardSelectedDeck                                                                         
@@ -349,6 +440,46 @@ export default class battleLobby extends Menus{
                 this.cardSelectedInventory = null
             }
         }
+    }
+
+    // Lifts the newly selected card slightly above its row to signal selection (mirrors
+    // the battle screen's cardInAction lift). Lowers the previously selected card in the
+    // same zone first, so only one card per zone is ever raised.
+    raiseSelection(zone, card){
+        const key = zone === 'deck' ? 'cardSelectedDeck' : 'cardSelectedInventory'
+        if(this[key] === card){ return }
+        if(this[key]){ this[key].y += SELECT_RAISE }
+        card.y -= SELECT_RAISE
+        this[key] = card
+    }
+
+    // Drops the currently selected card in a zone back onto its row and clears the selection.
+    lowerSelection(zone){
+        const key = zone === 'deck' ? 'cardSelectedDeck' : 'cardSelectedInventory'
+        if(this[key]){
+            this[key].y += SELECT_RAISE
+            this[key] = null
+        }
+    }
+
+    // Renders an open deck slot as a dashed outline with a "+", highlighted on hover, so
+    // the player can see there's room and where to drop a selected inventory card.
+    drawEmptyDeckSlot(ctx, slot){
+        const x = slot.x - slot.width/2
+        const y = slot.y - slot.height/2
+        ctx.save()
+        const color = slot.hovered ? '#f5d76e' : 'rgba(0,0,0,0.45)'
+        ctx.strokeStyle = color
+        ctx.lineWidth = 2
+        ctx.setLineDash([6, 4])
+        ctx.strokeRect(x, y, slot.width, slot.height)
+        ctx.setLineDash([])
+        ctx.fillStyle = color
+        ctx.font = '28px Academia'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('+', slot.x, slot.y)
+        ctx.restore()
     }
 
     draw(ctx){
@@ -367,6 +498,9 @@ export default class battleLobby extends Menus{
         }
         for(let element of this.deck){
             element.draw(ctx)
+        }
+        for(let slot of this.emptyDeckSlots){
+            this.drawEmptyDeckSlot(ctx, slot)
         }
         for(let element of this.inventoryStack){
             element.draw(ctx)

@@ -1,0 +1,173 @@
+body,
+body.main {
+    background: #0a0a0c;
+    color: #d8d0c4;
+}
+
+.hero-tutorial {
+    min-height: 35vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(rgba(10,10,12,0.7), rgba(10,10,12,0.9)), url('../Assets/backgrounds/battle_background.jpg') center/cover no-repeat;
+}
+
+.hero-title {
+    color: #c9a25a;
+    font-size: 2.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+}
+
+.hero-tagline {
+    color: #a09888;
+    font-size: 1.1rem;
+    font-style: italic;
+}
+
+.section {
+    padding: 3rem 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.section-title {
+    color: #c9a25a;
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(201,162,90,0.25);
+    padding-bottom: 0.5rem;
+}
+
+.glossary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.glossary-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,162,90,0.15);
+    padding: 1.5rem;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glossary-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(201,162,90,0.4);
+    box-shadow: 0 8px 24px rgba(201,162,90,0.1);
+}
+
+.glossary-card h3 {
+    color: #c9a25a;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.8rem;
+}
+
+.glossary-card p,
+.glossary-card li {
+    color: #b0a898;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+}
+
+.glossary-card ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.glossary-card li {
+    padding-left: 1.2rem;
+    position: relative;
+}
+
+.glossary-card li::before {
+    content: "›";
+    position: absolute;
+    left: 0;
+    color: #c9a25a;
+    font-weight: bold;
+}
+
+.keyword {
+    color: #c9a25a;
+    font-weight: bold;
+}
+
+.parry-tier-list {
+    margin-top: 0.5rem;
+}
+
+.parry-tier-list li {
+    margin-bottom: 0.3rem;
+}
+
+.tier-perfect { color: #7ecf7e; }
+.tier-normal { color: #e0c040; }
+.tier-miss { color: #d05050; }
+
+.controls-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+}
+
+.controls-table th,
+.controls-table td {
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(201,162,90,0.1);
+    font-size: 0.95rem;
+}
+
+.controls-table th {
+    color: #c9a25a;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(201,162,90,0.05);
+}
+
+.controls-table td {
+    color: #b0a898;
+}
+
+.full-width-section {
+    padding: 3rem 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.note {
+    color: #8a8278;
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-top: 0.5rem;
+}
+
+.page-footer {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    border-top: 1px solid rgba(201,162,90,0.15);
+    background: #0a0a0c;
+}
+
+.footer-line {
+    color: #c9a25a;
+    font-size: 1.1rem;
+    font-style: italic;
+}
+
+@media (max-width: 640px) {
+    .hero-title { font-size: 1.8rem; }
+    .section-title { font-size: 1.4rem; }
+    .glossary-grid { grid-template-columns: 1fr; }
+}

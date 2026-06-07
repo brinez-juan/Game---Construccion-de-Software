@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RETURN — Tutorial & Glossary</title>
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../styles/tutorial.css">
+    <link rel="icon" href="../Assets/Sprites/favicon.png" type="image/png">
+</head>
+<body class="main">
+    <nav class="Nav-bar">
+        <a href="game.html" class="nav-logo"><img src="../Assets/Sprites/logoGrande.png" alt="Return"></a>
+        <ul>
+            <a href="index.html" class="Nav-Button">
+                <li>Home</li>
+            </a>
+            <a href="login.html" class="Nav-Button">
+                <li>Game</li>
+            </a>
+            <a href="tutorial.html" class="Nav-Button">
+                <li>Tutorial</li>
+            </a>
+            <a href="madeby.html" class="Nav-Button">
+                <li>Made by</li>
+            </a>
+        </ul>
+    </nav>
+
+    <section class="hero-tutorial">
+        <div class="hero-content">
+            <h1 class="hero-title">Tutorial & Glossary</h1>
+            <p class="hero-tagline">Everything you need to survive the kingdom.</p>
+        </div>
+    </section>
+
+    <!-- Objective -->
+    <section class="section">
+        <h2 class="section-title">Game Objective</h2>
+        <p>
+            You are <strong class="keyword">Edrick</strong>, a fallen knight returning to reclaim his honor.
+            Fight through four floors of the ancestral castle — from the tutorial forest to the Throne Room —
+            building your deck, leveling up, and perfecting your parry timing. Death resets your run, but
+            permanent cards and experience survive. Defeat the Forgotten King to win.
+        </p>
+    </section>
+
+    <!-- Combat Overview -->
+    <section class="section">
+        <h2 class="section-title">Combat Overview</h2>
+        <div class="glossary-grid">
+            <div class="glossary-card">
+                <h3>Player Turn</h3>
+                <p>During your turn, select a card from your deck to play. Cards cost <strong class="keyword">Stamina</strong> to use. Click a card to select it, then click an enemy to target it.</p>
+                <ul>
+                    <li>Attack cards deal damage to one or all enemies.</li>
+                    <li>Defense cards skip targeting and prepare you to parry.</li>
+                    <li>Healing cards restore health.</li>
+                    <li>If you lack stamina, the card cannot be played.</li>
+                </ul>
+            </div>
+            <div class="glossary-card">
+                <h3>Enemy Turn</h3>
+                <p>After you play a card, enemies attack one by one. Before each enemy strike, the <strong class="keyword">Parry Bar</strong> appears.</p>
+                <ul>
+                    <li>Press <strong class="keyword">Spacebar</strong> when the parry icon is inside a zone.</li>
+                    <li>Each enemy attacks in sequence until all have acted.</li>
+                    <li>Then the turn returns to you.</li>
+                </ul>
+            </div>
+            <div class="glossary-card">
+                <h3>Win / Loss</h3>
+                <ul>
+                    <li><strong class="keyword">Victory:</strong> All enemies in the room are defeated.</li>
+                    <li><strong class="keyword">Defeat:</strong> Your health reaches 0. The run ends and progress resets.</li>
+                    <li>Boss rooms have a single powerful enemy. Regular rooms spawn 1–3 enemies.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cards -->
+    <section class="section">
+        <h2 class="section-title">Cards</h2>
+        <div class="glossary-grid">
+            <div class="glossary-card">
+                <h3>Card Types</h3>
+                <ul>
+                    <li><strong class="keyword">Attack Physical</strong> — Melee strikes scaled by Strength.</li>
+                    <li><strong class="keyword">Attack Magic</strong> — Spell damage scaled by Intelligence.</li>
+                    <li><strong class="keyword">Defend Physical</strong> — Brace for impact; guarantees a Perfect Parry.</li>
+                    <li><strong class="keyword">Defend Magic</strong> — Arcane barrier; guarantees a Perfect Parry.</li>
+                    <li><strong class="keyword">Healing</strong> — Restores health scaled by Vigor.</li>
+                    <li><strong class="keyword">AoE Physical / Magic</strong> — Damage all enemies at once.</li>
+                </ul>
+            </div>
+            <div class="glossary-card">
+                <h3>Deck Building</h3>
+                <ul>
+                    <li>Your <strong class="keyword">Battle Deck</strong> holds up to 5 cards.</li>
+                    <li>Choose cards in the <strong class="keyword">Battle Lobby</strong> before each fight.</li>
+                    <li>Cards have <strong class="keyword">Stamina Costs</strong> and may require minimum attributes to equip.</li>
+                    <li>Some cards are <strong class="keyword">Permanent</strong> and persist across runs.</li>
+                    <li>Run-only cards are lost when you die.</li>
+                </ul>
+            </div>
+            <div class="glossary-card">
+                <h3>Card Rarity</h3>
+                <ul>
+                    <li><strong class="keyword">Common</strong> — Basic, reliable cards.</li>
+                    <li><strong class="keyword">Uncommon</strong> — Slightly stronger with better scaling.</li>
+                    <li><strong class="keyword">Rare</strong> — Powerful effects and higher scaling.</li>
+                    <li><strong class="keyword">Epic</strong> — Very strong; often boss rewards.</li>
+                    <li><strong class="keyword">Legendary</strong> — The rarest and most devastating cards.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Parry System -->
+    <section class="section">
+        <h2 class="section-title">The Parry System</h2>
+        <p class="note">The parry bar appears during the enemy turn. Timing is everything.</p>
+        <div class="glossary-grid">
+            <div class="glossary-card">
+                <h3>Parry Tiers</h3>
+                <ul class="parry-tier-list">
+                    <li><span class="tier-perfect">Perfect Parry</span> — Negates all damage. Grants a large stamina boost. Triggers when the icon is in the smallest (green) zone.</li>
+                    <li><span class="tier-normal">Normal Parry</span> — Reduces damage by 70%. Grants a small stamina boost. Triggers in the middle (yellow) zone.</li>
+                    <li><span class="tier-miss">Miss</span> — Full damage taken. Stamina is drained. Occurs when the icon is outside any zone.</li>
+                </ul>
+            </div>
+            <div class="glossary-card">
+                <h3>Parry Mechanics</h3>
+                <ul>
+                    <li>The parry icon moves automatically across the bar.</li>
+                    <li>Its speed is influenced by your <strong class="keyword">Dexterity</strong> and current stamina.</li>
+                    <li>The parry zones shrink as your stamina decreases.</li>
+                    <li>Playing a <strong class="keyword">Defense Card</strong> auto-sets the parry result to Perfect for that enemy's attack.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Attributes -->
+    <section class="section">
+        <h2 class="section-title">Attributes</h2>
+        <p class="note">Earn XP in combat to level up. Each level grants 1 attribute point to distribute in the Battle Lobby.</p>
+        <div class="glossary-grid">
+            <div class="glossary-card">
+                <h3>Strength</h3>
+                <p>Scales physical attacks and physical defense cards.</p>
+                <ul>
+                    <li>Increases damage of Slash, Heavy Strike, and melee cards.</li>
+                    <li>Improves shield block effectiveness.</li>
+                </ul>
+            </div>
+            <div class="glossary-card">
+                <h3>Dexterity</h3>
+                <p>Optimizes combat efficiency and parry timing.</p>
+                <ul>
+                    <li>Slows the parry icon movement.</li>
+                    <li>Improves critical hit chance.</li>
+                    <li>Scales bow and precision cards.</li>
+                </ul>
+            </div>
+            <div class="glossary-card">
+                <h3>Intelligence</h3>
+                <p>Enhances magical spell cards and arcane defenses.</p>
+                <ul>
+                    <li>Increases Fireball, Frost Lance, and spell damage.</li>
+                    <li>Improves Magic Shield effectiveness.</li>
+                </ul>
+            </div>
+            <div class="glossary-card">
+                <h3>Vigor</h3>
+                <p>Governs health pool and healing potency.</p>
+                <ul>
+                    <li>Expands maximum health.</li>
+                    <li>Scales healing card potency.</li>
+                    <li>Improves Stone Skin defense.</li>
+                </ul>
+            </div>
+            <div class="glossary-card">
+                <h3>Endurance</h3>
+                <p>Controls stamina capacity and recovery.</p>
+                <ul>
+                    <li>Expands maximum stamina.</li>
+                    <li>Improves baseline stamina recovery speed.</li>
+                    <li>Scales heavy defensive cards.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Archetypes -->
+    <section class="section">
+        <h2 class="section-title">Archetypes</h2>
+        <p class="note">Choose your class at the start of a new save slot. This determines your starting attributes and starter deck.</p>
+        <div class="glossary-grid">
+            <div class="glossary-card">
+                <h3>Soldier</h3>
+                <p>A melee-focused warrior built for raw physical power.</p>
+                <ul>
+                    <li><strong>Attributes:</strong> Strength 3, Vigor 2, Endurance 2, Dexterity 1, Intelligence 0</li>
+                    <li><strong>Starter Deck:</strong> Heavy Strike, Shield Block, Basic Attack ×2, Recover</li>
+                    <li>Best for players who want to brute-force enemies with high damage and solid defense.</li>
+                </ul>
+            </div>
+            <div class="glossary-card">
+                <h3>Archer</h3>
+                <p>A ranged specialist who relies on precision and agility.</p>
+                <ul>
+                    <li><strong>Attributes:</strong> Dexterity 3, Strength 1, Vigor 1, Endurance 2, Intelligence 0</li>
+                    <li><strong>Starter Deck:</strong> Precise Shot, Dodge Roll, Basic Attack ×2, Recover</li>
+                    <li>Best for players who prefer faster parry timing and critical hits.</li>
+                </ul>
+            </div>
+            <div class="glossary-card">
+                <h3>Mage</h3>
+                <p>A spellcaster wielding devastating magic attacks.</p>
+                <ul>
+                    <li><strong>Attributes:</strong> Intelligence 3, Dexterity 1, Vigor 1, Endurance 2, Strength 0</li>
+                    <li><strong>Starter Deck:</strong> Fireball, Magic Shield, Basic Attack ×2, Recover</li>
+                    <li>Best for players who enjoy high burst damage and arcane barriers.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Castle -->
+    <section class="section">
+        <h2 class="section-title">The Castle</h2>
+        <div class="glossary-grid">
+            <div class="glossary-card">
+                <h3>Floors & Rooms</h3>
+                <ul>
+                    <li><strong class="keyword">Floor 0 — The Forest</strong> (Tutorial): Learn mechanics safely. No real threat.</li>
+                    <li><strong class="keyword">Floor 1 — Mystic Courtyard</strong>: Corrupted Knights and Holy Spirits. Boss: Charles, the Pale Knight.</li>
+                    <li><strong class="keyword">Floor 2 — Halls of Last Reverence</strong>: Executioners and Shielded Maidens. Boss: Galahad of the Hidden Axe.</li>
+                    <li><strong class="keyword">Floor 3 — The Throne</strong>: Pale Lancers and elite enemies. Boss: Gawain of the Fair Lance. Final: The Forgotten King.</li>
+                </ul>
+            </div>
+            <div class="glossary-card">
+                <h3>Progression</h3>
+                <ul>
+                    <li>The castle map unlocks rooms sequentially as you clear them.</li>
+                    <li>Each floor has 3 rooms; the 3rd is always a <strong class="keyword">Boss Room</strong>.</li>
+                    <li>After clearing a room, you return to the Battle Lobby to adjust your deck.</li>
+                    <li>Run progress is saved automatically.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roguelite Mechanics -->
+    <section class="section">
+        <h2 class="section-title">Roguelite Mechanics</h2>
+        <div class="glossary-grid">
+            <div class="glossary-card">
+                <h3>What Resets on Death</h3>
+                <ul>
+                    <li>Current run inventory (non-permanent cards).</li>
+                    <li>Active deck selection.</li>
+                    <li>Castle map progress (unless you reached a new floor).</li>
+                    <li>Health and stamina (restored to max).</li>
+                </ul>
+            </div>
+            <div class="glossary-card">
+                <h3>What Persists</h3>
+                <ul>
+                    <li><strong class="keyword">Level & Experience</strong> — Your character level and total XP never reset.</li>
+                    <li><strong class="keyword">Permanent Cards</strong> — Cards marked as permanent stay in your inventory forever.</li>
+                    <li><strong class="keyword">Attribute Points</strong> — Points spent on attributes are permanent.</li>
+                    <li><strong class="keyword">Boss Rewards</strong> — Legendary cards dropped by bosses are usually permanent.</li>
+                </ul>
+            </div>
+            <div class="glossary-card">
+                <h3>Continue System</h3>
+                <ul>
+                    <li>Use <strong class="keyword">Continue</strong> on the main menu to resume your latest run.</li>
+                    <li>Your last Battle Deck is restored automatically.</li>
+                    <li>The map remembers the furthest room you reached.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Settings -->
+    <section class="section">
+        <h2 class="section-title">Settings & Audio</h2>
+        <div class="glossary-grid">
+            <div class="glossary-card">
+                <h3>Audio Options</h3>
+                <ul>
+                    <li><strong class="keyword">Music</strong> — Toggle background music on/off. Affects battle, lobby, and intro tracks.</li>
+                    <li><strong class="keyword">SFX</strong> — Toggle sound effects on/off. Affects card sounds, parry sounds, and UI feedback.</li>
+                </ul>
+                <p class="note">Access settings from the pause menu during gameplay or from the main menu.</p>
+            </div>
+            <div class="glossary-card">
+                <h3>Card SFX</h3>
+                <ul>
+                    <li><strong class="keyword">SFX_Sword</strong> — Plays for physical attack cards.</li>
+                    <li><strong class="keyword">SFX_potion</strong> — Plays for magic attack cards.</li>
+                    <li><strong class="keyword">SFX_Shield</strong> — Plays for defense cards.</li>
+                    <li><strong class="keyword">SFX_arrow</strong> — Plays for bow/shot cards.</li>
+                    <li><strong class="keyword">SFX_dodge</strong> — Plays when a Perfect Parry is achieved.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Controls -->
+    <section class="full-width-section">
+        <h2 class="section-title">Controls</h2>
+        <table class="controls-table">
+            <thead>
+                <tr>
+                    <th>Input</th>
+                    <th>Action</th>
+                    <th>Context</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong class="keyword">Mouse Click</strong></td>
+                    <td>Select card / Target enemy / Interact with UI</td>
+                    <td>Battle, Lobby, Menus</td>
+                </tr>
+                <tr>
+                    <td><strong class="keyword">Spacebar</strong></td>
+                    <td>Trigger parry timing</td>
+                    <td>Enemy Turn (Parry Bar)</td>
+                </tr>
+                <tr>
+                    <td><strong class="keyword">Mouse Hover</strong></td>
+                    <td>Highlight cards, enemies, and buttons</td>
+                    <td>Every screen</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <footer class="page-footer">
+        <p class="footer-line">Knowledge is the sharpest blade.</p>
+    </footer>
+</body>
+</html>

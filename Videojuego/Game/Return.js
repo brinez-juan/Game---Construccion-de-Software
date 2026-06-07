@@ -5,17 +5,21 @@ import selectionMenu from './selectionMenu.js';
 import optionsMenu from './optionsMenu.js';
 import creditScreen from './creditScreen.js';
 import gameOverScreen from './gameOverScreen.js';
-import successScreen from './successScreen.js';
+import gameWonBattleScreen from './gameWonBattleScreen.js';
+import gameCompletionScreen from './gameCompletionScreen.js';
 import battleLobby from './battleLobby.js';
 import archetypeScreen from './archetypeScreen.js';
 import mapScreen, { MapManager } from './mapScreen.js';
+import musicManager from './MusicManager.js';
+import { musicEnabled } from './GlobalVariables.js';
 import SavedGamesAPI from '../savedGamesApi.js';
 import {
     normalizeCard,
     buildRoomStateMap,
     buildEnemyPoolByFloor,
     buildFloorRoomModel,
-    buildCardSlugToId
+    buildCardSlugToId,
+    buildEnemyCardDrops
 } from './dataAdapter.js';
 
 // Context of the Canvas
@@ -55,6 +59,7 @@ class Game {
         this.enemyPoolByFloor = boot.enemyPoolByFloor;  // floorNumber -> { regular, boss }
         this.cardCatalog = boot.cardCatalog;
         this.cardSlugToId = boot.cardSlugToId;          // starting-card slug -> card id
+        this.enemyCardDrops = buildEnemyCardDrops(boot.cardCatalog); // enemyId -> droppable cards
         this.slots = boot.slots;                        // for main-menu Continue gating
 
         // Per-run state, filled as the player progresses.
@@ -64,6 +69,9 @@ class Game {
         this.mapManager = null;
         this.runProgress = null;   // { floor, room } furthest reached, from the DB
         this.availablePoints = 0;
+        // Attribute points earned from leveling up since the last persist; flushed to the
+        // DB (as an increment) by persistExperience after a battle. See awardExperience.
+        this.pendingAttributePoints = 0;
         this.enemiesDefeated = 0;  // accumulated across the run, shown on Game Over
         this.player = this.blankPlayer();
 
@@ -91,6 +99,7 @@ class Game {
         // Furthest (floor, room) reached, used to rebuild the map on Continue.
         this.runProgress = slot.run ? { floor: slot.run.floor, room: slot.run.room } : null;
         this.availablePoints = attrs.availablePoints ?? 0;
+        this.pendingAttributePoints = 0;  // authoritative pool just loaded; nothing pending
         this.enemiesDefeated = 0;   // fresh run summary starts from zero
 
         // Restore the last Battle Deck saved for this run so Continue resumes with the
@@ -152,15 +161,73 @@ class Game {
     async persistProgress(){
         if(!this.api || this.runId == null || !this.currentRoom){ return; }
         const victory = (this.currentRoom.floorNumber === 3 && this.currentRoom.isBoss) ? true : undefined;
+        // Non-boss rooms are replayable, so the room just cleared can be EARLIER than the
+        // furthest reached. Never regress the saved progress (it drives the map rebuild on
+        // Continue) — persist the furthest of the previous progress and the current room.
+        const cur = { floor: this.currentRoom.floorNumber, room: this.currentRoom.roomNumber };
+        const prev = this.runProgress;
+        const isFurther = !prev || cur.floor > prev.floor ||
+            (cur.floor === prev.floor && cur.room > prev.room);
+        const furthest = isFurther ? cur : prev;
         try {
             await this.api.updateRunProgress(this.runId, {
-                finalFloor: this.currentRoom.floorNumber,
-                finalRoom: this.currentRoom.roomNumber,
+                finalFloor: furthest.floor,
+                finalRoom: furthest.room,
                 victory
             });
-            this.runProgress = { floor: this.currentRoom.floorNumber, room: this.currentRoom.roomNumber };
+            this.runProgress = furthest;
         } catch(err){
             console.error('Could not persist run progress:', err);
+        }
+    }
+
+    // US16: adds battle XP to the player's cumulative total and re-derives the level
+    // from it. `experience` mirrors player_profiles.total_experience (cumulative, as
+    // seeded in loadSlotData), so we must NOT subtract on level-up the way Player.levelUp
+    // does — instead the level is the highest L whose cumulative threshold the total has
+    // passed. That threshold, 200 * (1.5^(L-1) - 1), is the running sum of the same
+    // per-level 100 * 1.5^(n-1) curve the lobby uses, so the two stay consistent.
+    // `experienceToNextLevel` tracks the current level's bar size for the HUD.
+    awardExperience(amount){
+        if(!this.player || !amount || amount <= 0){ return; }
+        const previousLevel = this.player.level;
+        this.player.experience += amount;
+        let level = 1;
+        while(this.player.experience >= 200 * (Math.pow(1.5, level) - 1)){
+            level++;
+        }
+        this.player.level = level;
+        this.player.experienceToNextLevel = Math.round(100 * Math.pow(1.5, level - 1));
+        // Leveling up grants one spendable attribute point per level gained. Tracked in
+        // memory so the lobby shows it immediately, and queued in pendingAttributePoints
+        // so persistExperience can flush it to the DB as an increment after the battle.
+        const levelsGained = level - previousLevel;
+        if(levelsGained > 0){
+            this.availablePoints += levelsGained;
+            this.pendingAttributePoints += levelsGained;
+        }
+    }
+
+    // US16: persists the player's accumulated XP + level onto the slot's player_profile
+    // so progression survives between sessions. Best-effort (fire-and-forget), mirroring
+    // persistProgress; failures are logged, not fatal.
+    async persistExperience(){
+        if(!this.api || this.activeSlotId == null || !this.player){ return; }
+        try {
+            const res = await this.api.updateExperience(this.activeSlotId, {
+                totalExperience: this.player.experience,
+                level: this.player.level,
+                attributePointsGranted: this.pendingAttributePoints
+            });
+            // The server applied the grant as an increment and returned the authoritative
+            // remaining pool; adopt it so the in-memory count can't drift from the DB
+            // (e.g. after a stale read), and clear what we just flushed.
+            if(res && typeof res.availablePoints === 'number'){
+                this.availablePoints = res.availablePoints;
+            }
+            this.pendingAttributePoints = 0;
+        } catch(err){
+            console.error('Could not persist experience:', err);
         }
     }
 
@@ -189,6 +256,9 @@ class Game {
         this.player.activeDeck = [];
         // Fresh run summary; level and experience are intentionally left untouched.
         this.enemiesDefeated = 0;
+        // Drop any level-up grant from the fatal battle that was never persisted, so it
+        // can't be flushed onto the next victory (XP/level aren't persisted on death).
+        this.pendingAttributePoints = 0;
     }
 
     // Picks the floor-appropriate enemy pool for a room (boss list for boss rooms).
@@ -248,27 +318,63 @@ class Game {
             this.currentMenu = new battleScreen(background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(this.currentRoom), this, !!this.currentRoom?.isBoss)
         }
         else if(state === 7){
-            // Snapshot the run summary BEFORE resetting (resetRunOnDeath clears these),
+            // Snapshot the run summary BEFORE the wipe (resetRunOnDeath clears these),
             // so the Game Over screen shows the real floor/kills/level instead of defaults.
             const stats = {
                 floorsCompleted: this.runProgress?.floor ?? this.currentRoom?.floorNumber ?? 0,
                 enemiesDefeated: this.enemiesDefeated,
                 finalLevel: this.player?.level ?? 1
             }
-            // Reset the run on death (wipe run inventory, end run, reset map/HP/stamina)
-            // before showing the Game Over screen. Best-effort; mirrors state 8's persist.
-            this.resetRunOnDeath()
-            this.currentMenu = new gameOverScreen(this.canvasWidth, this.canvasHeight, stats)
+            // US25: the player may rescue ONE collected (non-permanent) card before the run
+            // inventory is wiped. Gather the eligible cards from both the inventory and the
+            // active deck (a run card can be sitting in the deck), de-duped by cardId — this
+            // excludes the starting 5 / already-permanent cards. The wipe (resetRunOnDeath)
+            // is now deferred to the Game Over screen's Continue, AFTER any promotion, so the
+            // cards are still present to choose from here.
+            const seen = new Set()
+            const eligibleCards = []
+            for(const card of [...(this.player?.inventory ?? []), ...(this.player?.activeDeck ?? [])]){
+                if(card && !card.isPermanent && !seen.has(card.cardId)){
+                    seen.add(card.cardId)
+                    eligibleCards.push(card)
+                }
+            }
+            this.currentMenu = new gameOverScreen(this.canvasWidth, this.canvasHeight, stats,
+                eligibleCards, this.api, this.activeSlotId, this)
         }
         else if(state === 8){
+            // Read the per-battle summary off the outgoing battle screen BEFORE it's
+            // replaced (it's still this.currentMenu here): XP gained, kills and the cards
+            // its defeated enemies dropped, shown on the victory screen.
+            const battle = this.currentMenu
+            const wonStats = {
+                xpGained: battle?.xpAwardedThisBattle ?? 0,
+                enemiesDefeated: battle?.enemiesDefeatedThisBattle ?? 0,
+                finalLevel: this.player?.level ?? 1
+            }
+            const cardsWon = battle?.cardsWon ?? []
             // Record progress before showing the victory screen. The forest tutorial
             // (floor 0) is off-map, so only castle rooms advance the map manager.
             if(this.mapManager && this.currentRoom && this.currentRoom.floorNumber !== 0){
                 this.mapManager.completeRoom(this.currentRoom.floorNumber, this.currentRoom.roomNumber)
             }
-            // Persist the cleared room so the slot card and Continue stay in sync.
+            // Persist the cleared room so the slot card and Continue stay in sync, and
+            // the XP/level earned this battle (US16) so progression survives the session.
             this.persistProgress()
-            this.currentMenu = new successScreen(this.canvasWidth, this.canvasHeight)
+            this.persistExperience()
+            // Clearing the castle's last boss room (floor 3 boss) beats the whole game, so
+            // show the completion screen instead of the per-battle victory screen.
+            const isFinalRoom = this.currentRoom && this.currentRoom.floorNumber === 3 && this.currentRoom.isBoss
+            if(isFinalRoom){
+                const completionStats = {
+                    enemiesDefeated: this.enemiesDefeated,
+                    finalLevel: this.player?.level ?? 1,
+                    totalXP: this.player?.experience ?? 0
+                }
+                this.currentMenu = new gameCompletionScreen(this.canvasWidth, this.canvasHeight, completionStats, cardsWon)
+            } else {
+                this.currentMenu = new gameWonBattleScreen(this.canvasWidth, this.canvasHeight, wonStats, cardsWon)
+            }
         }
         else if(state === 9){
             this.currentMenu = new archetypeScreen(BG.main, this.canvasWidth, this.canvasHeight, this)
@@ -292,6 +398,17 @@ class Game {
             this.currentRoom = room;
             this.currentMenu = new battleScreen(room.background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(room), this, !!room?.isBoss)
         }
+        // Music routing: intro on non-battle screens, battle/boss on battle screens.
+        if (musicEnabled) {
+            if (this.currentMenu instanceof battleScreen) {
+                musicManager.play(this.currentRoom?.isBoss ? 'boss' : 'battle');
+            } else {
+                musicManager.play('intro');
+            }
+        } else {
+            musicManager.stopAll();
+        }
+
         this.menuStack.push(this.currentMenu)
     }
 }
