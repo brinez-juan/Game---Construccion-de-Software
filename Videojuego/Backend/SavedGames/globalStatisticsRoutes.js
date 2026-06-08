@@ -94,4 +94,17 @@ router.get('/api/global-stats/top-players', async (req, res) => {
         return res.status(500).json({ success: false, message: 'Failed to obtain top completion times.' });
     }
 });
+
+router.get('/api/global-stats/parry-success-by-floor', async (req, res) => {
+    try{
+        const [parrySuccessByFloor] = await pool.query(
+            `SELECT * FROM parry_success_by_floor`
+        );
+        return res.json({ success: true, parrySuccessByFloor });
+    }
+    catch(err){
+        console.error('Failed to get parry success by floor:', err);
+        return res.status(500).json({ success: false, message: 'Failed to obtain parry success by floor.' });
+    }
+});
 export default router;

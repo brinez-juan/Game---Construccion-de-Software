@@ -18,11 +18,20 @@ async function fetchAndRenderStatistics() {
         const topPlayersResponse = await fetch('/api/global-stats/top-players');
         const topPlayersData = await topPlayersResponse.json();
 
+        const parrySuccessByFloorResponse = await fetch('/api/global-stats/parry-success-by-floor');
+        const parrySuccessByFloorData = await parrySuccessByFloorResponse.json();
+
+        renderSectionLabel('Global Statistics', 'section-label');
         renderParryStatsChart(parryStatsData.parryStats);
         renderAverageCompletionTime(averageCompletionTimeData.averageCompletionTime);
         renderCardsCollectedAvg(cardsCollectedAvgData.cardsCollectedAvg);
         renderTopPlayersLeaderboard(topPlayersData.topPlayers);
-        renderArchetypeDistributionChart(archetypeDistributionData.archetypeDistribution);
+
+        if(JSON.parse(localStorage.getItem('authUser')).username === 'Panini'){
+            renderSectionLabel('Admin Panel', 'section-label section-label--admin');
+            renderArchetypeDistributionChart(archetypeDistributionData.archetypeDistribution);
+            renderParrySuccessByfloorChart(parrySuccessByFloorData.parrySuccessByFloor);
+        }
     } catch (error) {
         console.error('Error fetching statistics:', error);
     }
@@ -195,8 +204,14 @@ function renderTopPlayersLeaderboard(topPlayers){
     nameHeader.textContent = 'Username';
     const timeHeader = document.createElement('th');
     timeHeader.textContent = 'Completion Time';
+    const perfeCtParriesHeader = document.createElement('th');
+    perfeCtParriesHeader.textContent = 'Perfect Parries';
+    const cardsCollectedHeader = document.createElement('th');
+    cardsCollectedHeader.textContent = 'Cards Collected';
     headerRow.appendChild(nameHeader);
     headerRow.appendChild(timeHeader);
+    headerRow.appendChild(perfeCtParriesHeader);
+    headerRow.appendChild(cardsCollectedHeader);
     table.appendChild(headerRow);
 
     topPlayers.forEach(player => {
@@ -205,13 +220,68 @@ function renderTopPlayersLeaderboard(topPlayers){
         nameCell.textContent = player.username;
         const timeCell = document.createElement('td');
         timeCell.textContent = `${Math.floor(player.best_completion_time_seconds / 3600)}h ${Math.floor((player.best_completion_time_seconds % 3600) / 60)}m ${player.best_completion_time_seconds % 60}s`;
+
         row.appendChild(nameCell);
         row.appendChild(timeCell);
+        const perfectParriesCell = document.createElement('td');
+        perfectParriesCell.textContent = player.total_perfect_parries;
+        row.appendChild(perfectParriesCell);
+        const cardsCollectedCell = document.createElement('td');
+        cardsCollectedCell.textContent = player.total_cards_collected;
+        row.appendChild(cardsCollectedCell);
         table.appendChild(row);
     });
 
     leaderboardWrapper.appendChild(table);
     document.body.appendChild(leaderboardWrapper);
+}
+
+function renderParrySuccessByfloorChart(parrySuccessByFloor){
+    console.log(parrySuccessByFloor);
+    const chartWrapper = document.createElement('div');
+    chartWrapper.classList.add('parry-floor-wrapper');
+    const canvas = document.createElement('canvas');
+    const chartText = document.createElement('h2');
+    chartText.textContent = 'Parry Success Rate by Floor';
+    chartWrapper.appendChild(chartText);
+    chartWrapper.appendChild(canvas);
+    document.body.appendChild(chartWrapper);
+    const myChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels: parrySuccessByFloor.map(item => `Floor ${item.floor_number}`),
+            datasets: [{
+                label: 'Parry Success Rate',
+                data: [parrySuccessByFloor[0].perfect_parries, parrySuccessByFloor[1].perfect_parries, parrySuccessByFloor[2].perfect_parries, parrySuccessByFloor[3].perfect_parries],
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Parry Attempts',
+                data: [parrySuccessByFloor[0].normal_parries, parrySuccessByFloor[1].normal_parries, parrySuccessByFloor[2].normal_parries, parrySuccessByFloor[3].normal_parries],
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Parry Success Rate',
+                data: [parrySuccessByFloor[0].poor_parries, parrySuccessByFloor[1].poor_parries, parrySuccessByFloor[2].poor_parries, parrySuccessByFloor[3].poor_parries],
+                backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                borderColor: 'rgba(255, 206, 86, 1)',
+                borderWidth: 1
+            }]
+        }
+    });
+}
+
+function renderSectionLabel(text, className){
+    const label = document.createElement('div');
+    label.className = className;
+    const title = document.createElement('h1');
+    title.textContent = text;
+    label.appendChild(title);
+    document.body.appendChild(label);
 }
 
 fetchAndRenderStatistics();
