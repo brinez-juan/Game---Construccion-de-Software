@@ -1,0 +1,179 @@
+.section-label {
+    width: 75vw;
+    margin: 40px auto 10px;
+    padding: 16px 28px;
+    border-left: 5px solid #1a1a2e;
+}
+
+.section-label h1 {
+    margin: 0;
+    font-family: 'academia';
+    color: #1a1a2e;
+    font-size: 2.2rem;
+    letter-spacing: 0.05em;
+}
+
+.section-label--admin {
+    border-left-color: black;
+}
+
+.section-label--admin h1 {
+    color: black;
+}
+
+.parry-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+    border: none;
+    background-color: whitesmoke;
+}
+
+.parry-wrapper h2 {
+    margin-bottom: 20px;
+    color: black;
+    font-family: 'academia';
+}
+
+.parry-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 20px auto 0;
+    width: 60vw;
+    height: 60vh;
+}
+
+.archetype-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+    border: none;
+    background-color: whitesmoke;
+}
+
+.archetype-wrapper h2 {
+    margin-bottom: 20px;
+    color: black;
+    font-family: 'academia';
+}
+
+.archetype-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 20px auto 0;
+    width: 40vw;
+    aspect-ratio: 1 / 1;
+}
+
+.stats-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 40px;
+    margin: 40px auto;
+    width: 75vw;
+}
+
+.stat-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+    flex: 1;
+    background-color: whitesmoke;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.stat-card canvas {
+    width: 160px !important;
+    height: 160px !important;
+    flex-shrink: 0;
+    border: none;
+    background-color: transparent;
+}
+
+.stat-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.stat-text h2 {
+    margin: 0;
+    font-family: 'academia';
+    color: black;
+}
+
+.stat-text p {
+    margin: 0;
+    font-size: 1.4rem;
+    color: black;
+}
+
+.parry-floor-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+    border: none;
+    background-color: whitesmoke;
+}
+
+.parry-floor-wrapper h2 {
+    margin-bottom: 20px;
+    color: black;
+    font-family: 'academia';
+}
+
+.parry-floor-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 20px auto 0;
+    width: 60vw;
+    height: 60vh;
+}
+
+.leaderboard-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 40px auto;
+    width: 75vw;
+}
+
+.leaderboard-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: whitesmoke;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.leaderboard-wrapper h2{
+    margin-bottom: 20px;
+    color: black;
+    font-family: 'academia';
+    font-size: 2rem;
+}
+
+.leaderboard-wrapper th{
+    font-family: 'academia';
+    color: black;
+    padding: 12px 16px;
+    font-size: 1.6rem;
+}
+
+.leaderboard-wrapper td {
+    font-family: 'academia';
+    color: black;
+    padding: 12px 16px;
+    font-size: 1.3rem;
+    justify-content: center;
+    text-align: center;
+}
