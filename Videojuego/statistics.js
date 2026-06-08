@@ -27,6 +27,8 @@ async function fetchAndRenderStatistics() {
         renderCardsCollectedAvg(cardsCollectedAvgData.cardsCollectedAvg);
         renderTopPlayersLeaderboard(topPlayersData.topPlayers);
 
+        console.log(JSON.parse(localStorage.getItem('authUser')).username);
+
         if(JSON.parse(localStorage.getItem('authUser')).username === 'Panini'){
             renderSectionLabel('Admin Panel', 'section-label section-label--admin');
             renderArchetypeDistributionChart(archetypeDistributionData.archetypeDistribution);
@@ -251,21 +253,21 @@ function renderParrySuccessByfloorChart(parrySuccessByFloor){
         data: {
             labels: parrySuccessByFloor.map(item => `Floor ${item.floor_number}`),
             datasets: [{
-                label: 'Parry Success Rate',
+                label: 'Perfect parries',
                 data: [parrySuccessByFloor[0].perfect_parries, parrySuccessByFloor[1].perfect_parries, parrySuccessByFloor[2].perfect_parries, parrySuccessByFloor[3].perfect_parries],
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1
             },
             {
-                label: 'Parry Attempts',
+                label: 'Normal parries',
                 data: [parrySuccessByFloor[0].normal_parries, parrySuccessByFloor[1].normal_parries, parrySuccessByFloor[2].normal_parries, parrySuccessByFloor[3].normal_parries],
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 borderColor: 'rgba(255, 99, 132, 1)',
                 borderWidth: 1
             },
             {
-                label: 'Parry Success Rate',
+                label: 'Poor parries',
                 data: [parrySuccessByFloor[0].poor_parries, parrySuccessByFloor[1].poor_parries, parrySuccessByFloor[2].poor_parries, parrySuccessByFloor[3].poor_parries],
                 backgroundColor: 'rgba(255, 206, 86, 0.2)',
                 borderColor: 'rgba(255, 206, 86, 1)',
