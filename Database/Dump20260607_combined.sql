@@ -526,3 +526,31 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2026-06-07 18:03:06
+
+--
+-- Views (carried over from Dump20260605)
+--
+
+DROP VIEW IF EXISTS global_stats; 
+CREATE VIEW global_stats AS 
+SELECT SUM(PG.total_perfect_parries) AS global_perfect_parries,
+SUM(PG.total_normal_parries) AS global_normal_parries,
+SUM(PG.total_poor_parries) AS global_poor_parries,
+AVG(PG.best_completion_time_seconds) AS completion_time_avg, 
+AVG(PG.total_cards_collected) AS card_avg
+FROM return_game.player_global_stats AS PG;
+
+
+DROP VIEW IF EXISTS archetypes_selected;
+CREATE VIEW archetypes_selected AS 
+SELECT PPF.archetype, COUNT(*) AS amount FROM 
+return_game.player_profiles AS PPF GROUP BY (PPF.archetype)
+ORDER BY (amount) ASC; 
+
+DROP VIEW IF EXISTS parry_success_by_floor;
+CREATE VIEW parry_success_by_floor AS 
+SELECT F.floor_number, COUNT(PS.perfect_parries) AS perfect_parries, COUNT(PS.normal_parries) AS normal_parries, COUNT(PS.poor_parries) AS poor_parries
+FROM return_game.floors AS F INNER JOIN return_game.rooms R ON F.id = R.floor_id INNER JOIN return_game.room_sessions AS RS ON R.id = RS.room_id
+INNER JOIN return_game.parry_stats AS PS ON RS.id = PS.session_id GROUP BY(F.floor_number); 
+
+-- Dump completed on 2026-06-05 17:55:18
