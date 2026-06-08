@@ -8,6 +8,7 @@ import {canvas} from './Return.js';
 import TextLabel from './TextLabel.js';
 import { sfxEnabled } from './GlobalVariables.js';
 import { normalizeCatalogCard, buildPotions } from './dataAdapter.js';
+import battleTutorial from './battleTutorial.js';
 
 // Enemy defense tuning. Mitigation follows the classic armor curve damage*K/(K+def): never
 // negative, diminishing returns. K is sized for the DB defense range (~1-21) so a high-armor
@@ -89,12 +90,17 @@ export default class battleScreen extends Menus{
         this.totalEnemyXp = this.enemies.reduce((sum, enemy) => sum + (enemy.experienceReward || 0), 0)
         this.summaryReported = false
         this.turn = 'player';
+        this.tutorialActive = false;
         this.cardInAction = undefined;
         this.enemyAttacking = undefined;
         this.handleMouseMove = this.handleMouseMove.bind(this)
         this.handleClick = this.handleClick.bind(this)
         this.listenersActive = false
         this.currentEnemyIndex = 0;
+        if(battleTutorial.shouldShow()){
+            this.tutorialActive = true;
+            battleTutorial.show(() => { this.tutorialActive = false; });
+        }
         this.playerDefending = false;
         // School of the defend card the player committed this turn ('physic' | 'magic'). A
         // matching incoming attack auto-perfect-parries; a mismatched one auto-misses.
@@ -287,6 +293,7 @@ export default class battleScreen extends Menus{
     }
     // Per-frame loop that detects end conditions and advances either the player or the enemy turn
     update(deltaTime){
+        if(this.tutorialActive) return;
         // Advance the cosmetic lunge/shake offsets for everyone every frame, regardless of
         // whose turn it is, so attack hops and hurt shakes play out smoothly to completion.
         this.player.updateAnimation(deltaTime)

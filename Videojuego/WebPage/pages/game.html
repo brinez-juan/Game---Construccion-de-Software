@@ -30,5 +30,36 @@
             <canvas id="canvas"></canvas>
         </div>
         <div id="lobby-container" style="display:none"></div>
+
+        <!-- Battle Tutorial Overlay -->
+        <div id="battle-tutorial-overlay" class="battle-tutorial-overlay hidden">
+            <div class="battle-tutorial-modal">
+                <div class="battle-tutorial-header">
+                    <h2>Battle Tutorial</h2>
+                    <span id="battle-tutorial-counter" class="battle-tutorial-counter">1 / 5</span>
+                </div>
+                <div class="battle-tutorial-body">
+                    <button class="battle-tutorial-nav battle-tutorial-prev" aria-label="Previous">&#10094;</button>
+                    <div class="battle-tutorial-slide">
+                        <div class="battle-tutorial-image-box">
+                            <img id="battle-tutorial-img" src="" alt="">
+                        </div>
+                        <div class="battle-tutorial-text">
+                            <h3 id="battle-tutorial-title"></h3>
+                            <p id="battle-tutorial-desc"></p>
+                        </div>
+                    </div>
+                    <button class="battle-tutorial-nav battle-tutorial-next" aria-label="Next">&#10095;</button>
+                </div>
+                <div class="battle-tutorial-dots" id="battle-tutorial-dots"></div>
+                <div class="battle-tutorial-footer">
+                    <label class="battle-tutorial-checkbox">
+                        <input type="checkbox" id="battle-tutorial-skip">
+                        <span>Don't show again</span>
+                    </label>
+                    <button class="battle-tutorial-quit" id="battle-tutorial-quit">Quit Tutorial</button>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
