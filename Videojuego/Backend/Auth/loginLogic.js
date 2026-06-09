@@ -18,7 +18,7 @@ router.post('/auth/login', async (req, res) => {
   try {
     // 1. Search user by username or email (Task 2)
     const [users] = await pool.query(
-      'SELECT id, username, email, password_hash, failed_attempts, lock_until FROM users WHERE username = ? OR email = ?',
+      'SELECT id, username, email, password_hash, failed_attempts, lock_until, isAdmin FROM users WHERE username = ? OR email = ?',
       [identifier, identifier]
     );
 
@@ -90,7 +90,9 @@ router.post('/auth/login', async (req, res) => {
       success: true,
       message: "Authentication successful. Ritual initiated.",
       token: token,
-      user: { id: user.id, username: user.username }
+      // isAdmin lets the statistics page decide whether to show the admin panel; the admin
+      // endpoints still enforce it server-side, so this is only a UI hint.
+      user: { id: user.id, username: user.username, isAdmin: !!user.isAdmin }
     });
 
   } catch (error) {

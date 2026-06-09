@@ -1,6 +1,7 @@
 import express from 'express';
 import pool from '../DB/dbconfig.js';
 import requireAuth from '../Auth/requireAuth.js';
+import requireAdmin from '../Auth/requireAdmin.js';
 
 const router = express.Router();
 
@@ -10,13 +11,16 @@ const router = express.Router();
 // Endpoint to get the parry stats globally
 router.get('/api/global-stats/parry-stats', async (req, res) => {
     try{
+        // Sum the parry buckets straight from parry_stats (the source of truth) so the global
+        // chart can show missed too — player_global_stats / global_stats only carry perfect and
+        // normal totals, not missed.
         const [parryStats] = await pool.query(
             `SELECT
-                global_perfect_parries,
-                global_normal_parries
-                FROM global_stats
+                COALESCE(SUM(perfect_parries), 0) AS global_perfect_parries,
+                COALESCE(SUM(normal_parries),  0) AS global_normal_parries,
+                COALESCE(SUM(parries_missed),  0) AS global_missed_parries
+                FROM parry_stats
             `
-            
         );
         return res.json({ success: true, parryStats: parryStats[0] });
     }
@@ -26,8 +30,8 @@ router.get('/api/global-stats/parry-stats', async (req, res) => {
     }
 });
 
-// Endpoint to get the global archetype distribution 
-router.get('/api/global-stats/archetype-distribution', async (req, res) => {
+// Endpoint to get the global archetype distribution (admin only)
+router.get('/api/global-stats/archetype-distribution', requireAuth, requireAdmin, async (req, res) => {
     try{
         const [archetypeDistribution] = await pool.query(
             `SELECT *
@@ -94,7 +98,7 @@ router.get('/api/global-stats/top-players', async (req, res) => {
     }
 });
 
-router.get('/api/global-stats/parry-success-by-floor', async (req, res) => {
+router.get('/api/global-stats/parry-success-by-floor', requireAuth, requireAdmin, async (req, res) => {
     try{
         // ORDER BY here (not just in the view) guarantees the rows come back floor-ordered,
         // since a view's GROUP BY does not imply a sort in MySQL 8.
@@ -109,16 +113,19 @@ router.get('/api/global-stats/parry-success-by-floor', async (req, res) => {
     }
 });
 
-// Endpoint for the session abandonment rate: a room_session that was started but has no
-// end_time was never finished (the player quit mid-room), so it counts as abandoned. The
-// session_abandonment view splits every room_sessions row into abandoned vs completed.
-router.get('/api/global-stats/abandonment-rate', async (req, res) => {
+// Endpoint for the per-room session abandonment rate: a room_session that was started but
+// has no end_time was never finished (the player quit mid-room), so it counts as abandoned.
+// The room_abandonment view gives abandoned vs total sessions for every room; the client
+// turns that into an abandonment % per room.
+router.get('/api/global-stats/abandonment-rate', requireAuth, requireAdmin, async (req, res) => {
     try{
-        const [rows] = await pool.query(
-            `SELECT abandoned_sessions, completed_sessions, total_sessions
-               FROM session_abandonment`
+        const [abandonmentByRoom] = await pool.query(
+            `SELECT room_id, floor_number, room_number, is_boss,
+                    abandoned_sessions, total_sessions
+               FROM room_abandonment
+              ORDER BY floor_number, room_number`
         );
-        return res.json({ success: true, abandonment: rows[0] });
+        return res.json({ success: true, abandonmentByRoom });
     }
     catch(err){
         console.error('Failed to get abandonment rate:', err);

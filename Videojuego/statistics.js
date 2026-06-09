@@ -1,13 +1,16 @@
 import Chart from 'https://cdn.jsdelivr.net/npm/chart.js@4/auto/+esm';
 
+// Bearer header for the access-controlled admin endpoints (requireAuth + requireAdmin).
+function authHeaders() {
+    const token = localStorage.getItem('authToken');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
 // Fetch global statistics from the backend and render charts
 async function fetchAndRenderStatistics() {
     try {
         const parryStatsResponse = await fetch('/api/global-stats/parry-stats');
         const parryStatsData = await parryStatsResponse.json();
-
-        const archetypeDistributionResponse = await fetch('/api/global-stats/archetype-distribution');
-        const archetypeDistributionData = await archetypeDistributionResponse.json();
 
         const averageCompletionTimeResponse = await fetch('/api/global-stats/average_completion_time');
         const averageCompletionTimeData = await averageCompletionTimeResponse.json();
@@ -18,25 +21,31 @@ async function fetchAndRenderStatistics() {
         const topPlayersResponse = await fetch('/api/global-stats/top-players');
         const topPlayersData = await topPlayersResponse.json();
 
-        const parrySuccessByFloorResponse = await fetch('/api/global-stats/parry-success-by-floor');
-        const parrySuccessByFloorData = await parrySuccessByFloorResponse.json();
-
-        const abandonmentResponse = await fetch('/api/global-stats/abandonment-rate');
-        const abandonmentData = await abandonmentResponse.json();
-
         renderSectionLabel('Global Statistics', 'section-label');
         renderParryStatsChart(parryStatsData.parryStats);
         renderAverageCompletionTime(averageCompletionTimeData.averageCompletionTime);
         renderCardsCollectedAvg(cardsCollectedAvgData.cardsCollectedAvg);
         renderTopPlayersLeaderboard(topPlayersData.topPlayers);
 
-        console.log(JSON.parse(localStorage.getItem('authUser')).username);
+        // Admin panel — gated on the DB-backed isAdmin flag stored at login. The admin
+        // endpoints are fetched (with the Bearer token) and rendered only for admins; they
+        // also enforce requireAuth + requireAdmin server-side, so hiding them here is just
+        // UX and the data itself is genuinely access-controlled.
+        const authUser = JSON.parse(localStorage.getItem('authUser') || '{}');
+        if(authUser.isAdmin){
+            const archetypeDistributionResponse = await fetch('/api/global-stats/archetype-distribution', { headers: authHeaders() });
+            const archetypeDistributionData = await archetypeDistributionResponse.json();
 
-        if(JSON.parse(localStorage.getItem('authUser')).username === 'Panini'){
+            const parrySuccessByFloorResponse = await fetch('/api/global-stats/parry-success-by-floor', { headers: authHeaders() });
+            const parrySuccessByFloorData = await parrySuccessByFloorResponse.json();
+
+            const abandonmentResponse = await fetch('/api/global-stats/abandonment-rate', { headers: authHeaders() });
+            const abandonmentData = await abandonmentResponse.json();
+
             renderSectionLabel('Admin Panel', 'section-label section-label--admin');
             renderArchetypeDistributionChart(archetypeDistributionData.archetypeDistribution);
             renderParrySuccessByfloorChart(parrySuccessByFloorData.parrySuccessByFloor);
-            renderAbandonmentRateChart(abandonmentData.abandonment);
+            renderAbandonmentRateChart(abandonmentData.abandonmentByRoom);
         }
     } catch (error) {
         console.error('Error fetching statistics:', error);
@@ -55,17 +64,19 @@ function renderParryStatsChart(parryStats){
     const myChart = new Chart(canvas, {
         type: 'bar',
         data: {
-            labels: ['Perfect Parries', 'Normal Parries'],
+            labels: ['Perfect Parries', 'Normal Parries', 'Missed Parries'],
             datasets: [{
                 label: 'Total Parries',
-                data: [parryStats.global_perfect_parries, parryStats.global_normal_parries],
+                data: [parryStats.global_perfect_parries, parryStats.global_normal_parries, parryStats.global_missed_parries],
                 backgroundColor: [
                     'rgba(75, 192, 192, 0.2)',
-                    'rgba(250, 192, 105, 0.2)'
+                    'rgba(250, 192, 105, 0.2)',
+                    'rgba(255, 99, 132, 0.2)'
                 ],
                 borderColor: [
                     'rgba(75, 192, 192, 1)',
-                    'rgba(255, 206, 86, 1)'
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(255, 99, 132, 1)'
                 ],
                 borderWidth: 1
             }]
@@ -266,6 +277,13 @@ function renderParrySuccessByfloorChart(parrySuccessByFloor){
             {
                 label: 'Normal parries',
                 data: parrySuccessByFloor.map(item => item.normal_parries),
+                backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                borderColor: 'rgba(255, 206, 86, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Missed parries',
+                data: parrySuccessByFloor.map(item => item.missed_parries),
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 borderColor: 'rgba(255, 99, 132, 1)',
                 borderWidth: 1
@@ -277,42 +295,49 @@ function renderParrySuccessByfloorChart(parrySuccessByFloor){
 // Session abandonment rate: how many room sessions were started but never finished
 // (end_time IS NULL) versus completed. A doughnut reads the proportion at a glance and
 // matches the other admin doughnuts; the exact rate is shown in the title.
-function renderAbandonmentRateChart(abandonment){
-    const abandoned = Number(abandonment?.abandoned_sessions) || 0;
-    const completed = Number(abandonment?.completed_sessions) || 0;
-    const total = abandoned + completed;
-    const rate = total > 0 ? Math.round((abandoned / total) * 100) : 0;
+// Per-room session abandonment rate: for each room, the share of its sessions that were
+// started but never finished (end_time IS NULL). A bar per room makes rooms comparable at a
+// glance; a room with no plays shows 0%. The tooltip carries the raw "abandoned / total".
+function renderAbandonmentRateChart(abandonmentByRoom){
+    const rooms = abandonmentByRoom || [];
+    const labels = rooms.map(r => `F${r.floor_number}·R${r.room_number}`);
+    const rates = rooms.map(r => r.total_sessions > 0
+        ? Math.round((r.abandoned_sessions / r.total_sessions) * 100)
+        : 0);
 
     const chartWrapper = document.createElement('div');
     chartWrapper.classList.add('abandonment-wrapper');
     const canvas = document.createElement('canvas');
     const chartText = document.createElement('h2');
-    chartText.textContent = `Session Abandonment Rate (${rate}%)`;
+    chartText.textContent = 'Session Abandonment Rate by Room';
     chartWrapper.appendChild(chartText);
     chartWrapper.appendChild(canvas);
     document.body.appendChild(chartWrapper);
     new Chart(canvas, {
-        type: 'doughnut',
+        type: 'bar',
         data: {
-            labels: ['Abandoned', 'Completed'],
+            labels,
             datasets: [{
-                label: 'Room Sessions',
-                data: [abandoned, completed],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(75, 192, 192, 0.2)'
-                ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(75, 192, 192, 1)'
-                ],
+                label: 'Abandonment rate (%)',
+                data: rates,
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
                 borderWidth: 1
             }]
         },
         options: {
-            animations: {
-                animateScale: true,
-                animateRotate: true
+            scales: {
+                y: { beginAtZero: true, max: 100, ticks: { callback: (v) => `${v}%` } }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        afterLabel: (ctx) => {
+                            const room = rooms[ctx.dataIndex];
+                            return `${room.abandoned_sessions} abandoned / ${room.total_sessions} sessions`;
+                        }
+                    }
+                }
             }
         }
     });

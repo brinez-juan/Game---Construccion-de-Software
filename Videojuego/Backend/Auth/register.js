@@ -66,7 +66,9 @@ router.post('/auth/register', async (req, res) => {
       success: true,
       message: "User registered successfully!",
       token: token,
-      user: { id: newUserId, username, email }
+      // New accounts are never admins (users.isAdmin defaults to 0); include it so the
+      // stored authUser has the same shape as the login response.
+      user: { id: newUserId, username, email, isAdmin: false }
     });
 
   } catch (error) {

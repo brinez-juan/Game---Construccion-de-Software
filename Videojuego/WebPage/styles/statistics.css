@@ -133,7 +133,30 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin: 20px auto 0;
+    margin: 90px auto 0;
+    width: 60vw;
+    height: 60vh;
+}
+
+.abandonment-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+    border: none;
+    background-color: whitesmoke;
+}
+
+.abandonment-wrapper h2 {
+    margin-bottom: 20px;
+    color: black;
+    font-family: 'academia';
+}
+
+.abandonment-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 90px auto 0;
     width: 60vw;
     height: 60vh;
 }
