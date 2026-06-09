@@ -1,16 +1,4 @@
 import Menus from './Menus.js';
-<<<<<<< HEAD:Videojuego/Game/battleScreen.js
-import Player from './Player.js';
-import { Enemy } from './NonPlayableCharacter.js';
-import ParryBar from './parryBar.js';
-import ItemCard from './ItemCard.js';
-import GameObject from './GameObject.js';
-import {canvas} from './Return.js';
-import TextLabel from './TextLabel.js';
-import { sfxEnabled } from './GlobalVariables.js';
-import { normalizeCatalogCard, buildPotions } from './dataAdapter.js';
-import battleTutorial from './battleTutorial.js';
-=======
 import Player from '../../libs/Player.js';
 import { Enemy } from '../../libs/NonPlayableCharacter.js';
 import ParryBar from '../../libs/parryBar.js';
@@ -20,7 +8,7 @@ import {canvas} from '../../Return.js';
 import TextLabel from '../../libs/TextLabel.js';
 import { sfxEnabled } from '../../libs/GlobalVariables.js';
 import { normalizeCatalogCard, buildPotions } from '../../extras/dataAdapter.js';
->>>>>>> Santi:Videojuego/Game/screens/menu/battleScreen.js
+import battleTutorial from '../../extras/battleTutorial.js';
 
 // Enemy defense tuning. Mitigation follows the classic armor curve damage*K/(K+def): never
 // negative, diminishing returns. K is sized for the DB defense range (~1-21) so a high-armor
