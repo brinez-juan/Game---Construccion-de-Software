@@ -166,8 +166,123 @@ body.main {
     font-style: italic;
 }
 
+.tutorial-carousel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.carousel-viewport {
+    position: relative;
+    width: 100%;
+    max-width: 700px;
+    min-height: 420px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,162,90,0.15);
+    border-radius: 4px;
+}
+
+.carousel-slide {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem;
+    animation: fadeIn 0.4s ease;
+}
+
+.carousel-slide.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.carousel-image-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.carousel-image-wrapper img {
+    max-width: 100%;
+    max-height: 320px;
+    object-fit: contain;
+    border: 1px solid rgba(201,162,90,0.2);
+    border-radius: 4px;
+}
+
+.carousel-caption {
+    text-align: center;
+    max-width: 600px;
+}
+
+.carousel-caption h3 {
+    color: #c9a25a;
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+}
+
+.carousel-caption p {
+    color: #b0a898;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.carousel-btn {
+    background: rgba(201,162,90,0.1);
+    border: 1px solid rgba(201,162,90,0.3);
+    color: #c9a25a;
+    font-size: 1.5rem;
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+    transition: background 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.carousel-btn:hover {
+    background: rgba(201,162,90,0.25);
+    border-color: rgba(201,162,90,0.6);
+}
+
+.carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.carousel-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(201,162,90,0.25);
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.carousel-dot.active {
+    background: #c9a25a;
+}
+
 @media (max-width: 640px) {
     .hero-title { font-size: 1.8rem; }
     .section-title { font-size: 1.4rem; }
     .glossary-grid { grid-template-columns: 1fr; }
+    .carousel-viewport { min-height: auto; }
+    .carousel-image-wrapper img { max-height: 200px; }
+    .carousel-btn { width: 36px; height: 36px; font-size: 1.2rem; }
 }

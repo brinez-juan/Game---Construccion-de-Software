@@ -36,6 +36,9 @@ export default class optionsMenu extends Menus{
             this.returnButton.mouseCollition(mouseX, mouseY)
             this.sfxField.mouseCollition(mouseX, mouseY)
             this.soundField.mouseCollition(mouseX, mouseY)
+            if(this.exitField){
+                this.exitField.mouseCollition(mouseX, mouseY)
+            }
         }
 
         this._onClick = (e) => {
@@ -57,7 +60,12 @@ export default class optionsMenu extends Menus{
     }
 
     update(deltaTime){
-
+        if(this.returnButton.hovered){
+            this.returnButton.setSprite('../Assets/Sprites/return_2.png')
+        }
+        else{
+            this.returnButton.setSprite('../Assets/Sprites/return_button.png')
+        }
     }
 
     // Switches the hovered audio toggle sprite and updates its on or off type tag
