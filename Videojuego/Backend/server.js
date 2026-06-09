@@ -16,6 +16,7 @@ const { default: cardsRouter } = await import('./SavedGames/cardsRoutes.js');
 const { default: roomsRouter } = await import('./SavedGames/roomsRoutes.js');
 const { default: catalogRouter } = await import('./SavedGames/catalogRoutes.js');
 const { default: globalStatisticsRouter } = await import('./SavedGames/globalStatisticsRoutes.js');
+const { default: statsRouter } = await import('./SavedGames/statsRoutes.js');
 
 const webPageDir = path.resolve(__dirname, '..', 'WebPage');
 const videojuegoDir = path.resolve(__dirname, '..');
@@ -33,6 +34,7 @@ app.use(cardsRouter);
 app.use(roomsRouter);
 app.use(catalogRouter);
 app.use(globalStatisticsRouter);
+app.use(statsRouter);
 
 // Keep .env, dbconfig and auth source out of the public surface.
 app.use('/Backend', (req, res) => res.status(404).send('Not found'));

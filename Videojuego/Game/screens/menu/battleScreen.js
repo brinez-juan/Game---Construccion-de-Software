@@ -89,6 +89,13 @@ export default class battleScreen extends Menus{
         // we award a slice of this total proportional to how many were defeated.
         this.totalEnemyXp = this.enemies.reduce((sum, enemy) => sum + (enemy.experienceReward || 0), 0)
         this.summaryReported = false
+        // Per-session stat tracking flushed to the DB when the room ends (finishSessionStats):
+        // the parry tally (perfect/normal/missed — no "poor"), the DB ids of the enemies
+        // defeated this room (recorded as they die in checkEnemyStatus, since this.enemies is
+        // filtered down to empty by victory time), and a guard so the finish fires once.
+        this.parryCounts = { perfect: 0, normal: 0, missed: 0 }
+        this.defeatedEnemyIds = []
+        this.sessionFinished = false
         this.turn = 'player';
         this.tutorialActive = false;
         this.cardInAction = undefined;
@@ -321,6 +328,10 @@ export default class battleScreen extends Menus{
             this.removeEventListeners()
             this.ParryBar.dispose()
             this.reportEnemiesDefeated()
+            // Record what killed the player so resetRunOnDeath can store it as the run's
+            // death_cause, then close out this session as a LOSS.
+            if(this.game){ this.game.lastDeathCause = this.enemyAttacking?.dbId ?? null }
+            this.finishSessionStats('LOSS')
             this.state = 7
             return
         }
@@ -336,6 +347,9 @@ export default class battleScreen extends Menus{
             this.ParryBar.dispose()
             this.reportEnemiesDefeated()
             this.grantEnemyDrops()
+            // Close out this session as a WIN (grantEnemyDrops ran first so a card reward
+            // is available to record).
+            this.finishSessionStats('WIN')
             this.state = 8
             return
         }
@@ -380,6 +394,14 @@ export default class battleScreen extends Menus{
     }
 
     checkEnemyStatus(){
+        // Record the DB id of every enemy that just died before it's filtered out, so the
+        // session finish can write one session_enemies_defeated row per kill (this captures
+        // both stages of the two-stage final boss, which die across separate filter passes).
+        for(const enemy of this.enemies){
+            if(enemy.health <= 0 && enemy.dbId != null){
+                this.defeatedEnemyIds.push(enemy.dbId)
+            }
+        }
         this.enemies = this.enemies.filter(enemy => enemy.health > 0)
     }
 
@@ -401,6 +423,23 @@ export default class battleScreen extends Menus{
                 this.game.awardExperience(this.xpAwardedThisBattle)
             }
         }
+    }
+
+    // Closes out the room session in the DB once per battle: result (WIN/LOSS), the XP earned,
+    // a representative card reward (first drop, if any), the parry tally and the defeated enemy
+    // ids. Best-effort (fire-and-forget); a missing session id (e.g. the floor-0 tutorial entered
+    // without a lobby round-trip) is a no-op. Call reportEnemiesDefeated first so the counts exist.
+    finishSessionStats(result){
+        if(this.sessionFinished){ return }
+        this.sessionFinished = true
+        if(!this.game || !this.game.api || this.game.currentSessionId == null){ return }
+        this.game.api.finishSession(this.game.currentSessionId, {
+            result,
+            experienceGained: this.xpAwardedThisBattle,
+            cardRewardId: this.cardsWon[0]?.cardId ?? null,
+            parries: this.parryCounts,
+            enemiesDefeated: this.defeatedEnemyIds
+        }).catch(err => console.error('Could not finish room session:', err))
     }
 
     // Grants one card per enemy defeated when the room is cleared. For each spawned
@@ -555,6 +594,15 @@ export default class battleScreen extends Menus{
         const [text, color] = labelData[this.ParryBar.state] ?? labelData.miss
         this.showActionLabel(text, color, 1500)
 
+        // Tally the parry for the session stats, but only when the parry minigame actually ran
+        // (ParryBar.started). Auto-resolved defend-card parries never animate the bar, so they
+        // aren't counted as parry attempts. 'miss' covers both a late press and no press.
+        if(this.ParryBar.started){
+            if(this.ParryBar.state === 'perfect'){ this.parryCounts.perfect++ }
+            else if(this.ParryBar.state === 'normal'){ this.parryCounts.normal++ }
+            else { this.parryCounts.missed++ }
+        }
+
         this.advanceEnemy()
     }
 
@@ -704,6 +752,9 @@ export default class battleScreen extends Menus{
             datum.health, datum.maxHealth, datum.stamina, datum.maxStamina, datum.attributes,
             datum.physicalDamage, datum.magicDamage, datum.physicalDefense, datum.magicDefense,
             datum.experienceReward, null, datum.isBoss)
+        // Carry the DB enemy id so kills can be reported (session_enemies_defeated) and the
+        // killing enemy can be recorded as the run's death_cause.
+        enemy.dbId = datum.id
         if(datum.spritePaths){ enemy.setSpriteStates(datum.spritePaths) }
         else if(datum.spritePath){ enemy.setSprite(datum.spritePath) }
         return enemy

@@ -13,8 +13,7 @@ router.get('/api/global-stats/parry-stats', async (req, res) => {
         const [parryStats] = await pool.query(
             `SELECT
                 global_perfect_parries,
-                global_normal_parries,
-                global_poor_parries
+                global_normal_parries
                 FROM global_stats
             `
             

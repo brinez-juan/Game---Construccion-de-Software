@@ -262,7 +262,10 @@ export default class battleLobby extends Menus{
 
         try {
             if(this.api && this.runId != null && this.currentRoom){
-                await this.api.startSession(this.runId, { roomId: this.currentRoom.id, deck: deckCards.map(c => c.cardId) })
+                const session = await this.api.startSession(this.runId, { roomId: this.currentRoom.id, deck: deckCards.map(c => c.cardId) })
+                // Keep the session id so the battle screen can close it out (parry/enemy
+                // stats + end columns) when the room is won or lost.
+                if(this.game){ this.game.currentSessionId = session.sessionId }
             }
         } catch(err){
             console.error('Could not persist room session/deck:', err)

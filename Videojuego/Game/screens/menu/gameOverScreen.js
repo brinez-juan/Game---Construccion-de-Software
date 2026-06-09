@@ -200,6 +200,9 @@ export default class gameOverScreen extends Menus {
             if(this.api && this.slotId != null){
                 await this.api.makeCardPermanent(this.slotId, cardId);
             }
+            // Remember the kept card so resetRunOnDeath records it as the run's
+            // permanent_card_chosen_id when it finishes the run.
+            if(this.game){ this.game.pendingPermanentCardId = cardId; }
             // Flag the card permanent on the shared player objects so resetRunOnDeath's
             // `filter(c => c.isPermanent)` keeps it in the in-memory inventory too.
             const pools = [this.game?.player?.inventory, this.game?.player?.activeDeck];

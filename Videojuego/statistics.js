@@ -51,19 +51,17 @@ function renderParryStatsChart(parryStats){
     const myChart = new Chart(canvas, {
         type: 'bar',
         data: {
-            labels: ['Perfect Parries', 'Normal Parries', 'Poor Parries'],
+            labels: ['Perfect Parries', 'Normal Parries'],
             datasets: [{
                 label: 'Total Parries',
-                data: [parryStats.global_perfect_parries, parryStats.global_normal_parries, parryStats.global_poor_parries],
+                data: [parryStats.global_perfect_parries, parryStats.global_normal_parries],
                 backgroundColor: [
                     'rgba(75, 192, 192, 0.2)',
-                    'rgba(250, 192, 105, 0.2)',
-                    'rgba(255, 99, 132, 0.2)'
+                    'rgba(250, 192, 105, 0.2)'
                 ],
                 borderColor: [
                     'rgba(75, 192, 192, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(255, 99, 132, 1)'
+                    'rgba(255, 206, 86, 1)'
                 ],
                 borderWidth: 1
             }]
@@ -264,13 +262,6 @@ function renderParrySuccessByfloorChart(parrySuccessByFloor){
                 data: [parrySuccessByFloor[0].normal_parries, parrySuccessByFloor[1].normal_parries, parrySuccessByFloor[2].normal_parries, parrySuccessByFloor[3].normal_parries],
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1
-            },
-            {
-                label: 'Poor parries',
-                data: [parrySuccessByFloor[0].poor_parries, parrySuccessByFloor[1].poor_parries, parrySuccessByFloor[2].poor_parries, parrySuccessByFloor[3].poor_parries],
-                backgroundColor: 'rgba(255, 206, 86, 0.2)',
-                borderColor: 'rgba(255, 206, 86, 1)',
                 borderWidth: 1
             }]
         }

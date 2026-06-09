@@ -73,6 +73,9 @@ class Game {
         // DB (as an increment) by persistExperience after a battle. See awardExperience.
         this.pendingAttributePoints = 0;
         this.enemiesDefeated = 0;  // accumulated across the run, shown on Game Over
+        this.currentSessionId = null;        // active room_session id, set by the lobby
+        this.lastDeathCause = null;          // enemy dbId that killed the player (run death_cause)
+        this.pendingPermanentCardId = null;  // boss card kept on the Game Over screen
         this.player = this.blankPlayer();
 
         this.currentMenu = new mainMenu(BG.main, this.canvasWidth, this.canvasHeight, 30, this.slots);
@@ -238,6 +241,21 @@ class Game {
     // Best-effort persistence (fire-and-forget); the in-memory reset always runs.
     async resetRunOnDeath(){
         try {
+            // Finish the run in the DB BEFORE the run-only inventory is wiped and runId is
+            // cleared: records end_time/completion_time, victory=false, the death_cause captured
+            // at the moment of death, the boss card the player chose to keep (if any), and folds
+            // the run's totals into player_global_stats.
+            if(this.api && this.runId != null){
+                await this.api.finishRun(this.runId, {
+                    victory: false,
+                    deathCause: this.lastDeathCause ?? null,
+                    permanentCardChosenId: this.pendingPermanentCardId ?? null
+                });
+            }
+        } catch(err){
+            console.error('Could not finish run on death:', err);
+        }
+        try {
             if(this.api && this.activeSlotId != null){
                 await this.api.resetRunOnDeath(this.activeSlotId);
             }
@@ -260,6 +278,21 @@ class Game {
         // Drop any level-up grant from the fatal battle that was never persisted, so it
         // can't be flushed onto the next victory (XP/level aren't persisted on death).
         this.pendingAttributePoints = 0;
+        // Clear the death-run scratch fields now that the run has been finished.
+        this.lastDeathCause = null;
+        this.pendingPermanentCardId = null;
+    }
+
+    // Ends the current run in the DB on a full victory (clearing the castle's final boss).
+    // Records end_time/completion_time, victory=true and folds the run's totals into
+    // player_global_stats. Best-effort (fire-and-forget); failures are logged, not fatal.
+    async finishRun(victory){
+        if(!this.api || this.runId == null){ return; }
+        try {
+            await this.api.finishRun(this.runId, { victory: !!victory });
+        } catch(err){
+            console.error('Could not finish run:', err);
+        }
     }
 
     // Picks the floor-appropriate enemy pool for a room (boss list for boss rooms).
@@ -367,6 +400,9 @@ class Game {
             // show the completion screen instead of the per-battle victory screen.
             const isFinalRoom = this.currentRoom && this.currentRoom.floorNumber === 3 && this.currentRoom.isBoss
             if(isFinalRoom){
+                // Beating the final boss ends the run as a victory: record end_time/completion
+                // time and fold the run's totals (incl. the victory) into player_global_stats.
+                this.finishRun(true)
                 const completionStats = {
                     enemiesDefeated: this.enemiesDefeated,
                     finalLevel: this.player?.level ?? 1,

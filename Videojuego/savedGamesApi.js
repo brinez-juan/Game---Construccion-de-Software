@@ -227,6 +227,44 @@ export default class SavedGamesAPI {
     };
   }
 
+  // Closes out a room session after a win or a death: records the session end columns
+  // (result/xp/card reward), the per-session parry tally (perfect/normal/missed) and the
+  // ids of the enemies defeated this room. Best-effort from the caller's side.
+  async finishSession(sessionId, { result, experienceGained = 0, cardRewardId = null, parries = {}, enemiesDefeated = [] } = {}) {
+    const res = await fetch(`/api/room-sessions/${sessionId}/finish`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        result,
+        experience_gained: experienceGained,
+        card_reward_id: cardRewardId,
+        parries: {
+          perfect: parries.perfect ?? 0,
+          normal:  parries.normal ?? 0,
+          missed:  parries.missed ?? 0
+        },
+        enemies_defeated: enemiesDefeated
+      })
+    });
+    await parseOrThrow(res);
+  }
+
+  // Ends a run on death or full victory: records the run end columns (completion time is
+  // computed server-side) and folds the run's totals into player_global_stats. death_cause
+  // is the enemy that killed the player; permanentCardChosenId is the boss card kept on death.
+  async finishRun(runId, { victory = false, deathCause = null, permanentCardChosenId = null } = {}) {
+    const res = await fetch(`/api/runs/${runId}/finish`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        victory,
+        death_cause: deathCause,
+        permanent_card_chosen_id: permanentCardChosenId
+      })
+    });
+    await parseOrThrow(res);
+  }
+
   // Returns the static floor/room catalog (room id, floor_number, room_number,
   // is_boss, background asset) used to give each room a distinct screen state.
   async listRooms() {
