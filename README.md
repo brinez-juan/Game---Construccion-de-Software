@@ -95,5 +95,8 @@ Upon entering the webpage you will be prompted with the next sections
 
 ## Game features
 - Each user can create different player profiles in their game
+- The player can earn many different cards after each floor and battle
+- The player can choose a card upon death to use it in future runs
 - Every card scales differently, requiring certain attributes and having a scaling factor 
-- You as a player can 
+- The player can parry attacks, making the turn based mechanics more engaging 
+- The enemy quantity and types are randomized, enriching the roguelite mechanics of the game
