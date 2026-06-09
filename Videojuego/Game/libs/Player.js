@@ -107,4 +107,14 @@ export default class Player extends Character {
             posX += cardWidth + offSetX
         }
     }
+
+    // Replaces one random card available in the deck
+    deckReplacer(cardToReplace, activeDeck){
+        let index = Math.trunc(Math.random()*(activeDeck.length - 1))
+        let card = activeDeck[index]
+        let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null, card.sfxPath); 
+        let cardInstance = new ItemCard(cardToReplace.x, cardToReplace.y, cardToReplace.width, cardToReplace.height, card.name, card.description, action, card.required_value, card.rarity, card.stamina_cost, card.isPermanent);
+        cardInstance.setSprite(card.spritePath ?? `../Assets/Sprites/cards/${card.name}.jpeg`)
+        this.deck[this.deck.indexOf(cardToReplace)] = cardInstance
+    }   
 }

@@ -58,6 +58,7 @@ export default class battleScreen extends Menus{
         this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, playerData.stamina, playerData.maxStamina)
         this.playerMaker(playerData)
         this.player.deckMaker(playerData.activeDeck, this.canvasWidth/2, 4*this.canvasHeight/5 + 50, 100*0.75, 100, 15)
+        this.deckData = playerData.activeDeck
         // The castle's final room (floor 3 boss) is a TWO-STAGE fight: Eldric first, then
         // Lysara appears in the same battle once he falls — both must die in one attempt.
         // enemyMaker spawns Eldric and parks Lysara in pendingBoss; update()'s victory check
@@ -170,6 +171,7 @@ export default class battleScreen extends Menus{
                         this.player.playState('defend')
                         this.playSfx(card.action.sfxPath)
                         this.beginEnemyTurn()
+                        this.player.deckReplacer(card, this.deckData)
                         return
                     }
                     else if(card.action.actionType === 'aoe_magic' || card.action.actionType === 'aoe_physic'){
@@ -187,6 +189,7 @@ export default class battleScreen extends Menus{
                         this.player.playState('attack')
                         this.player.lunge(1)   // hop toward the enemies on the right
                         this.beginEnemyTurn()
+                        this.player.deckReplacer(card, this.deckData)
                         return
                     }
                     else{
@@ -222,6 +225,7 @@ export default class battleScreen extends Menus{
                 this.player.lunge(1)        // hop toward the enemies on the right
                 enemy.shake()               // the struck enemy recoils
                 this.cardInAction.y += 15
+                this.player.deckReplacer(this.cardInAction, this.deckData)
                 this.cardInAction = null
                 this.beginEnemyTurn()
                 return
