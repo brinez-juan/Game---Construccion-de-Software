@@ -40,9 +40,12 @@ The prototype is the **battle scene**, and it must be opened **directly from the
 1. Clone/Download the repository with the next command: `git clone https://github.com/brinez-juan/Game---Construccion-de-Software.git`
 2. Run the sql schema file `return_game_schema.sql` stored at `insert directory` inside mysql, if you don't have mysql installed follow the next guide:  
 `https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwiSzLyOifmUAxV1IEQIHRWpJYAQFnoECA0QAQ&url=https%3A%2F%2Fdev.mysql.com%2Fdoc%2Fmysql-installation-excerpt%2F5.7%2Fen%2F&usg=AOvVaw1ffvZJna0p6sAUod4w9u3E&opi=89978449`
-3. Configure your .env file as specificated in the .env configuration section, all the data you have to fill will be in mysql when you create the database. Be careful in here, as if you set a password and then forget it you will not be able to access the databse
-4. Run the game using `npm start` or `node Videojuego/Backend/server.js``
-5. Access the main page going to `localhost:3000` or typing localhost followed by the port chosen to run the game (if you don't know it it will appear on the terminal/powershell when running the server.js file)
+3. Configure your .env file as specificated in the .env configuration section, all the data you have to fill will be in mysql when you create the database. Be careful in here, as if you set a password and then forget it you will not be able to access the database
+4. Run the setup.sh on the terminal:
+  - In the case of macOS/Linux use: `bash setup.sh`
+  - In the case of windows opne Git Bash, navigate to the project folder and run: `bash setup.sh`
+5. Run the game using `npm start` or `node Videojuego/Backend/server.js` in your terminal
+6. Access the main page going to `localhost:3000` or typing localhost followed by the port chosen to run the game (if you don't know it it will appear on the terminal/powershell when running the server.js file)
 
 > The Express server in `Videojuego/Backend/server.js` already renders all the webpage and the game
 
@@ -91,5 +94,6 @@ Upon entering the webpage you will be prompted with the next sections
 - Made by: Small section indicating our names and github profiles
 
 ## Game features
-
-- 
+- Each user can create different player profiles in their game
+- Every card scales differently, requiring certain attributes and having a scaling factor 
+- You as a player can 
