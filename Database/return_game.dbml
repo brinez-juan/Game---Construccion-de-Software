@@ -1,0 +1,238 @@
+// return_game.dbml
+// DBML model of the "Return" roguelite database (MySQL 8 / schema `return_game`).
+// Paste into https://dbdiagram.io (or run `dbdocs`/`dbml2sql`) to render the UML diagram.
+//
+// DBML describes only tables and relationships. The database also has 10 views, 6 triggers and
+// 6 stored procedures (see schema_structure.sql for their definitions); they are listed in the
+// Project note below so the diagram doc is complete.
+
+Project return_game {
+  database_type: 'MySQL'
+  Note: '''
+  # Return — return_game
+
+  **Views (10):** archetypes_selected, global_stats, parry_success_by_floor, room_abandonment,
+  leaderboard_top_players, card_usage_stats, enemy_defeat_stats, floor_win_rates,
+  archetype_attribute_averages, slot_overview.
+
+  **Triggers (6):** trg_player_profiles_ai_bootstrap, trg_sed_ai_count, trg_parry_ai_count,
+  trg_player_cards_ai_count, trg_runs_au_finish, trg_active_deck_cards_bi_maxsize.
+  (The five aggregate triggers keep player_global_stats up to date; the last enforces a 5-card deck.)
+
+  **Procedures (6):** sp_create_player_profile, sp_spend_attribute_point, sp_apply_experience,
+  sp_finish_run, sp_finish_room_session, sp_reset_run_on_death.
+  '''
+}
+
+// ---- Enumerated types ----
+
+enum action_type {
+  ATTACK_PHYSIC
+  ATTACK_MAGIC
+  DEFEND_PHYSIC
+  DEFEND_MAGIC
+  AOE_PHYSIC
+  AOE_MAGIC
+  HEALING
+  RECOVER_STAMINA
+}
+
+enum card_rarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+enum archetype {
+  SOLDIER
+  ARCHER
+  MAGE
+}
+
+enum session_result {
+  WIN
+  LOSS
+}
+
+// ---- Accounts ----
+
+Table users {
+  id int [pk, increment]
+  username varchar(50) [not null, unique]
+  email varchar(150) [not null, unique]
+  password_hash varchar(255) [not null]
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+  failed_attempts int [default: 0]
+  lock_until datetime [null]
+  isAdmin boolean [not null, default: 0, note: 'Grants access to the admin statistics panel']
+}
+
+// ---- Static catalog / reference data ----
+
+Table floors {
+  id int [pk, increment]
+  floor_number int [not null, unique, note: '0=Forest(tutorial),1=Courtyard,2=Halls,3=Throne']
+  name varchar(100) [not null]
+}
+
+Table rooms {
+  id int [pk, increment]
+  floor_id int [not null, ref: > floors.id]
+  room_number int [not null, note: '1/2 = regular enemies; 3 = boss room']
+  is_boss boolean [default: 0]
+  background varchar(100) [null, note: 'Background asset under Assets/backgrounds/']
+
+  indexes {
+    (floor_id, room_number) [unique, name: 'uq_floor_room']
+  }
+}
+
+Table enemies {
+  id int [pk, increment]
+  name varchar(100) [not null]
+  health_min int [null]
+  health_max int [null]
+  physical_damage_min int [null]
+  physical_damage_max int [null]
+  magic_damage_min int [default: 0]
+  magic_damage_max int [default: 0]
+  physical_defense int [default: 0]
+  magic_defense int [default: 0]
+  xp_reward int [null]
+  is_boss boolean [default: 0]
+  floor_id int [null, ref: > floors.id]
+  sprite varchar(100) [null, note: 'Filename in Assets/Sprites/characters']
+}
+
+Table cards {
+  id int [pk, increment]
+  name varchar(100) [not null]
+  description text [null]
+  action_type action_type [not null]
+  stamina_cost int [not null]
+  base_damage int [default: 0]
+  rarity card_rarity [not null]
+  sprite_name varchar(100) [null]
+  scales_with varchar(20) [null, note: 'Attribute that boosts this card, e.g. STRENGTH']
+  scaling_factor decimal(5,2) [default: 0]
+  required_attribute varchar(20) [null]
+  required_value int [default: 0]
+  is_boss_reward boolean [default: 0]
+  enemy int [null, ref: > enemies.id, note: 'Enemy that can drop this card']
+}
+
+// ---- Per-account meta-progression ----
+
+Table player_profiles {
+  id int [pk, increment]
+  user_id int [not null, ref: > users.id]
+  archetype archetype [not null]
+  total_experience int [default: 0]
+  level int [default: 1]
+  attribute_points int [default: 0, note: 'Unspent points available to distribute']
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table attributes {
+  id int [pk, increment]
+  player_id int [not null, unique, ref: - player_profiles.id]
+  strength int [default: 1]
+  vigor int [default: 1]
+  intelligence int [default: 1]
+  endurance int [default: 1]
+  dexterity int [default: 1]
+  updated_at datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table player_global_stats {
+  id int [pk, increment]
+  player_id int [not null, unique, ref: - player_profiles.id]
+  total_runs int [default: 0]
+  total_victories int [default: 0]
+  best_completion_time_seconds int [null]
+  total_perfect_parries int [default: 0]
+  total_normal_parries int [default: 0]
+  total_enemies_defeated int [default: 0]
+  total_bosses_defeated int [default: 0]
+  total_cards_collected int [default: 0]
+  updated_at datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table player_cards {
+  id int [pk, increment]
+  player_id int [not null, ref: > player_profiles.id]
+  card_id int [not null, ref: > cards.id]
+  obtained_at_run int [null, ref: > runs.id, note: 'NULL if a starter card']
+  obtained_at_floor int [null]
+  is_permanent boolean [default: 1, note: 'Survives death; player keeps 1 boss card on defeat']
+}
+
+Table saved_games {
+  id int [pk, increment]
+  user_id int [not null, ref: > users.id]
+  slot_number tinyint [not null, note: '1..3 (CHECK constraint)']
+  name varchar(64) [not null, default: 'New Run']
+  player_profile_id int [null, ref: > player_profiles.id, note: 'Set after archetype selection']
+  current_run_id int [null, ref: > runs.id, note: 'In-progress run; NULL between runs']
+  last_played_at datetime [default: `CURRENT_TIMESTAMP`]
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, slot_number) [unique, name: 'uq_user_slot']
+  }
+}
+
+// ---- Run / battle history ----
+
+Table runs {
+  id int [pk, increment]
+  player_id int [not null, ref: > player_profiles.id]
+  start_time datetime [null]
+  end_time datetime [null]
+  completion_time_seconds int [null]
+  final_floor_reached int [null, note: '0-3']
+  final_room_reached int [null, note: '1-3']
+  victory boolean [default: 0]
+  death_cause int [null, ref: > enemies.id, note: 'Enemy that killed the player']
+  permanent_card_chosen_id int [null, ref: > cards.id, note: 'Boss card kept after defeat']
+}
+
+Table room_sessions {
+  id int [pk, increment]
+  run_id int [not null, ref: > runs.id]
+  room_id int [not null, ref: > rooms.id]
+  start_time datetime [null]
+  end_time datetime [null, note: 'NULL = session never finished (abandoned)']
+  result session_result [null]
+  experience_gained int [null]
+  card_reward_id int [null, ref: > cards.id]
+}
+
+Table active_deck_cards {
+  id int [pk, increment]
+  room_session_id int [not null, ref: > room_sessions.id]
+  card_id int [not null, ref: > cards.id]
+  slot int [null, note: '1-5']
+
+  indexes {
+    (room_session_id, card_id) [unique, name: 'uq_session_card']
+    (room_session_id, slot) [unique, name: 'uq_session_slot']
+  }
+}
+
+Table parry_stats {
+  id int [pk, increment]
+  session_id int [not null, ref: > room_sessions.id]
+  perfect_parries int [default: 0]
+  normal_parries int [default: 0]
+  parries_missed int [default: 0]
+}
+
+Table session_enemies_defeated {
+  id int [pk, increment]
+  session_id int [not null, ref: > room_sessions.id]
+  enemy_id int [not null, ref: > enemies.id]
+  defeated_at datetime [default: `CURRENT_TIMESTAMP`]
+}
