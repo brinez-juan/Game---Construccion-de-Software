@@ -1,4 +1,12 @@
-.login-menu{
+/* Dark medieval theme matching index/tutorial/madeby pages */
+body,
+body.main {
+    background: #0a0a0c;
+    color: #d8d0c4;
+}
+
+.login-menu,
+.sign-menu {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -6,24 +14,88 @@
     height: 100vh;
 }
 
-.sign-menu{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
+.login-menu h2,
+.sign-menu h2 {
+    color: #c9a25a;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
-.in-field{
+.in-field {
     width: 40vw;
-    height: 5vh;
+    max-width: 400px;
+    height: 48px;
     margin-top: 1rem;
     margin-bottom: 1rem;
-    border-radius: 1rem;
+    border-radius: 0.5rem;
     padding-left: 1rem;
     padding-right: 1rem;
+    background: #1a1410;
+    color: #f3ead0;
+    border: 2px solid #5a4a3a;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.login-menu p a{
+.in-field::placeholder {
+    color: #8a7a6a;
+}
+
+.in-field:focus {
+    border-color: #c9a25a;
+    box-shadow: 0 0 8px rgba(201, 162, 90, 0.3);
+}
+
+button.in-field {
+    background: #3a2a1a;
+    color: #c9a25a;
+    border: 2px solid #c9a25a;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+button.in-field:hover {
+    background: #c9a25a;
+    color: #1a1410;
+}
+
+.login-menu p,
+.sign-menu p {
+    color: #a09080;
+    margin-top: 0.5rem;
+}
+
+.login-menu p button,
+.sign-menu p button {
+    background: transparent;
+    border: none;
+    color: #c9a25a;
+    cursor: pointer;
+    font-size: 1rem;
+    text-decoration: underline;
+    padding: 0;
+}
+
+.login-menu p button:hover,
+.sign-menu p button:hover {
+    color: #f3ead0;
+}
+
+.form-message {
+    color: #e07060;
+    font-size: 0.9rem;
+    min-height: 1.2rem;
+}
+
+.login-menu p a {
     text-decoration: none;
+    color: #c9a25a;
+}
+
+.login-menu p a:hover {
+    color: #f3ead0;
 }

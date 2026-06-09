@@ -1,3 +1,10 @@
+/* Page background — matches index, tutorial, and madeby pages */
+body,
+body.main {
+    background: #0a0a0c;
+    color: #d8d0c4;
+}
+
 /* ---------- Battle Lobby ---------- */
 
 #lobby-container {
