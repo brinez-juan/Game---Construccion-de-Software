@@ -21,6 +21,9 @@ async function fetchAndRenderStatistics() {
         const parrySuccessByFloorResponse = await fetch('/api/global-stats/parry-success-by-floor');
         const parrySuccessByFloorData = await parrySuccessByFloorResponse.json();
 
+        const abandonmentResponse = await fetch('/api/global-stats/abandonment-rate');
+        const abandonmentData = await abandonmentResponse.json();
+
         renderSectionLabel('Global Statistics', 'section-label');
         renderParryStatsChart(parryStatsData.parryStats);
         renderAverageCompletionTime(averageCompletionTimeData.averageCompletionTime);
@@ -33,6 +36,7 @@ async function fetchAndRenderStatistics() {
             renderSectionLabel('Admin Panel', 'section-label section-label--admin');
             renderArchetypeDistributionChart(archetypeDistributionData.archetypeDistribution);
             renderParrySuccessByfloorChart(parrySuccessByFloorData.parrySuccessByFloor);
+            renderAbandonmentRateChart(abandonmentData.abandonment);
         }
     } catch (error) {
         console.error('Error fetching statistics:', error);
@@ -249,21 +253,67 @@ function renderParrySuccessByfloorChart(parrySuccessByFloor){
     const myChart = new Chart(canvas, {
         type: 'bar',
         data: {
+            // Map straight off the rows (one per floor) instead of hardcoding indices, so this
+            // is robust to however many floors the view returns and never reads undefined.
             labels: parrySuccessByFloor.map(item => `Floor ${item.floor_number}`),
             datasets: [{
                 label: 'Perfect parries',
-                data: [parrySuccessByFloor[0].perfect_parries, parrySuccessByFloor[1].perfect_parries, parrySuccessByFloor[2].perfect_parries, parrySuccessByFloor[3].perfect_parries],
+                data: parrySuccessByFloor.map(item => item.perfect_parries),
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1
             },
             {
                 label: 'Normal parries',
-                data: [parrySuccessByFloor[0].normal_parries, parrySuccessByFloor[1].normal_parries, parrySuccessByFloor[2].normal_parries, parrySuccessByFloor[3].normal_parries],
+                data: parrySuccessByFloor.map(item => item.normal_parries),
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 borderColor: 'rgba(255, 99, 132, 1)',
                 borderWidth: 1
             }]
+        }
+    });
+}
+
+// Session abandonment rate: how many room sessions were started but never finished
+// (end_time IS NULL) versus completed. A doughnut reads the proportion at a glance and
+// matches the other admin doughnuts; the exact rate is shown in the title.
+function renderAbandonmentRateChart(abandonment){
+    const abandoned = Number(abandonment?.abandoned_sessions) || 0;
+    const completed = Number(abandonment?.completed_sessions) || 0;
+    const total = abandoned + completed;
+    const rate = total > 0 ? Math.round((abandoned / total) * 100) : 0;
+
+    const chartWrapper = document.createElement('div');
+    chartWrapper.classList.add('abandonment-wrapper');
+    const canvas = document.createElement('canvas');
+    const chartText = document.createElement('h2');
+    chartText.textContent = `Session Abandonment Rate (${rate}%)`;
+    chartWrapper.appendChild(chartText);
+    chartWrapper.appendChild(canvas);
+    document.body.appendChild(chartWrapper);
+    new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+            labels: ['Abandoned', 'Completed'],
+            datasets: [{
+                label: 'Room Sessions',
+                data: [abandoned, completed],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(75, 192, 192, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(75, 192, 192, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            animations: {
+                animateScale: true,
+                animateRotate: true
+            }
         }
     });
 }

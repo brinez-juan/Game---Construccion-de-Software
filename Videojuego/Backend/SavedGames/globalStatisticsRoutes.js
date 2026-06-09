@@ -96,14 +96,33 @@ router.get('/api/global-stats/top-players', async (req, res) => {
 
 router.get('/api/global-stats/parry-success-by-floor', async (req, res) => {
     try{
+        // ORDER BY here (not just in the view) guarantees the rows come back floor-ordered,
+        // since a view's GROUP BY does not imply a sort in MySQL 8.
         const [parrySuccessByFloor] = await pool.query(
-            `SELECT * FROM parry_success_by_floor`
+            `SELECT * FROM parry_success_by_floor ORDER BY floor_number`
         );
         return res.json({ success: true, parrySuccessByFloor });
     }
     catch(err){
         console.error('Failed to get parry success by floor:', err);
         return res.status(500).json({ success: false, message: 'Failed to obtain parry success by floor.' });
+    }
+});
+
+// Endpoint for the session abandonment rate: a room_session that was started but has no
+// end_time was never finished (the player quit mid-room), so it counts as abandoned. The
+// session_abandonment view splits every room_sessions row into abandoned vs completed.
+router.get('/api/global-stats/abandonment-rate', async (req, res) => {
+    try{
+        const [rows] = await pool.query(
+            `SELECT abandoned_sessions, completed_sessions, total_sessions
+               FROM session_abandonment`
+        );
+        return res.json({ success: true, abandonment: rows[0] });
+    }
+    catch(err){
+        console.error('Failed to get abandonment rate:', err);
+        return res.status(500).json({ success: false, message: 'Failed to obtain abandonment rate.' });
     }
 });
 export default router;

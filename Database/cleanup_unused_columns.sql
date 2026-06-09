@@ -22,14 +22,17 @@ CREATE OR REPLACE VIEW global_stats AS
          AVG(PG.total_cards_collected)      AS card_avg
     FROM return_game.player_global_stats AS PG;
 
+-- LEFT JOINs so every floor appears even with no parry data yet (the chart maps one bar
+-- group per row, so a missing floor would otherwise misalign it). SUM totals the actual
+-- parries per floor; the previous COUNT(...) only counted how many sessions had a row.
 CREATE OR REPLACE VIEW parry_success_by_floor AS
   SELECT F.floor_number,
-         COUNT(PS.perfect_parries) AS perfect_parries,
-         COUNT(PS.normal_parries)  AS normal_parries
+         COALESCE(SUM(PS.perfect_parries), 0) AS perfect_parries,
+         COALESCE(SUM(PS.normal_parries),  0) AS normal_parries
     FROM return_game.floors AS F
-    INNER JOIN return_game.rooms         AS R  ON F.id  = R.floor_id
-    INNER JOIN return_game.room_sessions AS RS ON R.id  = RS.room_id
-    INNER JOIN return_game.parry_stats   AS PS ON RS.id = PS.session_id
+    LEFT JOIN return_game.rooms         AS R  ON F.id  = R.floor_id
+    LEFT JOIN return_game.room_sessions AS RS ON R.id  = RS.room_id
+    LEFT JOIN return_game.parry_stats   AS PS ON RS.id = PS.session_id
    GROUP BY F.floor_number;
 
 -- 2) Drop the unused / eliminated columns ------------------------------------------------
