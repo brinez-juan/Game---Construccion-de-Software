@@ -186,32 +186,11 @@ router.post('/api/saved-games/:id/reset-on-death', requireAuth, async (req, res)
   try {
     await conn.beginTransaction();
 
-    const { profileId, runId, error } = await slotContext(conn, req.params.id, req.user.id);
-    if (error) {
-      await conn.rollback();
-      return res.status(404).json({ success: false, message: 'Save not found.' });
-    }
-
-    // Task 1 + Task 4: delete this run's run-only cards, keep the permanent ones.
-    // Guarded on profileId/runId so a slot with no profile or no active run is a
-    // safe no-op rather than deleting every run-only card the player owns.
-    if (profileId && runId) {
-      await conn.query(
-        `DELETE FROM player_cards
-          WHERE player_id = ?
-            AND is_permanent = FALSE
-            AND obtained_at_run = ?`,
-        [profileId, runId]
-      );
-    }
-
-    // Task 3: detach the run so the next Continue starts fresh (map reset). The
-    // runs row is kept for history; player_profiles (level/XP) is untouched (Task 5).
-    await conn.query(
-      `UPDATE saved_games SET current_run_id = NULL
-        WHERE id = ? AND user_id = ?`,
-      [req.params.id, req.user.id]
-    );
+    // sp_reset_run_on_death (scoped to the slot's owner) deletes this run's run-only cards,
+    // keeps the permanent ones, and detaches the run from the slot so the next Continue starts
+    // fresh (map reset). runs/player_profiles are untouched. A slot with no profile/run is a
+    // safe no-op.
+    await conn.query('CALL sp_reset_run_on_death(?, ?)', [req.params.id, req.user.id]);
 
     await conn.commit();
     return res.json({ success: true });

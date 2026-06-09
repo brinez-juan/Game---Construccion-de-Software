@@ -62,54 +62,36 @@ router.post('/api/saved-games/:id/profile', requireAuth, async (req, res) => {
     seed[column] = raw == null ? 1 : Math.max(0, Math.trunc(Number(raw)));
   }
 
+  const points = Math.max(0, Math.trunc(Number(attribute_points)));
+
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
 
-    const [slotRows] = await conn.query(
-      'SELECT player_profile_id FROM saved_games WHERE id = ? AND user_id = ?',
-      [req.params.id, req.user.id]
+    // sp_create_player_profile verifies the slot belongs to the user and has no profile yet
+    // (SIGNALs otherwise), inserts player_profiles + attributes, and points the slot at the new
+    // profile. The bootstrap trigger creates the player_global_stats row. Returns profile_id.
+    const [callRes] = await conn.query(
+      'CALL sp_create_player_profile(?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [req.params.id, req.user.id, archetype,
+       seed.strength, seed.vigor, seed.intelligence, seed.endurance, seed.dexterity, points]
     );
-    if (slotRows.length === 0) {
-      await conn.rollback();
-      return res.status(404).json({ success: false, message: 'Save not found.' });
-    }
-    if (slotRows[0].player_profile_id) {
-      await conn.rollback();
-      return res.status(409).json({
-        success: false,
-        message: 'This slot already has a profile. Delete it first to start over.'
-      });
-    }
-
-    const [profileResult] = await conn.query(
-      `INSERT INTO player_profiles (user_id, archetype, attribute_points)
-       VALUES (?, ?, ?)`,
-      [req.user.id, archetype, Math.max(0, Math.trunc(Number(attribute_points)))]
-    );
-    const profileId = profileResult.insertId;
-
-    await conn.query(
-      `INSERT INTO attributes (player_id, strength, vigor, intelligence, endurance, dexterity)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [profileId, seed.strength, seed.vigor, seed.intelligence, seed.endurance, seed.dexterity]
-    );
-
-    await conn.query(
-      'UPDATE saved_games SET player_profile_id = ? WHERE id = ? AND user_id = ?',
-      [profileId, req.params.id, req.user.id]
-    );
+    const profileId = callRes[0][0].profile_id;
 
     await conn.commit();
     return res.status(201).json({
       success: true,
       profile_id: profileId,
       archetype,
-      attribute_points: Math.max(0, Math.trunc(Number(attribute_points))),
+      attribute_points: points,
       attributes: seed
     });
   } catch (error) {
     await conn.rollback();
+    if (error && error.sqlState === '45000') {
+      const msg = error.sqlMessage || 'Could not create profile.';
+      return res.status(/not found/i.test(msg) ? 404 : 409).json({ success: false, message: msg });
+    }
     console.error('profile create error:', error);
     return res.status(500).json({ success: false, message: 'Could not create profile.' });
   } finally {
@@ -177,51 +159,22 @@ router.patch('/api/saved-games/:id/attributes', requireAuth, async (req, res) =>
       });
     }
 
-    // Decrement first. The `attribute_points >= ?` predicate is what
-    // prevents going negative — affectedRows === 0 means "not enough
-    // points" and we bail without touching the attributes row.
-    const [pool1] = await conn.query(
-      `UPDATE player_profiles
-          SET attribute_points = attribute_points - ?
-        WHERE id = ? AND attribute_points >= ?`,
-      [points, profileId, points]
-    );
-    if (pool1.affectedRows === 0) {
-      await conn.rollback();
-      return res.status(409).json({
-        success: false,
-        message: 'Not enough available points.'
-      });
-    }
-
-    // Safe: `column` came from ATTRIBUTE_COLUMNS (allowlist), not body.
-    const [attr1] = await conn.query(
-      `UPDATE attributes SET \`${column}\` = \`${column}\` + ? WHERE player_id = ?`,
-      [points, profileId]
-    );
-    if (attr1.affectedRows === 0) {
-      await conn.rollback();
-      return res.status(500).json({
-        success: false,
-        message: 'Profile is missing its attributes row.'
-      });
-    }
-
-    // Read the new values back so the client can refresh without a
-    // separate GET.
-    const [after] = await conn.query(
-      `SELECT a.strength, a.vigor, a.intelligence, a.endurance, a.dexterity,
-              pp.attribute_points AS available_points
-         FROM player_profiles pp
-         JOIN attributes a ON a.player_id = pp.id
-        WHERE pp.id = ?`,
-      [profileId]
+    // sp_spend_attribute_point validates the attribute name + sufficient points (SIGNALs on
+    // failure), moves the point atomically, and returns the refreshed attribute row +
+    // remaining points (and `spent` = the column touched).
+    const [callRes] = await conn.query(
+      'CALL sp_spend_attribute_point(?, ?, ?)',
+      [profileId, column, points]
     );
 
     await conn.commit();
-    return res.json({ success: true, spent: column, ...after[0] });
+    return res.json({ success: true, ...callRes[0][0] });
   } catch (error) {
     await conn.rollback();
+    if (error && error.sqlState === '45000') {
+      // e.g. "Not enough available points." — a client/conflict error, not a 500.
+      return res.status(409).json({ success: false, message: error.sqlMessage || 'Could not update attributes.' });
+    }
     console.error('attributes update error:', error);
     return res.status(500).json({ success: false, message: 'Could not update attributes.' });
   } finally {
@@ -271,23 +224,14 @@ router.patch('/api/saved-games/:id/experience', requireAuth, async (req, res) =>
       });
     }
 
-    await conn.query(
-      `UPDATE player_profiles
-          SET total_experience = COALESCE(?, total_experience),
-              level            = COALESCE(?, level),
-              attribute_points = attribute_points + ?
-        WHERE id = ?`,
-      [xp, lvl, grant, profileId]
+    // sp_apply_experience COALESCEs xp/level (NULL leaves them untouched), adds the granted
+    // points, and returns the stored values so the client can sync without a second GET.
+    const [callRes] = await conn.query(
+      'CALL sp_apply_experience(?, ?, ?, ?)',
+      [profileId, xp, lvl, grant]
     );
 
-    // Read the stored values back so the client can sync without a second GET.
-    // attribute_points is the authoritative remaining pool after the grant.
-    const [after] = await conn.query(
-      'SELECT total_experience, level, attribute_points FROM player_profiles WHERE id = ?',
-      [profileId]
-    );
-
-    return res.json({ success: true, ...after[0] });
+    return res.json({ success: true, ...callRes[0][0] });
   } catch (error) {
     console.error('experience update error:', error);
     return res.status(500).json({ success: false, message: 'Could not update experience.' });

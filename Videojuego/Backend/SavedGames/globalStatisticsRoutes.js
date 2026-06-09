@@ -81,14 +81,12 @@ router.get('/api/global-stats/cards-collected-avg', async (req, res) => {
 router.get('/api/global-stats/top-players', async (req, res) => {
     try{
         const [topPlayers] = await pool.query(
-            `SELECT U.username, PG.best_completion_time_seconds, PG.total_perfect_parries, PG.total_cards_collected
-            FROM return_game.users AS U INNER JOIN
-            return_game.player_profiles AS PP ON U.id = PP.user_id INNER JOIN
-            return_game.player_global_stats AS PG ON PP.id = PG.player_id
-            WHERE PG.best_completion_time_seconds IS NOT NULL
-            ORDER BY PG.best_completion_time_seconds ASC, PG.total_perfect_parries DESC, PG.total_cards_collected DESC
-            LIMIT 5;
-            `
+            `SELECT username, best_completion_time_seconds, total_perfect_parries, total_cards_collected
+               FROM leaderboard_top_players
+              ORDER BY best_completion_time_seconds ASC,
+                       total_perfect_parries DESC,
+                       total_cards_collected DESC
+              LIMIT 5`
         );
         return res.json({ success: true, topPlayers });
     }

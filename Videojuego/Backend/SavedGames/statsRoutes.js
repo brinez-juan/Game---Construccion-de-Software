@@ -1,7 +1,7 @@
-// Router that closes out room sessions and runs, recording the end-of-battle and
-// end-of-run statistics the forward-progression routes never wrote: room_sessions
-// end columns + parry_stats + session_enemies_defeated per session, and the runs end
-// columns + the player_global_stats aggregate per run.
+// Router that closes out room sessions and runs. It writes the raw end-of-battle/end-of-run
+// rows (room_sessions end columns + parry_stats + session_enemies_defeated per session, and the
+// runs end columns) via stored procedures; the player_global_stats aggregate is maintained by
+// triggers (see Database/triggers.sql), so it is NOT computed here.
 //
 // All queries are parameterized and scoped to req.user.id via the ownership JOIN chain
 //   room_sessions -> runs -> player_profiles -> users
@@ -62,28 +62,17 @@ router.patch('/api/room-sessions/:sessionId/finish', requireAuth, async (req, re
       return res.status(404).json({ success: false, message: 'Session not found.' });
     }
 
-    await conn.query(
-      `UPDATE room_sessions
-          SET end_time          = NOW(),
-              result            = ?,
-              experience_gained = ?,
-              card_reward_id    = ?
-        WHERE id = ?`,
-      [result, xp, rewardId, req.params.sessionId]
+    // sp_finish_room_session sets the end columns and writes the single parry_stats row,
+    // guarded on end_time IS NULL so a retry is a no-op. It returns applied=1 only on the first
+    // finish; we insert the defeated-enemy rows only then, so the parry/enemy triggers fold each
+    // session into player_global_stats exactly once.
+    const [callRes] = await conn.query(
+      'CALL sp_finish_room_session(?, ?, ?, ?, ?, ?, ?)',
+      [req.params.sessionId, result, xp, rewardId, perfect, normal, missed]
     );
+    const applied = !!callRes[0][0].applied;
 
-    // One parry_stats row per session. ON DUPLICATE-style guard isn't available (no UNIQUE
-    // on session_id), so delete any prior row first to keep finish idempotent on retry.
-    await conn.query('DELETE FROM parry_stats WHERE session_id = ?', [req.params.sessionId]);
-    await conn.query(
-      `INSERT INTO parry_stats (session_id, perfect_parries, normal_parries, parries_missed)
-       VALUES (?, ?, ?, ?)`,
-      [req.params.sessionId, perfect, normal, missed]
-    );
-
-    // Re-record the defeated enemies for this session (idempotent on retry).
-    await conn.query('DELETE FROM session_enemies_defeated WHERE session_id = ?', [req.params.sessionId]);
-    if (enemyIds.length > 0) {
+    if (applied && enemyIds.length > 0) {
       const values = enemyIds.map(id => [req.params.sessionId, id]);
       await conn.query(
         'INSERT INTO session_enemies_defeated (session_id, enemy_id) VALUES ?',
@@ -120,9 +109,9 @@ router.patch('/api/runs/:runId/finish', requireAuth, async (req, res) => {
   try {
     await conn.beginTransaction();
 
-    // Ownership: the run's profile must belong to this user. Grab player_id for the aggregate.
+    // Ownership: the run's profile must belong to this user.
     const [own] = await conn.query(
-      `SELECT r.id, r.player_id
+      `SELECT r.id
          FROM runs r
          JOIN player_profiles pp ON pp.id = r.player_id
         WHERE r.id = ? AND pp.user_id = ?`,
@@ -132,83 +121,14 @@ router.patch('/api/runs/:runId/finish', requireAuth, async (req, res) => {
       await conn.rollback();
       return res.status(404).json({ success: false, message: 'Run not found.' });
     }
-    const playerId = own[0].player_id;
 
+    // sp_finish_run sets the run end columns (completion time computed in SQL), guarded on
+    // end_time IS NULL so it applies once. The trg_runs_au_finish trigger then folds the run
+    // into player_global_stats (total_runs / total_victories / best time) — so the aggregate is
+    // maintained in exactly one place (the DB), never double-counted here.
     await conn.query(
-      `UPDATE runs
-          SET end_time                 = NOW(),
-              completion_time_seconds  = TIMESTAMPDIFF(SECOND, start_time, NOW()),
-              victory                  = ?,
-              death_cause              = ?,
-              permanent_card_chosen_id = ?
-        WHERE id = ?`,
-      [won, deathCause, keptCard, req.params.runId]
-    );
-
-    // The run's completion time (only meaningful for a victory) — used for best-time tracking.
-    const [timeRows] = await conn.query(
-      'SELECT completion_time_seconds AS secs FROM runs WHERE id = ?',
-      [req.params.runId]
-    );
-    const completionSecs = timeRows[0]?.secs ?? null;
-
-    // This run's parry totals, summed across its sessions' parry_stats rows.
-    const [parrySum] = await conn.query(
-      `SELECT COALESCE(SUM(ps.perfect_parries), 0) AS perfect,
-              COALESCE(SUM(ps.normal_parries),  0) AS normal
-         FROM room_sessions rs
-         JOIN parry_stats ps ON ps.session_id = rs.id
-        WHERE rs.run_id = ?`,
-      [req.params.runId]
-    );
-
-    // Enemies (and of those, bosses) defeated this run.
-    const [enemySum] = await conn.query(
-      `SELECT COUNT(*) AS enemies,
-              COALESCE(SUM(e.is_boss), 0) AS bosses
-         FROM room_sessions rs
-         JOIN session_enemies_defeated sed ON sed.session_id = rs.id
-         JOIN enemies e ON e.id = sed.enemy_id
-        WHERE rs.run_id = ?`,
-      [req.params.runId]
-    );
-
-    // Cards collected during this run.
-    const [cardSum] = await conn.query(
-      'SELECT COUNT(*) AS cards FROM player_cards WHERE obtained_at_run = ?',
-      [req.params.runId]
-    );
-
-    const perfect = Number(parrySum[0]?.perfect ?? 0);
-    const normal = Number(parrySum[0]?.normal ?? 0);
-    const enemies = Number(enemySum[0]?.enemies ?? 0);
-    const bosses = Number(enemySum[0]?.bosses ?? 0);
-    const cards = Number(cardSum[0]?.cards ?? 0);
-    // Only feed a real victory time into the best-time tracking.
-    const bestSeed = won && completionSecs != null ? completionSecs : null;
-
-    // UPSERT the per-profile aggregate (player_global_stats.player_id is UNIQUE). On insert
-    // the row starts from this run's contribution; on update each total is incremented and the
-    // best completion time is the lowest non-NULL of the old and new values. The `AS newrun`
-    // row alias is the non-deprecated replacement for the VALUES(col) function (MySQL 8.0.19+).
-    await conn.query(
-      `INSERT INTO player_global_stats
-         (player_id, total_runs, total_victories, best_completion_time_seconds,
-          total_perfect_parries, total_normal_parries,
-          total_enemies_defeated, total_bosses_defeated, total_cards_collected)
-       VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?) AS newrun
-       ON DUPLICATE KEY UPDATE
-         total_runs                   = total_runs + 1,
-         total_victories              = total_victories + newrun.total_victories,
-         best_completion_time_seconds = LEAST(
-             COALESCE(best_completion_time_seconds, newrun.best_completion_time_seconds),
-             COALESCE(newrun.best_completion_time_seconds, best_completion_time_seconds)),
-         total_perfect_parries        = total_perfect_parries + newrun.total_perfect_parries,
-         total_normal_parries         = total_normal_parries  + newrun.total_normal_parries,
-         total_enemies_defeated       = total_enemies_defeated + newrun.total_enemies_defeated,
-         total_bosses_defeated        = total_bosses_defeated  + newrun.total_bosses_defeated,
-         total_cards_collected        = total_cards_collected  + newrun.total_cards_collected`,
-      [playerId, won, bestSeed, perfect, normal, enemies, bosses, cards]
+      'CALL sp_finish_run(?, ?, ?, ?)',
+      [req.params.runId, won, deathCause, keptCard]
     );
 
     await conn.commit();
