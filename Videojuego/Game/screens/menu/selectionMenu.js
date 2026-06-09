@@ -210,6 +210,7 @@ export default class selectionMenu extends Menus{
     async startNewGame(slotNumber, existing){
         this.busy = true
         this.dispose()
+        localStorage.removeItem('return_battle_tutorial_seen')
         try {
             if(existing){ await this.game.api.deleteSlot(existing.id) }
             this.game.activeSlotId = await this.game.api.createSlot({ slotNumber })
