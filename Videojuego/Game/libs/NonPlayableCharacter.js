@@ -62,6 +62,7 @@ export class Enemy extends Character {
         this.indicator.setSprite('')
     }
 
+    //Removes mouse listener for when user clicks over an enemy to avoid any unusual errors
     removeEventListeners() {
         canvas.removeEventListener('mousemove', this.mouseCollition);
     }

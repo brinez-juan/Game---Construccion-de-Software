@@ -1,5 +1,5 @@
 import Menus from './Menus.js';
-import GameObject from './GameObject.js';
+import GameObject from '../../libs/GameObject.js';
 
 // Static credits panel with a single return button back to the main menu
 export default class creditScreen extends Menus{

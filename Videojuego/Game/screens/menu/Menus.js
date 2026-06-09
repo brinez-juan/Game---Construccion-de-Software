@@ -1,5 +1,5 @@
 "use strict"; 
-import GameObject from './GameObject.js';
+import GameObject from '../../libs/GameObject.js';
 
 // Base class shared by every screen rendered on the canvas
 export default class Menus{

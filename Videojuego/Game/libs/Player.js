@@ -1,7 +1,7 @@
 import Character from "./Character.js";
 import Bar from "./Bar.js";
 import { MAX_DECK_SIZE } from "./GlobalVariables.js";
-import { canvas } from "./Return.js";
+import { canvas } from "../Return.js";
 import ItemCard from "./ItemCard.js";
 import Action from "./Action.js";
 

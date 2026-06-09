@@ -1,9 +1,9 @@
 import Menus from './Menus.js';
-import TextLabel from './TextLabel.js';
-import { canvas } from './Return.js';
-import GameObject from './GameObject.js';
-import ItemCard from './ItemCard.js';
-import Action from './Action.js';
+import TextLabel from '../../libs/TextLabel.js';
+import { canvas } from '../../Return.js';
+import GameObject from '../../libs/GameObject.js';
+import ItemCard from '../../libs/ItemCard.js';
+import Action from '../../libs/Action.js';
 
 // Pixels a selected card lifts above its row to signal selection (mirrors the lobby).
 const SELECT_RAISE = 15;

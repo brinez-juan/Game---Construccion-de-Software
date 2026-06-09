@@ -23,6 +23,7 @@ export default class GameObject {
         if(rect) this.spriteRect = rect; 
     }
 
+    //Base draw method for all objects in the canvas, just takes into account if there is a sprite or spritesheet
     draw(ctx) {
         if (this.spriteRect) {
                 ctx.drawImage(this.spriteImage,

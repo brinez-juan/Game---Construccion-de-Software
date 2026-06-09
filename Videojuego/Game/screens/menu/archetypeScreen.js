@@ -1,8 +1,8 @@
 import Menus from "./Menus.js";
-import GameObject from "./GameObject.js";
-import TextLabel from "./TextLabel.js";
-import {ARCHETYPES} from "./GlobalVariables.js"
-import {canvas} from "./Return.js";
+import GameObject from "../../libs/GameObject.js";
+import TextLabel from "../../libs/TextLabel.js";
+import {ARCHETYPES} from '../../libs/GlobalVariables.js'
+import {canvas} from "../../Return.js";
 
 // Archetype selection screen that shows the three available classes and their
 // starting stats. Picking one persists the player_profile (archetype + seeded

@@ -1,7 +1,7 @@
 import Menus from './Menus.js';
-import GameObject from './GameObject.js';
-import { musicEnabled, setMusicEnabled, sfxEnabled, setSfxEnabled } from './GlobalVariables.js';
-import musicManager from './MusicManager.js';
+import GameObject from '../../libs/GameObject.js';
+import { musicEnabled, setMusicEnabled, sfxEnabled, setSfxEnabled } from '../../libs/GlobalVariables.js';
+import musicManager from '../../extras/MusicManager.js';
 
 // Settings screen that toggles audio fields and adds an exit shortcut in pause mode
 export default class optionsMenu extends Menus{

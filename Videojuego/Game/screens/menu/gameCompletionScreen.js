@@ -1,7 +1,7 @@
 import Menus from './Menus.js';
-import TextLabel from './TextLabel.js';
-import { canvas } from './Return.js';
-import GameObject from './GameObject.js';
+import TextLabel from '../../libs/TextLabel.js';
+import { canvas } from '../../Return.js';
+import GameObject from '../../libs/GameObject.js';
 
 // Final screen shown when the castle's last boss room is cleared and the whole game is
 // beaten. Dark-fantasy styled to match the lobby. Summarizes the run and shows the

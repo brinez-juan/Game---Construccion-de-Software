@@ -1,5 +1,5 @@
 import Menus from './Menus.js';
-import { canvas } from './Return.js';
+import { canvas } from '../../Return.js';
 
 // State the map jumps to when a room is picked: the battle lobby (deck prep),
 // which then starts the actual battle. Kept in sync with Return.js screenManager.
