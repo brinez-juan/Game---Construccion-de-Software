@@ -101,27 +101,31 @@ button.in-field:hover {
 }
 
 #login-submit, #sign-submit {
-    background-color: #1a1a2e;
-    color: whitesmoke;
+    background: #3a2a1a;
+    color: #c9a25a;
+    border: 2px solid #c9a25a;
     font-size: 1rem;
     font-weight: bold;
-    border: 2px solid transparent;
     cursor: pointer;
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 #login-submit:hover, #sign-submit:hover {
-    background-color: transparent;
-    border-color: whitesmoke;
-    color: whitesmoke;
+    background: #c9a25a;
+    color: #1a1410;
+    border-color: #c9a25a;
 }
 
 #sign-button, #log-button {
-    background: none;
+    background: transparent;
     border: none;
-    color: black;
+    color: #c9a25a;
     text-decoration: underline;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 1rem;
     padding: 0;
+}
+
+#sign-button:hover, #log-button:hover {
+    color: #f3ead0;
 }
