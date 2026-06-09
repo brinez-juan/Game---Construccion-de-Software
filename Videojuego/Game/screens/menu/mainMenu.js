@@ -1,6 +1,6 @@
 import Menus from './Menus.js';
-import GameObject from './GameObject.js';
-import TextLabel from './TextLabel.js';
+import GameObject from '../../libs/GameObject.js';
+import TextLabel from '../../libs/TextLabel.js';
 
 // Title screen that exposes navigation entries for new game, continue, options and credits
 export default class mainMenu extends Menus{

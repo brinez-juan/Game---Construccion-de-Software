@@ -1,14 +1,14 @@
-import Menus from "./Menus.js";
-import Bar from "./Bar.js";
-import itemCard from "./ItemCard.js";
-import textLabel from "./textLabel.js";
-import Attribute from "./attribute.js";
-import ItemCard from "./ItemCard.js";
-import Action from "./Action.js";
-import { canvas } from "./Return.js";
-import GameObject from "./GameObject.js";
-import { MAX_DECK_SIZE } from "./GlobalVariables.js";
-import { buildPotions } from "./dataAdapter.js";
+import Menus from './Menus.js';
+import Bar from '../../libs/Bar.js';
+import itemCard from '../../libs/ItemCard.js';
+import textLabel from '../../libs/TextLabel.js';
+import Attribute from '../../libs/attribute.js';
+import ItemCard from '../../libs/ItemCard.js';
+import Action from '../../libs/Action.js';
+import { canvas } from '../../Return.js';
+import GameObject from '../../libs/GameObject.js';
+import { MAX_DECK_SIZE } from '../../libs/GlobalVariables.js';
+import { buildPotions } from '../../extras/dataAdapter.js';
 //import { text } from "express";
 
 // Pixels a selected card lifts above its row to signal selection (mirrors battleScreen's
@@ -549,6 +549,8 @@ export default class battleLobby extends Menus{
         }
     }
 
+    //Popup shown when the player clicks two times on a card. 
+    //Helps to see stats and required attributes
     attributeShow(card){
         this.selectionField.frame = new GameObject(this.canvasWidth/2, this.canvasHeight/2, 300, 300, undefined, undefined, undefined)
         this.selectionField.frame.setSprite('../Assets/Sprites/selection1.jpg')

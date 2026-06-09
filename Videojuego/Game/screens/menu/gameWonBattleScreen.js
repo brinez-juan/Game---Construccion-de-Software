@@ -1,7 +1,7 @@
 import Menus from './Menus.js';
-import TextLabel from './TextLabel.js';
-import { canvas } from './Return.js';
-import GameObject from './GameObject.js';
+import TextLabel from '../../libs/TextLabel.js';
+import { canvas } from '../../Return.js';
+import GameObject from '../../libs/GameObject.js';
 
 // Victory screen shown after every battle is cleared. Dark-fantasy styled to match the
 // lobby. Summarizes the battle (XP gained, kills, level) and shows the card(s) the

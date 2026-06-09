@@ -2,7 +2,7 @@
 // the canvas game consumes at runtime. Pure functions — the SavedGamesAPI instance
 // is always passed in so this module stays free of fetch/transport concerns.
 
-import { POTIONS } from "./GlobalVariables.js";
+import { POTIONS } from "../libs/GlobalVariables.js";
 
 // Card art that actually ships in Assets/Sprites/cards. The DB sprite_name is a bare
 // stem (e.g. "rusted_longsword"); the files use mixed extensions (the original five are

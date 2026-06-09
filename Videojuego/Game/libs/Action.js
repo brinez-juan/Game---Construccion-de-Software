@@ -32,6 +32,7 @@ export default class Action {
         this.sfxPath = sfxPath;
     }
 
+    //Methods to calculate damage, defense and healing
     calculateDamage(attributes = {}) {
         const attributeValue = attributes[this.scalingAttribute] ?? 0;
         return this.baseDamage + (attributeValue * this.scaleFactor);

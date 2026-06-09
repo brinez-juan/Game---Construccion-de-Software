@@ -1,25 +1,54 @@
 # Return
 
-## How to run the playable prototype
+## Project layout
+
+```
+Videojuego/
+  Game/
+    Return.js               Top-level game controller and canvas loop
+    savedGamesApi.js        Browser adapter for the REST endpoints
+    screens/
+      menu/                 All screen and menu classes
+    libs/                   Entity classes and shared objects
+    extras/                 Managers and data utilities
+        MusicManager.js
+        dataAdapter.js
+  WebPage/
+    pages/                  HTML entry points (game.html is the prototype)
+    Assets/
+      Audio/                Game's music for all game scenes
+      Sprites/              Card art, UI icons, character sprites
+        /cards              Card assets for the TCG element
+        /characters         Main character and enemy assets for the game
+      backgrounds/          Scene backgrounds
+    styles/                 CSS for the HTML pages
+  Backend/
+    Auth/                   Register, login and JWT middleware
+    DB/                     MySQL connection pool and smoke test
+    SavedGames/             Slot, attribute, card and statistics REST routes
+    server.js               Express bootstrap
+  savedGamesApi.js          Browser adapter for the REST endpoints
+  statistics.js             Statistics page logic and chart rendering
+Database/                   Contains scripts and information related to the 
+                            modelling and creation of the database
+```
+
+## How to run the game
 
 The prototype is the **battle scene**, and it must be opened **directly from the filesystem** (not through the dev server).
 
-1. Clone or download the repository.
-2. Open `Videojuego/WebPage/pages/game.html` in any modern browser. Double-click the file or paste its `file://` path into the address bar.
-3. The battle scene loads as the entry screen — no login, no menu navigation required.
+1. Clone/Download the repository with the next command: `git clone https://github.com/brinez-juan/Game---Construccion-de-Software.git`
+2. Run the sql schema file `return_game_schema.sql` stored at `insert directory` inside mysql, if you don't have mysql installed follow the next guide:  
+`https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwiSzLyOifmUAxV1IEQIHRWpJYAQFnoECA0QAQ&url=https%3A%2F%2Fdev.mysql.com%2Fdoc%2Fmysql-installation-excerpt%2F5.7%2Fen%2F&usg=AOvVaw1ffvZJna0p6sAUod4w9u3E&opi=89978449`
+3. Configure your .env file as specificated in the .env configuration section, all the data you have to fill will be in mysql when you create the database. Be careful in here, as if you set a password and then forget it you will not be able to access the databse
+4. Run the game using `npm start` or `node Videojuego/Backend/server.js``
+5. Access the main page going to `localhost:3000` or typing localhost followed by the port chosen to run the game (if you don't know it it will appear on the terminal/powershell when running the server.js file)
 
-> The Express server in `Videojuego/Backend/server.js` is wired but is **not** used by the prototype. The server version of the game currently only renders the login page because of asset-path issues that are scheduled for a later sprint.
+> The Express server in `Videojuego/Backend/server.js` already renders all the webpage and the game
 
-### Optional — running the backend
+### .env configuration
 
-The backend is required for account management and persistence but **not** for the prototype.
-
-```
-npm install
-node Videojuego/Backend/server.js
-```
-
-It expects a `.env` file inside `Videojuego/Backend/` with:
+The backend expects a `.env` file inside `Videojuego/Backend/` with:
 
 ```
 DB_HOST=...
@@ -39,66 +68,28 @@ PORT=3000
 | Left click on a card | Pick the card to play this turn |
 | Left click on an enemy | Confirm the chosen card on that target |
 | Left click on a defensive card | Apply guard and end the turn |
-| `Space` | Lock in the parry timing during enemy attacks |
+| Left click on parry bar spawn | Lock in the parry timing during enemy attacks |
 
-## Entry scene of the prototype
+## Entry scene of the game
 
-`game.html` boots straight into `battleScreen` with:
+The game loads directly into the main menu with the next four options: 
+- New game
+- Continue
+- Options
+- Credits
 
-- Mock player loaded with five starter cards (`fireball`, `vicious_sword`, `knight_shield`, `battle_axe`, `hunter_bow`)
-- Three `corrupt_knight` enemies
-- Player and enemy health and stamina bars
-- A `ParryBar` that activates during enemy turns
+When creating a new account you will not be able to access the continue menu, however you can create a game profile by going to new game, selecting a slot and selecting a class. Upon doing this you will be sent to a tutorial screen and will already be able to access the continue menu, where you will be able to continue previous game sessions. 
 
-When player health reaches zero, the scene transitions to `gameOverScreen`. When every enemy is defeated, the scene transitions to `successScreen`.
+## Webpage sections
 
-## What is finished
+Upon entering the webpage you will be prompted with the next sections
 
-- Battle loop: turn order, card selection, targeting and stamina cost handling
-- Enemy AI in `NonPlayableCharacter.js` that picks attacks or defenses from health ratio plus the player damage profile
-- Parry minigame with three timing windows (`perfect`, `normal`, `miss`) and corresponding stamina rewards or penalties
-- HUD bars (`Bar`, `parryBar`) that animate health, stamina and parry indicator
-- Menu navigation skeleton: `mainMenu`, `selectionMenu`, `optionsMenu`, `creditScreen`
-- Login and registration pages with backend JWT issuance, bcrypt hashing and rate-limited lockout
-- Backend persistence layer: saved-game slots, archetype profiles, attribute spending and card inventory endpoints (`Videojuego/Backend/SavedGames`)
+- Home: Page that sumarizes all main aspects of the game and story
+- Game: Game page, you will be prompted to login/sign in to access the game
+- Statistics: You will be able to see global statistics and a leaderboard, in case you are an admin you will be able to see the administrator panel statistics
+- Tutorial: Tutorial page in case a user wants to go deep into how game mechanics work
+- Made by: Small section indicating our names and github profiles
 
-## What is still in development
+## Game features
 
-- Wiring the backend persistence layer into the gameplay flow (currently the prototype runs entirely with mock data)
-- Fixing asset and import paths so the game can be served from the Express server instead of the filesystem
-- Archetype selection screen and pre-battle deck-building lobby (`BattleLobbyUI` is implemented but not yet hooked into navigation)
-- Loading screen (`loadingScreen.js` is a stub)
-- Map and floor progression between battles
-- Audio engine behind the music and SFX toggles in `optionsMenu`
-- Run and roguelite persistence on the client (server endpoints are ready, the client adapter `savedGamesApi.js` is also ready, but the screens that consume them are pending)
-- Boss encounters and card rewards drop screen
-
-## Project layout
-
-```
-Videojuego/
-  Game/                   ES module classes used by the canvas prototype
-  WebPage/
-    pages/                HTML entry points (game.html is the prototype)
-    Assets/
-      Sprites/            Card art, UI icons, character sprites
-      backgrounds/        Scene backgrounds
-    styles/               CSS for the HTML pages
-  Backend/
-    Auth/                 Register, login and JWT middleware
-    DB/                   MySQL connection pool and smoke test
-    SavedGames/           Slot, attribute and card REST routes
-    server.js             Express bootstrap
-  ArchetypeManager.js     Pre-battle systems built on top of the backend
-  AttributeSystem.js
-  AttributePointSystem.js
-  BattleDeckManager.js
-  BattleLobbyUI.js
-  GameSession.js
-  GameStateManager.js
-  SaveManager.js
-  StaminaSystem.js
-  savedGamesApi.js        Browser adapter for the REST endpoints
-Database/
-  DB modeling.svg        UML diagram of the database 
-```
+- 

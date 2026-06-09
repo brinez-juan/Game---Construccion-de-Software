@@ -1,6 +1,7 @@
 import textLabel from "./textLabel.js";
 import gameObject from "./GameObject.js";
 
+//Class to spawn attributes in the battleLobby with it's respective buttons
 export default class Attribute{
     constructor(posX, posY, size, attributeName, attributeValue){
         this.name = attributeName

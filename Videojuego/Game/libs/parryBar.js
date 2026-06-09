@@ -1,5 +1,5 @@
 import GameObject from './GameObject.js';
-import { canvas } from './Return.js';
+import { canvas } from '../Return.js';
 import textLabel from './TextLabel.js';
 
 // Timing-based defensive minigame that grants damage and stamina based on press accuracy

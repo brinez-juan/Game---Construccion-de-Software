@@ -20,6 +20,7 @@ class TextLabel {
         ctx.fillText(this.text, this.x, this.y);
     }
 
+    //Calculates collisions with text in case we need to click a text element
     mouseCollition(mouseX, mouseY){
         let left = this.x - this.width/2
         let right = this.x + this.width/2

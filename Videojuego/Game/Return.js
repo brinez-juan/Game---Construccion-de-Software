@@ -1,17 +1,17 @@
 "use strict";
-import battleScreen from './battleScreen.js';
-import mainMenu from './mainMenu.js';
-import selectionMenu from './selectionMenu.js';
-import optionsMenu from './optionsMenu.js';
-import creditScreen from './creditScreen.js';
-import gameOverScreen from './gameOverScreen.js';
-import gameWonBattleScreen from './gameWonBattleScreen.js';
-import gameCompletionScreen from './gameCompletionScreen.js';
-import battleLobby from './battleLobby.js';
-import archetypeScreen from './archetypeScreen.js';
-import mapScreen, { MapManager } from './mapScreen.js';
-import musicManager from './MusicManager.js';
-import { musicEnabled } from './GlobalVariables.js';
+import battleScreen from './screens/menu/battleScreen.js';
+import mainMenu from './screens/menu/mainMenu.js';
+import selectionMenu from './screens/menu/selectionMenu.js';
+import optionsMenu from './screens/menu/optionsMenu.js';
+import creditScreen from './screens/menu/creditScreen.js';
+import gameOverScreen from './screens/menu/gameOverScreen.js';
+import gameWonBattleScreen from './screens/menu/gameWonBattleScreen.js';
+import gameCompletionScreen from './screens/menu/gameCompletionScreen.js';
+import battleLobby from './screens/menu/battleLobby.js';
+import archetypeScreen from './screens/menu/archetypeScreen.js';
+import mapScreen, { MapManager } from './screens/menu/mapScreen.js';
+import musicManager from './extras/MusicManager.js';
+import { musicEnabled } from './libs/GlobalVariables.js';
 import SavedGamesAPI from '../savedGamesApi.js';
 import {
     normalizeCard,
@@ -20,7 +20,7 @@ import {
     buildFloorRoomModel,
     buildCardSlugToId,
     buildEnemyCardDrops
-} from './dataAdapter.js';
+} from './extras/dataAdapter.js';
 
 // Context of the Canvas
 let ctx;

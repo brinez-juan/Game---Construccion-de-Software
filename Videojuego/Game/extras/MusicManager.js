@@ -1,4 +1,4 @@
-import * as GlobalVars from './GlobalVariables.js';
+import * as GlobalVars from '../libs/GlobalVariables.js';
 
 // Fade duration in milliseconds for crossfade transitions
 const FADE_MS = 600;
@@ -6,8 +6,10 @@ const FADE_STEP_MS = 30;
 //cd "C:\Users\paulo\OneDrive\Desktop\VideoJuego_mierda\Repo\Game---Construccion-de-Software"
 //npm start
 
-
+//Class to manage the music throughout the game
 class MusicManager {
+    /*Initializes the main tracks of the game and adds event listeners
+    to stop */
     constructor() {
         this.currentTrack = null;
         this.currentKey   = '';
@@ -28,12 +30,16 @@ class MusicManager {
         document.addEventListener('click',   this._onUserGesture, { once: true });
         document.addEventListener('keydown', this._onUserGesture, { once: true });
     }
+
+    //Method to construct the audios for the game and make them loop
     _makeTrack(src) {
         const audio = new Audio(src);
         audio.loop   = true;
         audio.volume = this.volume;
         return audio;
     }
+
+    //Method to fade music in the supposed time using a timer to keep lowering volume
     _fade(audio, fromVol, toVol, onDone) {
         const steps    = Math.round(FADE_MS / FADE_STEP_MS);
         const delta    = (toVol - fromVol) / steps;
@@ -55,6 +61,7 @@ class MusicManager {
         }, FADE_STEP_MS);
     }
 
+    //Default methods to stop, play  and resume them at a given time
     play(key) {
         if (!GlobalVars.musicEnabled) {
             this.stopAll();
@@ -107,6 +114,8 @@ class MusicManager {
             this.currentTrack.play().catch(() => {});
         }
     }
+
+    //Method to stop all current audios in the game
     stopAll() {
         this.tracks.forEach(audio => {
             audio.pause();
@@ -115,10 +124,14 @@ class MusicManager {
         this.currentTrack = null;
         // Keep currentKey so refresh() knows what to resume when music is re-enabled.
     }
+
+    //Volume setter for each audio
     setVolume(vol) {
         this.volume = Math.max(0, Math.min(1, vol));
         this.tracks.forEach(audio => { audio.volume = this.volume; });
     }
+
+    //Refresher for al audios 
     refresh() {
         if (!GlobalVars.musicEnabled) {
             this.stopAll();
