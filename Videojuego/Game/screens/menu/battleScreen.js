@@ -328,7 +328,7 @@ export default class battleScreen extends Menus{
                 }
             }
         }
-        if(this.player.health <= 0){
+        if(this.player.health <= 0 || this.player.deck.every(card => card.staminaCost > this.player.stamina)){
             this.removeEventListeners()
             this.ParryBar.dispose()
             this.reportEnemiesDefeated()
