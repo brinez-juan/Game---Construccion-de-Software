@@ -33,6 +33,7 @@ export default class gameCompletionScreen extends Menus {
         this.selectedCard = null; // the highlighted (not yet confirmed) sprite
         this.confirmed = false;   // true once a card has been made permanent
         this.saving = false;      // guards the async keep handler
+        this.leaving = false;     // guards the async Continue handler against double-clicks
         this.keptName = null;     // name of the card kept, for the confirmation line
         this.confirmLabel = null;
 
@@ -96,7 +97,17 @@ export default class gameCompletionScreen extends Menus {
     }
 
     async handleClick(e){
+        // Continue: beating the final boss resets the run like a death — keep level/XP and
+        // permanent cards (incl. any boss card just kept), drop everything else. Deferred to
+        // here so the keep choice above lands before the run-only wipe.
         if(this.continueBtn.hovered){
+            if(this.leaving){ return; }
+            this.leaving = true;
+            try {
+                if(this.game){ await this.game.resetRunOnCompletion(); }
+            } catch(err){
+                console.error('Could not reset run on completion:', err);
+            }
             this.dispose();
             this.state = 0;   // back to the main menu
             return;

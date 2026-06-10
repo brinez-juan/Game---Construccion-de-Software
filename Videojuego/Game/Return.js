@@ -255,12 +255,28 @@ class Game {
         } catch(err){
             console.error('Could not finish run on death:', err);
         }
+        await this.resetRunState();
+    }
+
+    // Same roguelite wipe applied on a FULL VICTORY (US: beating the final boss resets the
+    // run like a death). The run was already finished as a win (finishRun(true)) when the
+    // completion screen was shown, so this skips the DB finish and only clears the run-only
+    // progress — level/XP and permanent cards (including any boss card just kept) survive.
+    async resetRunOnCompletion(){
+        await this.resetRunState();
+    }
+
+    // Shared run-only wipe used by both death and completion: clears the run's non-permanent
+    // cards + detaches the run from the slot in the DB, then resets the in-memory run state so
+    // the next Continue rebuilds at the entry room. Level/XP and permanent cards are kept.
+    // Best-effort persistence (fire-and-forget); the in-memory reset always runs.
+    async resetRunState(){
         try {
             if(this.api && this.activeSlotId != null){
                 await this.api.resetRunOnDeath(this.activeSlotId);
             }
         } catch(err){
-            console.error('Could not reset run on death:', err);
+            console.error('Could not reset run:', err);
         }
         // End the run and clear map progress so a new run rebuilds at the entry room.
         this.runId = null;
@@ -275,10 +291,9 @@ class Game {
         this.player.activeDeck = [];
         // Fresh run summary; level and experience are intentionally left untouched.
         this.enemiesDefeated = 0;
-        // Drop any level-up grant from the fatal battle that was never persisted, so it
-        // can't be flushed onto the next victory (XP/level aren't persisted on death).
+        // Drop any unpersisted level-up grant so it can't be flushed onto the next run.
         this.pendingAttributePoints = 0;
-        // Clear the death-run scratch fields now that the run has been finished.
+        // Clear the run scratch fields now that the run has been wound down.
         this.lastDeathCause = null;
         this.pendingPermanentCardId = null;
     }
