@@ -91,8 +91,9 @@ router.post('/auth/login', async (req, res) => {
       message: "Authentication successful. Ritual initiated.",
       token: token,
       // isAdmin lets the statistics page decide whether to show the admin panel; the admin
-      // endpoints still enforce it server-side, so this is only a UI hint.
-      user: { id: user.id, username: user.username, isAdmin: !!user.isAdmin }
+      // endpoints still enforce it server-side, so this is only a UI hint. email is surfaced
+      // so the client can recognize the developer account (e.g. the demo God Card gate).
+      user: { id: user.id, username: user.username, email: user.email, isAdmin: !!user.isAdmin }
     });
 
   } catch (error) {

@@ -3,6 +3,7 @@ import Player from '../../libs/Player.js';
 import { Enemy } from '../../libs/NonPlayableCharacter.js';
 import ParryBar from '../../libs/parryBar.js';
 import ItemCard from '../../libs/ItemCard.js';
+import Action from '../../libs/Action.js';
 import GameObject from '../../libs/GameObject.js';
 import {canvas} from '../../Return.js';
 import TextLabel from '../../libs/TextLabel.js';
@@ -59,6 +60,8 @@ export default class battleScreen extends Menus{
         this.playerMaker(playerData)
         this.player.deckMaker(playerData.activeDeck, this.canvasWidth/2, 4*this.canvasHeight/5 + 50, 100*0.75, 100, 15)
         this.deckData = playerData.activeDeck
+        // Demo aid: append the developer-only God Card to the hand (no-op for any other account).
+        this.injectGodCard()
         // The castle's final room (floor 3 boss) is a TWO-STAGE fight: Eldric first, then
         // Lysara appears in the same battle once he falls — both must die in one attempt.
         // enemyMaker spawns Eldric and parks Lysara in pendingBoss; update()'s victory check
@@ -132,6 +135,47 @@ export default class battleScreen extends Menus{
             const audio = new Audio(path);
             audio.play().catch(err => console.warn('SFX play failed:', path, err));
         }
+    }
+
+    // Demo aid (NOT shipped gameplay): a hard-coded "God Card" available ONLY to the
+    // developer account (juanbrinez1111@gmail.com). It is not loaded from the DB. Deals a
+    // flat 10,000 damage for 0 stamina, ignores enemy defense, and is never consumed or
+    // replaced, so the presenter can blast through any room — including both stages of the
+    // final boss — to show the whole game in little time. Rendered as a solid-black card.
+    // The gate reads the email stored in localStorage.authUser at login (see loginLogic.js).
+    injectGodCard(){
+        let email = null
+        try { email = JSON.parse(localStorage.getItem('authUser') || '{}').email } catch(e){ /* ignore */ }
+        if(email !== 'juanbrinez1111@gmail.com'){ return }
+        // attack_physic so it flows through the normal click-card-then-click-enemy targeting.
+        const action = new Action('God', 'Erase anything.', 'attack_physic', 0, 10000, 0,0,0,0, 'STRENGTH', 0, null, null)
+        // Seat it in an extra slot to the RIGHT of the real 5-card hand so the actual deck
+        // stays untouched for the demo. Mirrors deckMaker's row constants.
+        const cardWidth = 100*0.75, cardHeight = 100, offSetX = 15
+        const x = this.canvasWidth/2 - 2*(cardWidth + offSetX) + this.player.deck.length*(cardWidth + offSetX)
+        const y = 4*this.canvasHeight/5 + 50
+        const godCard = new ItemCard(x, y, cardWidth, cardHeight, 'God', 'Erase anything.', action, {}, 'LEGENDARY', 0, true)
+        godCard.isGodCard = true
+        // Solid-black face with a golden frame + label, drawn in place of a sprite. Uses
+        // this.x/this.y so the existing select-lift (y -= 15) still works.
+        godCard.draw = function(ctx){
+            const left = this.x - this.width/2, top = this.y - this.height/2
+            ctx.save()
+            ctx.fillStyle = '#000000'
+            ctx.fillRect(left, top, this.width, this.height)
+            ctx.strokeStyle = this.hovered ? '#f3d27a' : '#c9a25a'
+            ctx.lineWidth = 3
+            ctx.strokeRect(left, top, this.width, this.height)
+            ctx.fillStyle = '#f3d27a'
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.font = 'bold 18px Academia, serif'
+            ctx.fillText('GOD', this.x, this.y - 12)
+            ctx.font = '12px Academia, serif'
+            ctx.fillText('10000', this.x, this.y + 14)
+            ctx.restore()
+        }
+        this.player.deck.push(godCard)
     }
 
     // Routes cursor movement to deck cards and to enemies during the targeting phase
@@ -213,9 +257,11 @@ export default class battleScreen extends Menus{
 
         for(let enemy of this.enemies){
             if(enemy.hovered){
+                const isGod = this.cardInAction.isGodCard
                 let damageDone = this.cardInAction.action.calculateDamage(this.player.attributes)
                 const attackType = damageSchool(this.cardInAction.action.actionType)
-                const dealt = this.applyEnemyDefense(enemy, damageDone, attackType)
+                // The God Card ignores enemy defense entirely; every other card is mitigated.
+                const dealt = isGod ? damageDone : this.applyEnemyDefense(enemy, damageDone, attackType)
                 enemy.health -= dealt
                 enemy.healthBar.calculateCurrentIndicatorSubstraction(dealt)
                 this.player.stamina = this.player.stamina - this.cardInAction.staminaCost > 0 ? this.player.stamina - this.cardInAction.staminaCost : 0
@@ -225,7 +271,8 @@ export default class battleScreen extends Menus{
                 this.player.lunge(1)        // hop toward the enemies on the right
                 enemy.shake()               // the struck enemy recoils
                 this.cardInAction.y += 15
-                this.player.deckReplacer(this.cardInAction, this.deckData)
+                // The God Card is permanent: never swap it out, so it stays usable all run.
+                if(!isGod){ this.player.deckReplacer(this.cardInAction, this.deckData) }
                 this.cardInAction = null
                 this.beginEnemyTurn()
                 return
