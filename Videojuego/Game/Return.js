@@ -10,6 +10,8 @@ import gameCompletionScreen from './screens/menu/gameCompletionScreen.js';
 import battleLobby from './screens/menu/battleLobby.js';
 import archetypeScreen from './screens/menu/archetypeScreen.js';
 import mapScreen, { MapManager } from './screens/menu/mapScreen.js';
+import cinematicScreen from './screens/menu/cinematicScreen.js';
+import { CINEMATICS } from './extras/cinematics.js';
 import musicManager from './extras/MusicManager.js';
 import { musicEnabled } from './libs/GlobalVariables.js';
 import SavedGamesAPI from '../savedGamesApi.js';
@@ -77,6 +79,15 @@ class Game {
         this.lastDeathCause = null;          // enemy dbId that killed the player (run death_cause)
         this.pendingPermanentCardId = null;  // boss card kept on the Game Over screen
         this.player = this.blankPlayer();
+
+        // Story cinematics: the pending request for the generic state-20 path, the set of
+        // cinematics already shown this session (so they don't repeat on Continue/replay),
+        // and scratch data for the screens shown AFTER a cinematic (completion / victory).
+        this.cinematicRequest = null;
+        this.seenCinematics = new Set();
+        this.tutorialDone = false;
+        this.pendingCompletion = null;
+        this.pendingVictory = null;
 
         this.currentMenu = new mainMenu(BG.main, this.canvasWidth, this.canvasHeight, 30, this.slots);
         this.currentState = 0;
@@ -336,6 +347,35 @@ class Game {
         this.currentMenu.update(deltaTime);
     }
 
+    // Builds a cinematic screen that displays one story image, then routes to `nextState`.
+    makeCinematic(img, nextState){
+        return new cinematicScreen(this.canvasWidth, this.canvasHeight, img, nextState)
+    }
+
+    // For screens that transition via a state code (e.g. archetypeScreen): stash the chosen
+    // cinematic + its onward state, mark it seen, and return state 20 for the caller to
+    // assign to its `state`. screenManager(20) then builds the cinematic from cinematicRequest.
+    enterCinematic(key, nextState){
+        const c = CINEMATICS[key]
+        this.cinematicRequest = { img: c?.img ?? '', next: nextState }
+        this.seenCinematics.add(key)
+        return 20
+    }
+
+    // If `room` is a boss whose pre-boss cinematic hasn't played this run, swap in that
+    // cinematic (routing back to `battleState` when it ends) and return true; otherwise
+    // false so the caller builds the battle normally.
+    _maybeBossCinematic(room, battleState){
+        if(!room || !room.isBoss){ return false }
+        const key = room.floorNumber === 1 ? 'preGalahad'
+                  : room.floorNumber === 2 ? 'preIsolde'
+                  : room.floorNumber === 3 ? 'preEldric' : null
+        if(!key || this.seenCinematics.has(key)){ return false }
+        this.seenCinematics.add(key)
+        this.currentMenu = this.makeCinematic(CINEMATICS[key].img, battleState)
+        return true
+    }
+
     // Maps numeric state codes to concrete screen instances and pushes them to the stack
     screenManager(state){
         if(state === 0){
@@ -362,9 +402,13 @@ class Game {
             this.currentMenu.pop();
         }
         else if(state === 6){
-            // Generic battle entry: use the room already selected, else default.
-            const background = this.currentRoom?.background ?? BG.battleFallback;
-            this.currentMenu = new battleScreen(background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(this.currentRoom), this, !!this.currentRoom?.isBoss)
+            // Generic battle entry: use the room already selected, else default. A boss room
+            // first plays its pre-boss story cinematic (once per run), which routes back here
+            // to start the fight.
+            if(!this._maybeBossCinematic(this.currentRoom, 6)){
+                const background = this.currentRoom?.background ?? BG.battleFallback;
+                this.currentMenu = new battleScreen(background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(this.currentRoom), this, !!this.currentRoom?.isBoss)
+            }
         }
         else if(state === 7){
             // Snapshot the run summary BEFORE the wipe (resetRunOnDeath clears these),
@@ -411,9 +455,13 @@ class Game {
             // the XP/level earned this battle (US16) so progression survives the session.
             this.persistProgress()
             this.persistExperience()
+            const floor = this.currentRoom?.floorNumber
+            // Winning the forest tutorial (floor 0) unlocks the post-tutorial cinematic,
+            // which plays the next time the castle map is opened (state 10).
+            if(floor === 0){ this.tutorialDone = true }
             // Clearing the castle's last boss room (floor 3 boss) beats the whole game, so
             // show the completion screen instead of the per-battle victory screen.
-            const isFinalRoom = this.currentRoom && this.currentRoom.floorNumber === 3 && this.currentRoom.isBoss
+            const isFinalRoom = this.currentRoom && floor === 3 && this.currentRoom.isBoss
             if(isFinalRoom){
                 // Beating the final boss ends the run as a victory: record end_time/completion
                 // time and fold the run's totals (incl. the victory) into player_global_stats.
@@ -423,20 +471,39 @@ class Game {
                     finalLevel: this.player?.level ?? 1,
                     totalXP: this.player?.experience ?? 0
                 }
-                this.currentMenu = new gameCompletionScreen(this.canvasWidth, this.canvasHeight,
-                    completionStats, cardsWon, this.api, this.activeSlotId, this)
+                // Play the ending cinematic, then the completion screen (state 21).
+                this.pendingCompletion = { stats: completionStats, cards: cardsWon }
+                this.currentMenu = this.makeCinematic(CINEMATICS.ending.img, 21)
             } else {
-                this.currentMenu = new gameWonBattleScreen(this.canvasWidth, this.canvasHeight, wonStats, cardsWon)
+                // A floor 1/2 boss plays its post-boss cinematic (once per run) before the
+                // victory screen; that cinematic routes to state 22, which then shows the
+                // stored victory summary. Regular rooms go straight to the victory screen.
+                const postKey = (this.currentRoom?.isBoss && floor === 1) ? 'postGalahad'
+                              : (this.currentRoom?.isBoss && floor === 2) ? 'postIsolde' : null
+                if(postKey && !this.seenCinematics.has(postKey)){
+                    this.seenCinematics.add(postKey)
+                    this.pendingVictory = { stats: wonStats, cards: cardsWon }
+                    this.currentMenu = this.makeCinematic(CINEMATICS[postKey].img, 22)
+                } else {
+                    this.currentMenu = new gameWonBattleScreen(this.canvasWidth, this.canvasHeight, wonStats, cardsWon)
+                }
             }
         }
         else if(state === 9){
             this.currentMenu = new archetypeScreen(BG.main, this.canvasWidth, this.canvasHeight, this)
         }
         else if(state === 10){
-            this.startMap(false)
-            const self = this
-            this.currentMenu = new mapScreen(BG.map, this.canvasWidth, this.canvasHeight, this.mapManager,
-                function(room){ self.currentRoom = room })
+            // After the forest tutorial, play the post-tutorial cinematic once before the
+            // map is shown; it routes back to state 10, which then builds the map.
+            if(this.tutorialDone && !this.seenCinematics.has('postTutorial')){
+                this.seenCinematics.add('postTutorial')
+                this.currentMenu = this.makeCinematic(CINEMATICS.postTutorial.img, 10)
+            } else {
+                this.startMap(false)
+                const self = this
+                this.currentMenu = new mapScreen(BG.map, this.canvasWidth, this.canvasHeight, this.mapManager,
+                    function(room){ self.currentRoom = room })
+            }
         }
         else if(state === 11){
             const p = this.player
@@ -444,12 +511,33 @@ class Game {
                 p.experienceToNextLevel, p.experience, p.level, p.attributes, p.activeDeck, p.inventory,
                 this.availablePoints, this.activeSlotId, this.api, this)
         }
+        else if(state === 20){
+            // Generic story cinematic (used by screens that transition via a state code,
+            // e.g. the intro after archetype select): show the requested image, then route on.
+            const req = this.cinematicRequest ?? { img: '', next: 0 }
+            this.currentMenu = this.makeCinematic(req.img, req.next)
+        }
+        else if(state === 21){
+            // Completion screen, shown after the ending cinematic.
+            const pc = this.pendingCompletion ?? { stats: {}, cards: [] }
+            this.currentMenu = new gameCompletionScreen(this.canvasWidth, this.canvasHeight,
+                pc.stats, pc.cards, this.api, this.activeSlotId, this)
+        }
+        else if(state === 22){
+            // Per-battle victory summary, shown after a post-boss cinematic.
+            const pv = this.pendingVictory ?? { stats: {}, cards: [] }
+            this.currentMenu = new gameWonBattleScreen(this.canvasWidth, this.canvasHeight, pv.stats, pv.cards)
+        }
         else if(this.roomsMap.has(state)){
             // Per-room battle: stateCode 101-112 maps to a DB-backed room + its
             // background asset and a floor-appropriate enemy pool.
             const room = this.roomsMap.get(state);
             this.currentRoom = room;
-            this.currentMenu = new battleScreen(room.background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(room), this, !!room?.isBoss)
+            // A boss room first plays its pre-boss story cinematic (once per run), routing
+            // back to this same state to start the fight.
+            if(!this._maybeBossCinematic(room, state)){
+                this.currentMenu = new battleScreen(room.background, this.canvasWidth, this.canvasHeight, this.player, this.enemyPoolFor(room), this, !!room?.isBoss)
+            }
         }
         // Music routing: intro on non-battle screens, battle/boss on battle screens.
         if (musicEnabled) {

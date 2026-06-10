@@ -129,9 +129,10 @@ export default class archetypeScreen extends Menus{
             }
             game.runId = await game.api.startRun(game.activeSlotId)
             await game.loadSlotData(game.activeSlotId)
-            // Forced Forest tutorial: prep deck in the lobby, then fight forest_0.
+            // Forced Forest tutorial: prep deck in the lobby, then fight forest_0. The intro
+            // cinematic plays first (Edrick's exile + oath), then routes on to the lobby (11).
             game.currentRoom = game.getForestRoom()
-            this.state = 11
+            this.state = game.enterCinematic('intro', 11)
         } catch(err){
             console.error('Archetype setup failed:', err)
             this.state = 0

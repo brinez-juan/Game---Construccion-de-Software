@@ -10,6 +10,8 @@ import TextLabel from '../../libs/TextLabel.js';
 import { sfxEnabled } from '../../libs/GlobalVariables.js';
 import { normalizeCatalogCard, buildPotions } from '../../extras/dataAdapter.js';
 import battleTutorial from '../../extras/battleTutorial.js';
+import ImageHold from '../../extras/ImageHold.js';
+import { CINEMATICS, CINEMATIC_MS } from '../../extras/cinematics.js';
 
 // Enemy defense tuning. Mitigation follows the classic armor curve damage*K/(K+def): never
 // negative, diminishing returns. K is sized for the DB defense range (~1-21) so a high-armor
@@ -102,6 +104,9 @@ export default class battleScreen extends Menus{
         this.sessionFinished = false
         this.turn = 'player';
         this.tutorialActive = false;
+        // Full-screen story overlay shown mid-fight (the Eldric→Lysara reveal). While set,
+        // update() pauses combat and only ticks the overlay. See spawnSecondBoss().
+        this.cinematicOverlay = null;
         this.cardInAction = undefined;
         this.enemyAttacking = undefined;
         this.handleMouseMove = this.handleMouseMove.bind(this)
@@ -335,6 +340,8 @@ export default class battleScreen extends Menus{
             }
         }
         if(this.parryLabel) this.parryLabel.draw(ctx)
+        // The mid-fight story overlay draws on top of everything when active.
+        if(this.cinematicOverlay){ this.cinematicOverlay.draw(ctx) }
     }
     addEventListeners(){
         if(this.listenersActive) return
@@ -352,6 +359,8 @@ export default class battleScreen extends Menus{
     // Per-frame loop that detects end conditions and advances either the player or the enemy turn
     update(deltaTime){
         if(this.tutorialActive) return;
+        // While the Eldric→Lysara reveal is up, combat is frozen; its onDone brings Lysara in.
+        if(this.cinematicOverlay){ this.cinematicOverlay.update(deltaTime); return; }
         // Advance the cosmetic lunge/shake offsets for everyone every frame, regardless of
         // whose turn it is, so attack hops and hurt shakes play out smoothly to completion.
         this.player.updateAnimation(deltaTime)
@@ -763,12 +772,25 @@ export default class battleScreen extends Menus{
         }
     }
 
+    // Eldric has fallen: pause combat and play the Eldric→Lysara reveal as a full-screen
+    // overlay (story cinematic #8). Listeners are dropped so stray clicks can't act on the
+    // dead boss; when the overlay ends, _spawnSecondBossNow brings Lysara in. update()'s
+    // victory check calls this every frame while a pendingBoss is queued, so it guards against
+    // building the overlay twice (once set, update() pauses before reaching the victory check).
+    spawnSecondBoss(){
+        if(this.cinematicOverlay){ return }
+        this.removeEventListeners()
+        this.cinematicOverlay = new ImageHold(CINEMATICS.swordAndHand.img, this.canvasWidth, this.canvasHeight, CINEMATIC_MS, () => {
+            this.cinematicOverlay = null
+            this._spawnSecondBossNow()
+        })
+    }
+
     // Brings in the second final boss (Lysara) after the first (Eldric) falls, in the SAME
     // battle: the player keeps their current HP/stamina (that's the challenge), the turn
     // resets to the player with a fresh parry bar, and the end-of-battle tallies are extended
-    // so she counts toward kills + XP. Called from update()'s victory check while a pendingBoss
-    // is queued.
-    spawnSecondBoss(){
+    // so she counts toward kills + XP. Called by spawnSecondBoss once the reveal cinematic ends.
+    _spawnSecondBossNow(){
         const { datum, width, height } = this.pendingBoss
         this.pendingBoss = null
         // Drop the just-defeated first boss (still in the array on the player turn, where the
