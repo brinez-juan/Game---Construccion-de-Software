@@ -384,17 +384,6 @@ export default class battleScreen extends Menus{
                 }
             }
         }
-        if(this.player.health <= 0 || this.player.deck.every(card => card.staminaCost > this.player.stamina)){
-            this.removeEventListeners()
-            this.ParryBar.dispose()
-            this.reportEnemiesDefeated()
-            // Record what killed the player so resetRunOnDeath can store it as the run's
-            // death_cause, then close out this session as a LOSS.
-            if(this.game){ this.game.lastDeathCause = this.enemyAttacking?.dbId ?? null }
-            this.finishSessionStats('LOSS')
-            this.state = 7
-            return
-        }
         if(this.enemies.every(enemy => enemy.health <= 0)){
             // Final room: when the first boss falls, the second takes the stage instead of
             // ending the battle. Only once BOTH are down (pendingBoss cleared) does the
@@ -411,6 +400,18 @@ export default class battleScreen extends Menus{
             // is available to record).
             this.finishSessionStats('WIN')
             this.state = 8
+            return
+        }
+        
+        if(this.player.health <= 0 || this.player.deck.every(card => card.staminaCost > this.player.stamina)){
+            this.removeEventListeners()
+            this.ParryBar.dispose()
+            this.reportEnemiesDefeated()
+            // Record what killed the player so resetRunOnDeath can store it as the run's
+            // death_cause, then close out this session as a LOSS.
+            if(this.game){ this.game.lastDeathCause = this.enemyAttacking?.dbId ?? null }
+            this.finishSessionStats('LOSS')
+            this.state = 7
             return
         }
         if(this.turn === 'player'){
