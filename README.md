@@ -4,15 +4,11 @@
 
 ```
 Videojuego/
-  Game/
-    Return.js               Top-level game controller and canvas loop
-    savedGamesApi.js        Browser adapter for the REST endpoints
+  Game/                     Game folder
     screens/
       menu/                 All screen and menu classes
     libs/                   Entity classes and shared objects
     extras/                 Managers and data utilities
-        MusicManager.js
-        dataAdapter.js
   WebPage/
     pages/                  HTML entry points (game.html is the prototype)
     Assets/
@@ -26,9 +22,6 @@ Videojuego/
     Auth/                   Register, login and JWT middleware
     DB/                     MySQL connection pool and smoke test
     SavedGames/             Slot, attribute, card and statistics REST routes
-    server.js               Express bootstrap
-  savedGamesApi.js          Browser adapter for the REST endpoints
-  statistics.js             Statistics page logic and chart rendering
 Database/                   Contains scripts and information related to the 
                             modelling and creation of the database
 ```

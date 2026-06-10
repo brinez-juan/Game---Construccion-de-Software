@@ -18,8 +18,8 @@ const { default: catalogRouter } = await import('./SavedGames/catalogRoutes.js')
 const { default: globalStatisticsRouter } = await import('./SavedGames/globalStatisticsRoutes.js');
 const { default: statsRouter } = await import('./SavedGames/statsRoutes.js');
 
-const webPageDir = path.resolve(__dirname, '..', 'WebPage');
-const videojuegoDir = path.resolve(__dirname, '..');
+const webPageDir = path.resolve(__dirname, '..');
+const videojuegoDir = path.resolve(__dirname, '..', '..');
 
 const app = express();
 const PORT = process.env.PORT || 3000;

@@ -36,7 +36,7 @@ echo "Dependencies installed successfully."
 echo ""
 
 # Check for .env file
-ENV_PATH="Videojuego/Backend/.env"
+ENV_PATH="Videojuego/WebPage/Backend/.env"
 
 if [ -f "$ENV_PATH" ]; then
     echo ".env file already exists at $ENV_PATH — skipping."
