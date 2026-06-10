@@ -408,7 +408,8 @@ class Game {
                     finalLevel: this.player?.level ?? 1,
                     totalXP: this.player?.experience ?? 0
                 }
-                this.currentMenu = new gameCompletionScreen(this.canvasWidth, this.canvasHeight, completionStats, cardsWon)
+                this.currentMenu = new gameCompletionScreen(this.canvasWidth, this.canvasHeight,
+                    completionStats, cardsWon, this.api, this.activeSlotId, this)
             } else {
                 this.currentMenu = new gameWonBattleScreen(this.canvasWidth, this.canvasHeight, wonStats, cardsWon)
             }

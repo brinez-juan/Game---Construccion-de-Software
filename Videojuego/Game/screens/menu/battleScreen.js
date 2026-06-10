@@ -791,8 +791,6 @@ export default class battleScreen extends Menus{
         this.player.playState('idle')
         this.ParryBar.dispose()
         this.ParryBar = new ParryBar(this.canvasWidth, this.canvasHeight, this.player.stamina, this.player.maxStamina)
-        // Dramatic tell that the fight isn't over.
-        this.showActionLabel('Lysara appears!', 'magenta', 1600)
     }
 
     // Builds one Enemy from a normalized datum, forwarding the DB combat stats the
