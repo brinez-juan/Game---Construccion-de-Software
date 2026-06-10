@@ -230,18 +230,6 @@ export default class mapScreen extends Menus {
             }
             // 'bossCleared' and non-hovered 'unlocked' rooms render plain (no overlay).
 
-            // Completed non-boss rooms get a subtle green tint and a checkmark badge.
-            const room = this.mapManager.getRoom(cell.floorNumber, cell.roomNumber);
-            if (room && room.completed && !room.isBoss) {
-                ctx.fillStyle = 'rgba(60, 220, 100, 0.18)';
-                ctx.fillRect(cell.x, cell.y, cell.w, cell.h);
-                ctx.font         = 'bold 32px serif';
-                ctx.textAlign    = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillStyle    = 'rgba(60, 220, 100, 0.9)';
-                ctx.fillText('✓', cell.x + cell.w / 2, cell.y + cell.h / 2);
-            }
-
             ctx.restore();
         }
 

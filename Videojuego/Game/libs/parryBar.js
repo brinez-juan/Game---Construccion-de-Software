@@ -1,13 +1,23 @@
 import GameObject from './GameObject.js';
 import { canvas } from '../Return.js';
-import textLabel from './TextLabel.js';
+
+// Parry difficulty clamps: lower stamina narrows the zones and speeds the icon, but never
+// past the point of being hittable. The width factor is floored so the perfect/normal zones
+// keep a catchable size, and the icon speed is capped so it can't skip a zone in a single
+// frame (even at stamina 0, where the raw maxStamina/stamina ratio would diverge).
+const MIN_WIDTH_FACTOR = 0.4;   // floor on stamina/maxStamina applied to zone widths
+const MIN_STAMINA_FRAC = 0.15;  // treat stamina as at least this fraction of max for icon speed
+const MAX_ICON_SPEED = 5;       // px/frame cap (kept below the smallest zone half-window)
+const MIN_ICON_SPEED = 0.5;     // px/frame floor so the icon always advances
 
 // Timing-based defensive minigame that grants damage and stamina based on press accuracy
 export default class ParryBar{
     constructor(canvasWidth, CanvasHeight, stamina, maxStamina){
         this.stamina = stamina;
         this.maxStamina = maxStamina;
-         let widthAdjuster = (this.stamina / this.maxStamina);
+        // Floor the width factor so the perfect/normal zones never shrink to an
+        // unhittable sliver, even at very low / zero stamina.
+        let widthAdjuster = Math.max(MIN_WIDTH_FACTOR, this.stamina / this.maxStamina);
         this.perfectParryIndicator = new GameObject(canvasWidth/2, CanvasHeight/2, 60 * widthAdjuster, 30);
         this.normalParryIndicator = new GameObject(canvasWidth/2, CanvasHeight/2, 120 * widthAdjuster, 30);
         this.missParryIndicator = new GameObject(canvasWidth/2, CanvasHeight/2, 240, 30);
@@ -82,7 +92,13 @@ export default class ParryBar{
         // The bar is now live and accepting parry clicks.
         this.started = true;
         if(!this.state){
-            this.parryIcon.x += (1*(this.maxStamina/this.stamina) - 0.01*playerDexterity)
+            // Lower stamina speeds the icon and dexterity slows it, but the speed is
+            // clamped (and stamina floored to avoid /0) so the icon stays catchable even
+            // at zero stamina and can't jump past a zone in one frame.
+            const effectiveStamina = Math.max(this.stamina, this.maxStamina * MIN_STAMINA_FRAC);
+            let speed = (this.maxStamina / effectiveStamina) - 0.01 * playerDexterity;
+            speed = Math.min(MAX_ICON_SPEED, Math.max(MIN_ICON_SPEED, speed));
+            this.parryIcon.x += speed;
         }
         if(this.parryIcon.x > this.missParryIndicator.x + this.missParryIndicator.width/2){
             this.state = 'miss'

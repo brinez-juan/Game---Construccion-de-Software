@@ -56,7 +56,9 @@ export class Enemy extends Character {
         // Active typed guard from a defend action ('physic' | 'magic' | null). Boosts the
         // matching defense for the player's next turn; shattered by a wrong-type attack.
         this.guardType = null;
-        this.setSprite(`../Assets/Sprites/${name}.png`)
+        // The real art is set right after construction by battleScreen.makeEnemy
+        // (setSpriteStates / setSprite from the DB-resolved paths), so no sprite is
+        // loaded from the display name here (it would 404 on the spaced filename).
         this.healthBar = new Bar(this.x, this.y -this.height/2 - 20, this.width, 20, '../Assets/Sprites/health_bar.png', this.maxHealth);
         this.indicator = new GameObject(this.x, this.y - this.height/2 - 50, 30, 30);
         this.indicator.setSprite('')

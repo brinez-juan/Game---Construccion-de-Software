@@ -44,7 +44,7 @@
             You are <strong class="keyword">Edrick</strong>, a fallen knight returning to reclaim his honor.
             Fight through four floors of the ancestral castle — from the tutorial forest to the Throne Room —
             building your deck, leveling up, and perfecting your parry timing. Death resets your run, but
-            permanent cards and experience survive. Defeat the Forgotten King to win.
+            permanent cards and experience survive. Defeat Eldric the Forlorn King and Lysara to win.
         </p>
     </section>
 
@@ -66,7 +66,7 @@
                 <h3>Enemy Turn</h3>
                 <p>After you play a card, enemies attack one by one. Before each enemy strike, the <strong class="keyword">Parry Bar</strong> appears.</p>
                 <ul>
-                    <li>Press <strong class="keyword">Spacebar</strong> when the parry icon is inside a zone.</li>
+                    <li><strong class="keyword">Left-click</strong> when the parry icon is inside a zone.</li>
                     <li>Each enemy attacks in sequence until all have acted.</li>
                     <li>Then the turn returns to you.</li>
                 </ul>
@@ -74,7 +74,7 @@
             <div class="glossary-card">
                 <h3>Win / Loss</h3>
                 <ul>
-                    <li><strong class="keyword">Victory:</strong> All enemies in the room are defeated.</li>
+                    <li><strong class="keyword">Victory:</strong> All enemies in the room are defeated — you earn one card for each enemy you beat.</li>
                     <li><strong class="keyword">Defeat:</strong> Your health reaches 0. The run ends and progress resets.</li>
                     <li>Boss rooms have a single powerful enemy. Regular rooms spawn 1–3 enemies.</li>
                 </ul>
@@ -121,7 +121,7 @@
                     </div>
                     <div class="carousel-caption">
                         <h3>Parry Bar</h3>
-                        <p>During the enemy turn, the <strong class="keyword">Parry Bar</strong> appears before each strike. Press <strong class="keyword">Spacebar</strong> when the moving icon lands in a zone. A <span class="tier-perfect">Perfect Parry</span> negates all damage and grants stamina, while a <span class="tier-miss">Miss</span> costs you dearly.</p>
+                        <p>During the enemy turn, the <strong class="keyword">Parry Bar</strong> appears before each strike. <strong class="keyword">Left-click</strong> when the moving icon lands in a zone. A <span class="tier-perfect">Perfect Parry</span> negates all damage and grants stamina, while a <span class="tier-miss">Miss</span> costs you dearly.</p>
                     </div>
                 </div>
                 <div class="carousel-slide">
@@ -148,8 +148,8 @@
                 <ul>
                     <li><strong class="keyword">Attack Physical</strong> — Melee strikes scaled by Strength.</li>
                     <li><strong class="keyword">Attack Magic</strong> — Spell damage scaled by Intelligence.</li>
-                    <li><strong class="keyword">Defend Physical</strong> — Brace for impact; guarantees a Perfect Parry.</li>
-                    <li><strong class="keyword">Defend Magic</strong> — Arcane barrier; guarantees a Perfect Parry.</li>
+                    <li><strong class="keyword">Defend Physical</strong> — Raise a physical guard; auto-Perfect-Parries a physical attack.</li>
+                    <li><strong class="keyword">Defend Magic</strong> — Raise a magic guard; auto-Perfect-Parries a magic attack.</li>
                     <li><strong class="keyword">Healing</strong> — Restores health scaled by Vigor.</li>
                     <li><strong class="keyword">AoE Physical / Magic</strong> — Damage all enemies at once.</li>
                 </ul>
@@ -170,8 +170,7 @@
                     <li><strong class="keyword">Common</strong> — Basic, reliable cards.</li>
                     <li><strong class="keyword">Uncommon</strong> — Slightly stronger with better scaling.</li>
                     <li><strong class="keyword">Rare</strong> — Powerful effects and higher scaling.</li>
-                    <li><strong class="keyword">Epic</strong> — Very strong; often boss rewards.</li>
-                    <li><strong class="keyword">Legendary</strong> — The rarest and most devastating cards.</li>
+                    <li><strong class="keyword">Epic</strong> — The rarest and most devastating cards; often boss rewards.</li>
                 </ul>
             </div>
         </div>
@@ -186,7 +185,7 @@
                 <h3>Parry Tiers</h3>
                 <ul class="parry-tier-list">
                     <li><span class="tier-perfect">Perfect Parry</span> — Negates all damage. Grants a large stamina boost. Triggers when the icon is in the smallest (green) zone.</li>
-                    <li><span class="tier-normal">Normal Parry</span> — Reduces damage by 70%. Grants a small stamina boost. Triggers in the middle (yellow) zone.</li>
+                    <li><span class="tier-normal">Normal Parry</span> — Reduces damage by 65%. Grants a small stamina boost. Triggers in the middle (yellow) zone.</li>
                     <li><span class="tier-miss">Miss</span> — Full damage taken. Stamina is drained. Occurs when the icon is outside any zone.</li>
                 </ul>
             </div>
@@ -196,7 +195,7 @@
                     <li>The parry icon moves automatically across the bar.</li>
                     <li>Its speed is influenced by your <strong class="keyword">Dexterity</strong> and current stamina.</li>
                     <li>The parry zones shrink as your stamina decreases.</li>
-                    <li>Playing a <strong class="keyword">Defense Card</strong> auto-sets the parry result to Perfect for that enemy's attack.</li>
+                    <li>Playing a <strong class="keyword">Defense Card</strong> auto-Perfect-Parries the next attack <strong>if its school matches</strong> (a physical guard vs a physical attack); a mismatched guard fails and the hit lands.</li>
                 </ul>
             </div>
         </div>
@@ -211,43 +210,42 @@
                 <h3>Strength</h3>
                 <p>Scales physical attacks and physical defense cards.</p>
                 <ul>
-                    <li>Increases damage of Slash, Heavy Strike, and melee cards.</li>
-                    <li>Improves shield block effectiveness.</li>
+                    <li>Increases damage of Vicious Sword, Battle Axe, and other physical cards.</li>
+                    <li>Adds to your physical defense.</li>
                 </ul>
             </div>
             <div class="glossary-card">
                 <h3>Dexterity</h3>
                 <p>Optimizes combat efficiency and parry timing.</p>
                 <ul>
-                    <li>Slows the parry icon movement.</li>
-                    <li>Improves critical hit chance.</li>
-                    <li>Scales bow and precision cards.</li>
+                    <li>Slows the parry icon movement, widening your timing window.</li>
+                    <li>Scales Dexterity weapons like Hunter Bow and Sentinel Twinblades.</li>
                 </ul>
             </div>
             <div class="glossary-card">
                 <h3>Intelligence</h3>
                 <p>Enhances magical spell cards and arcane defenses.</p>
                 <ul>
-                    <li>Increases Fireball, Frost Lance, and spell damage.</li>
-                    <li>Improves Magic Shield effectiveness.</li>
+                    <li>Increases Fireball, Ravenwood Crook, and other magic card damage.</li>
+                    <li>Adds to your magic defense and powers Dark Ward.</li>
                 </ul>
             </div>
             <div class="glossary-card">
                 <h3>Vigor</h3>
                 <p>Governs health pool and healing potency.</p>
                 <ul>
-                    <li>Expands maximum health.</li>
-                    <li>Scales healing card potency.</li>
-                    <li>Improves Stone Skin defense.</li>
+                    <li>Expands maximum health (80 + 10 per point).</li>
+                    <li>Increases healing — potions restore a share of your larger health pool.</li>
+                    <li>Adds to both physical and magic defense.</li>
                 </ul>
             </div>
             <div class="glossary-card">
                 <h3>Endurance</h3>
-                <p>Controls stamina capacity and recovery.</p>
+                <p>Controls your stamina capacity.</p>
                 <ul>
-                    <li>Expands maximum stamina.</li>
-                    <li>Improves baseline stamina recovery speed.</li>
-                    <li>Scales heavy defensive cards.</li>
+                    <li>Expands maximum stamina (70 + 15 per point).</li>
+                    <li>More stamina keeps parry zones wider and the icon slower.</li>
+                    <li>Scales heavy shields like Knight Shield and Giant Shield.</li>
                 </ul>
             </div>
         </div>
@@ -263,7 +261,7 @@
                 <p>A melee-focused warrior built for raw physical power.</p>
                 <ul>
                     <li><strong>Attributes:</strong> Strength 3, Vigor 2, Endurance 2, Dexterity 1, Intelligence 0</li>
-                    <li><strong>Starter Deck:</strong> Heavy Strike, Shield Block, Basic Attack ×2, Recover</li>
+                    <li><strong>Starter Deck:</strong> Vicious Sword, Battle Axe, Knight Shield</li>
                     <li>Best for players who want to brute-force enemies with high damage and solid defense.</li>
                 </ul>
             </div>
@@ -272,7 +270,7 @@
                 <p>A ranged specialist who relies on precision and agility.</p>
                 <ul>
                     <li><strong>Attributes:</strong> Dexterity 3, Strength 1, Vigor 1, Endurance 2, Intelligence 0</li>
-                    <li><strong>Starter Deck:</strong> Precise Shot, Dodge Roll, Basic Attack ×2, Recover</li>
+                    <li><strong>Starter Deck:</strong> Hunter Bow, Pestilent Hook-Flail, Knight Shield</li>
                     <li>Best for players who prefer faster parry timing and critical hits.</li>
                 </ul>
             </div>
@@ -281,7 +279,7 @@
                 <p>A spellcaster wielding devastating magic attacks.</p>
                 <ul>
                     <li><strong>Attributes:</strong> Intelligence 3, Dexterity 1, Vigor 1, Endurance 2, Strength 0</li>
-                    <li><strong>Starter Deck:</strong> Fireball, Magic Shield, Basic Attack ×2, Recover</li>
+                    <li><strong>Starter Deck:</strong> Fireball, Ravenwood Crook, Knight Shield</li>
                     <li>Best for players who enjoy high burst damage and arcane barriers.</li>
                 </ul>
             </div>
@@ -295,10 +293,10 @@
             <div class="glossary-card">
                 <h3>Floors & Rooms</h3>
                 <ul>
-                    <li><strong class="keyword">Floor 0 — The Forest</strong> (Tutorial): Learn mechanics safely. No real threat.</li>
-                    <li><strong class="keyword">Floor 1 — Mystic Courtyard</strong>: Corrupted Knights and Holy Spirits. Boss: Charles, the Pale Knight.</li>
-                    <li><strong class="keyword">Floor 2 — Halls of Last Reverence</strong>: Executioners and Shielded Maidens. Boss: Galahad of the Hidden Axe.</li>
-                    <li><strong class="keyword">Floor 3 — The Throne</strong>: Pale Lancers and elite enemies. Boss: Gawain of the Fair Lance. Final: The Forgotten King.</li>
+                    <li><strong class="keyword">Floor 0 — Forest of Beginnings</strong> (Tutorial): Learn mechanics safely. Boss: Rick, the Forest Critter.</li>
+                    <li><strong class="keyword">Floor 1 — Mystic Courtyard</strong>: Corrupted Knights, Pale Lancers, and Hooded Heralds. Boss: Galahad of the Hidden Axe.</li>
+                    <li><strong class="keyword">Floor 2 — Bloody Halls</strong>: Bog Witches, Shield-maiden Wraiths, and Marauder Orcs. Boss: Isolde, the Draconic Maiden.</li>
+                    <li><strong class="keyword">Floor 3 — Throne of Return</strong>: Crystal Gargoyles, Rotten Spirits, and Ancient Sentinels. Final two-stage boss: Eldric the Forlorn King, then Lysara the Veiled Sorcerer.</li>
                 </ul>
             </div>
             <div class="glossary-card">
@@ -332,7 +330,7 @@
                     <li><strong class="keyword">Level & Experience</strong> — Your character level and total XP never reset.</li>
                     <li><strong class="keyword">Permanent Cards</strong> — Cards marked as permanent stay in your inventory forever.</li>
                     <li><strong class="keyword">Attribute Points</strong> — Points spent on attributes are permanent.</li>
-                    <li><strong class="keyword">Boss Rewards</strong> — Legendary cards dropped by bosses are usually permanent.</li>
+                    <li><strong class="keyword">Rescued Card</strong> — On death you may keep one collected card permanently, chosen on the Game Over screen.</li>
                 </ul>
             </div>
             <div class="glossary-card">
@@ -389,7 +387,7 @@
                     <td>Battle, Lobby, Menus</td>
                 </tr>
                 <tr>
-                    <td><strong class="keyword">Spacebar</strong></td>
+                    <td><strong class="keyword">Left Click</strong></td>
                     <td>Trigger parry timing</td>
                     <td>Enemy Turn (Parry Bar)</td>
                 </tr>

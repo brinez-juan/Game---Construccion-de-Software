@@ -23,12 +23,14 @@ export default class Player extends Character {
     ) {
         super("Player", maxHealth, health, maxStamina, stamina, attributes, x, y, width, height);
         // Derive the real max HP / stamina from the build so VIGOR and ENDURANCE
-        // actually matter (the maxHealth/maxStamina args are now just defaults). Current
-        // health/stamina are kept as-is mid-run, clamped to the freshly computed caps.
+        // actually matter (the maxHealth/maxStamina args are now just defaults).
         this.maxHealth = 80 + 10 * (this.attributes.VIGOR ?? 0);
         this.maxStamina = 70 + 15 * (this.attributes.ENDURANCE ?? 0);
-        this.health = Math.min(this.health, this.maxHealth);
-        this.stamina = Math.min(this.stamina, this.maxStamina);
+        // Every battle starts at full HP/stamina at those build-scaled caps. A fresh
+        // Player is built per battle (battleScreen.playerMaker), so resources don't carry
+        // between rooms by design — only the caps grow with VIGOR/ENDURANCE investment.
+        this.health = this.maxHealth;
+        this.stamina = this.maxStamina;
         this.level = level;
         this.experience = experience;
         this.experienceToNextLevel = experienceToNextLevel;
@@ -110,6 +112,9 @@ export default class Player extends Character {
 
     // Replaces one random card available in the deck
     deckReplacer(cardToReplace, activeDeck){
+        // TODO: this range is [0, length-2], so the last card in activeDeck is never
+        // picked. Pending a deck-manager review before changing to
+        // Math.trunc(Math.random()*activeDeck.length).
         let index = Math.trunc(Math.random()*(activeDeck.length - 1))
         let card = activeDeck[index]
         let action = new Action(card.name, card.description, card.action_type, card.stamina_cost, card.base_damage, 0,0,0,0, card.scales_with, card.scaling_factor, null, card.sfxPath); 

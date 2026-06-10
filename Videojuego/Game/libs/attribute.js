@@ -1,4 +1,4 @@
-import textLabel from "./textLabel.js";
+import textLabel from "./TextLabel.js";
 import gameObject from "./GameObject.js";
 
 //Class to spawn attributes in the battleLobby with it's respective buttons
