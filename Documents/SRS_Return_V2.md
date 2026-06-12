@@ -94,22 +94,21 @@ Each requirement is expressed in **User Story** format  with validation criteria
 
 ---
 
-#### US-03 — Options Menu / Pause
+#### US-03 — Options Menu
 
 | Field | Detail |
 |---|---|
 | **How** | User |
-| **I want** | Be able to pause the game at any time and access the options menu |
-| **For** | not losing my progress and being able to adjust the settings without leaving the game |
+| **I want** | Be able to access an options menu available |
+| **For** | being able to access music and sfx options in case I want to deactivvate them|
 | **Priority** | 1 |
 | **Estimated time** | 4h |
 
 **Validation criteria:**
-- There is a visible options button in the top right corner during gameplay.
-- Pressing it pauses the game and opens the options menu.
-- The menu contains: music volume control, SFX control, language selector, and option to clear progress.
-- The clear progress option displays a confirmation prompt.
-- The user can close the menu and return to the paused state.
+- There is a visible options button in the main screen of the game
+- Pressing it redirects you to an options screen.
+- The menu contains: music volume control and SFX control.
+- The user can close the menu and return to the main menu.
 - All buttons provide visual feedback.
 
 ---
@@ -164,7 +163,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 
 **Validation criteria:**
 - Music created for: main menu, tutorial (forest), regular battles, and boss fights.
-- SFX for: Physical Attacks, Magic Attacks, Perfect/Normal/Bad Parry, Healing, XP, Card UI, and Dialogue.
+- SFX for: Physical Attacks, Magic Attacks, Healing, XP, Card UI, and Dialogue.
 - Music and SFX inserted at the right times.
 - The volume is controlled independently from the options menu.
 - Validated with users to ensure that they are attractive and not distracting.
@@ -220,7 +219,6 @@ Each requirement is expressed in **User Story** format  with validation criteria
 - TCG cards are created with their attributes: Stamina Cost, Action Type, Damage/Effect Values, and Attribute Requirements.
 - The cards are designed with the GDD's watercolor aesthetic.
 - The player can select one card per turn during combat.
-- When selecting a card, it flips showing its full attributes with "Use" and "Don't Use" buttons.
 - Users understand the mechanics of TCG.
 
 ---
@@ -230,7 +228,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | Field | Detail |
 |---|---|
 | **How** | User |
-| **I want** | A Stamina system that is consumed by using cards and recovered by Parry |
+| **I want** | A Stamina system that is consumed by using cards and recovered by Parries and Defense cards|
 | **For** | Adding Difficulty and Strategic Depth to Resource Management |
 | **Priority** | 1 |
 | **Estimated time** | 8h |
@@ -238,6 +236,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 **Validation criteria:**
 - The player has a visible stamina bar in the upper left corner.
 - Each card has a stamina cost; the player cannot use it without enough stamina.
+- Defense cards recover stamina if they match the enemy attack type
 - Recovery according to type of parry: perfect → moderate stamine; normal → small stamine; bad → no recovery.
 - Users understand the mechanics of use and retrieval.
 
@@ -256,8 +255,8 @@ Each requirement is expressed in **User Story** format  with validation criteria
 **Validation criteria:**
 - A tutorial floor (forest) and three main floors, each with three rooms.
 - Only the last quarter of each floor has a boss.
-- Multiple types of enemies per floor, each with unique stats and special ability.
-- Bosses have more health, more damage, and higher parry bar speed.
+- Multiple types of enemies per floor, each with unique stats.
+- Bosses have more health, more damage, and special attacks.
 - Users understand and enjoy encounters.
 
 ---
@@ -274,8 +273,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 
 **Validation criteria:**
 - The map shows all floors and rooms.
-- Unlocked Rooms: Illuminated. Locked: Hidden in fog.
-- The current or next available room has a visual indicator.
+- Unlocked Rooms: Illuminated. Locked: Hidden in behind a lock.
 - Quarters are unlocked in order by defeating all enemies in the previous quarter.
 - The boss room is only unlocked by completing the other rooms on the floor.
 - Users understand progression and the map.
@@ -296,7 +294,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 - Sets of enemies are created for each floor.
 - When entering a regular room, enemies are randomly generated from the current floor set.
 - The randomizer does not always repeat the same enemies.
-- Encounters can include a single enemy or hordes of multiple enemies.
+- Encounters can include a single enemy or a horde of multiple enemies. 
 
 ---
 
@@ -332,7 +330,6 @@ Each requirement is expressed in **User Story** format  with validation criteria
 **Validation criteria:**
 - When defeating all enemies in a room, the battle summary screen is displayed.
 - The summary includes: experience earned, card(s) obtained, and percentage of parrys.
-- Against a boss, three reward cards are displayed for the player to choose one of.
 - The player can continue to the map from this screen.
 
 ---
@@ -387,8 +384,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | **Estimated time** | 9am |
 
 **Validation criteria:**
-- Regular enemies have a pool of cards; the reward depends on the weapon the enemy was using.
-- Each boss offers exactly three cards to the player to choose from.
+- Regular enemies and bosses reward a card related with their attacks/model. 
 - Reward cards are saved in the player's inventory.
 - When receiving the card, the game displays the message "You have gotten:" before continuing.
 
@@ -431,7 +427,6 @@ Each requirement is expressed in **User Story** format  with validation criteria
 - The boxes disappear when you click on them or click on a continue button.
 - The text boxes of the tutorial **DON'T** appear in runs after the first one.
 - The "first game" flag is saved in the database by user profile.
-
 ---
 
 #### US-21 — Parry Mechanics
@@ -449,7 +444,6 @@ Each requirement is expressed in **User Story** format  with validation criteria
 - The bar has three zones: 🔴 red (parry bad), 🟡 yellow (parry normal), 🟢 green (parry perfect).
 - The player stops the indicator by pressing the **space bar**.
 - Results: perfect → no loss of life + moderate stamina; normal → low life + little stamina; bad → a lot of lost life and stamina.
-- Gauge speed is higher in boss fights.
 - The size of the gauge varies with the player's current stamina
 - Users understand the three types of parry and their consequences.
 
@@ -466,12 +460,12 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | **Estimated time** | 7h |
 
 **Validation criteria:**
-- The Battle Lobby displays the "My Deck" section with all the cards in the inventory and "Battle Deck" with 5 slots.
-- Selecting a card from My Deck flips it over and shows its attributes; clicking again moves it to the Battle Deck.
+- The Battle Lobby displays the Inventory section with all the cards in the inventory and "Battle Deck" with 5 slots.
+- Selecting a card from the inventory two times shows its attributes; clicking a card in the battle deck moves it into the battle deck.
 - The player can only have 5 cards in the Battle Deck.
 - If a card does not meet the attribute requirements, it cannot be added to the Battle Deck.
 - The deck is updated in real-time in the database.
-- UI provides clear feedback when attempting to add an incompatible letter.
+- UI provides clear feedback when attempting to add an incompatible card.
 
 ---
 
@@ -486,7 +480,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | **Estimated time** | 6h |
 
 **Validation criteria:**
-- The Game Over screen is activated when the player's health reaches zero.
+- The Game Over screen is activated when the player's health reaches zero or when stamina is insufficient for any of the cards.
 - Sample: Game Over message and run's summary (floors completed, enemies defeated, final level).
 - **All** run progress is removed: unsaved health, stamina, cards, and XP.
 - The player returns to the archetype selection screen.
@@ -515,7 +509,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 
 ---
 
-#### US-25 — Saving a Letter When Losing
+#### US-25 — Saving a card When Losing
 
 | Field | Detail |
 |---|---|
@@ -606,14 +600,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 
 **Validation criteria:**
 - The three archetypes are shown: **Soldier, Archer, and Mage**.
-- Hovering over an archetype flips the card flip over and displays the five base attributes and five starting cards.
-
-| Archetype | Initial Letters |
-|---|---|
-| **Soldier** | Sword, Shield, Spear, Potion of Strength, Potion of Healing |
-| **Goalkeeper** | Bow, Dagger, Small Shield, Crossbow, Healing Potion |
-| **Magician** | Staff, Fireball, Flamethrower, Earth Shield, Healing Potion |
-
+- Each archetype section shows the five starting attributes.
 - Each archetype has different base attribute values according to its role.
 - Selecting an archetype starts the first cinematic and then the tutorial.
 
@@ -631,11 +618,10 @@ Each requirement is expressed in **User Story** format  with validation criteria
 
 **Validation criteria:**
 - The Battle Lobby displays: player name, character photo, Battle Deck (5 slots), My Deck (full inventory), current level with XP bar, and attribute section with available points.
-- The player can select up to 5 cards for the Battle Deck from My Deck.
+- The player can select up to 5 cards for the Battle Deck from Inventory.
 - The player can spend attribute points by pressing the "+" button of the desired attribute.
 - When you upload an attribute, the stats of related cards are updated in real-time.
 - Cards with unfulfilled requirements are disabled.
-- On the first visit, text boxes appear with arrows explaining each section.
 - The "Continue" button takes the player into battle.
 
 ---
@@ -654,7 +640,6 @@ Each requirement is expressed in **User Story** format  with validation criteria
 - AoE cards (Spear, Crossbow, Flamethrower) are identified as AoE in their description.
 - When using an AoE card, damage is applied to all enemies present on screen.
 - AoE cards have less damage than equivalent single-target cards.
-- The animation reflects that the attack encompasses multiple enemies.
 - The health bars of all affected enemies are updated correctly.
 
 ---
@@ -690,7 +675,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | **Estimated time** | 8h |
 
 **Validation criteria:**
-- Horde encounters can include 2 or more simultaneous enemies.
+- Horde encounters can include between 1 and 3 enemies.
 - Each enemy in the horde has its own independent health bar.
 - The player can choose which enemy to attack with single-target cards.
 - Enemy turns are resolved sequentially, allowing each attack to be parry individually.
@@ -711,30 +696,12 @@ Each requirement is expressed in **User Story** format  with validation criteria
 **Validation criteria:**
 - The screen appears after the final cinematic.
 - Sample: congratulations message, total completion time, parrys percentage, total enemies defeated, cards obtained, final level, final attributes, and total XP.
-- The player can continue to the permanent card selection (New Game+).
+- The player can continue to the permanent card selection.
 
 ---
 
-#### US-35 — New Game+ (Permanent Card Reset)
 
-| Field | Detail |
-|---|---|
-| **How** | User |
-| **I want** | Be able to restart the game while keeping a card from my previous game |
-| **For** | Feel progression between runs and approach the game with an early advantage |
-| **Priority** | 1 |
-| **Estimated time** | 7h |
-
-**Validation criteria:**
-- Upon completion of the game, a card selection menu is displayed to keep a card from the deck.
-- The game resets from archetype selection with the permanent card available.
-- In runs after the first run, the tutorial text boxes do not appear.
-- All other inventory and previous progress are removed when you start New Game+.
-- The Permanent Card survives kills during the New Game+.
-
----
-
-#### US-36 — Statistics for Administrators
+#### US-35 — Statistics for Administrators
 
 | Field | Detail |
 |---|---|
@@ -746,28 +713,10 @@ Each requirement is expressed in **User Story** format  with validation criteria
 
 **Validation criteria:**
 - Administrative statistics are stored in a separate table.
-- They include: parry success rate per floor, average completion time, abandonment rate per floor, enemies/bosses with the highest defeat rate, and archetype distribution.
+- They include: parry success rate per floor, abandonment rate per floor, and archetype distribution.
 - Available in a separate admin panel from the user interface.
 - Data is updated after each completed or failed match.
 - Data is **not** accessible to regular users.
-
----
-
-#### US-37 — Loading Screen
-
-| Field | Detail |
-|---|---|
-| **How** | User |
-| **I want** | View a loading screen while the game prepares data |
-| **For** | Don't let the experience feel like a bug or blank screen |
-| **Priority** | 3 |
-| **Estimated time** | 2h |
-
-**Validation criteria:**
-- The loading screen appears when launching the game and between heavy transitions.
-- Display the logo or name of the game and a progress indicator.
-- Automatically disappears when content is ready.
-- There are no blank screens visible to the user at any point in the flow.
 
 ---
 
@@ -780,7 +729,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | **RNF01** | The game must load completely in less than **5 seconds** on a standard broadband connection (10 Mbps). |
 | **RNF02** | The game engine must maintain a stable framerate (minimum **30 FPS**) by simultaneously rendering up to 5 enemies with their animations and life bars. |
 | **RNF03** | Sound effects (SFX) must be played at a maximum of **100 ms** after the event that triggers them. |
-| **RNF04** | The parry system should register the player's input (space bar) with a maximum latency of **50 ms** to make the mechanics feel fair and responsive. |
+| **RNF04** | The parry system should register the player's input (click) with a maximum latency of **50 ms** to make the mechanics feel fair and responsive. |
 
 ### 3.2 Compatibility
 
@@ -803,9 +752,8 @@ Each requirement is expressed in **User Story** format  with validation criteria
 
 | ID | Request |
 |---|---|
-| **RNF12** | The parry bar must include a **visual alternative** (pattern or text label) in addition to the red/yellow/green color code, for users with color blindness. |
 | **RNF13** | The tutorial text boxes should **disappear in subsequent runs** to the first one without any user action. |
-| **RNF14** | All buttons and interactive elements must provide **visual feedback** when hovering over them. |
+| **RNF14** | Buttons and interactive elements must provide **visual feedback** when hovering over them. |
 
 ### 3.5 Persistence and Data
 
