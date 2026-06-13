@@ -37,10 +37,10 @@ The prototype is the **battle scene**, and it must be opened **directly from the
 4. Run the setup.sh on the terminal:
   - In the case of macOS/Linux use: `bash setup.sh`
   - In the case of windows opne Git Bash, navigate to the project folder and run: `bash setup.sh`
-5. Run the game using `npm start` or `node Videojuego/Backend/server.js` in your terminal
+5. Run the game using `npm start` or `node Videojuego/Webpage/Backend/server.js` in your terminal
 6. Access the main page going to `localhost:3000` or typing localhost followed by the port chosen to run the game (if you don't know it it will appear on the terminal/powershell when running the server.js file)
 
-> The Express server in `Videojuego/Backend/server.js` already renders all the webpage and the game
+> The Express server in `Videojuego/Webpage/Backend/server.js` already renders all the webpage and the game
 
 ### .env configuration
 
