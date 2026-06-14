@@ -26,8 +26,7 @@
    - [Security](#33-security)
    - [Usability & Accessibility](#34-usability-and-accessibility)
    - [Persistence & Data](#35-persistence-and-data)
-   - [Location](#36-location)
-   - [Maintainability](#37-maintainability)
+   - [Maintainability](#36-maintainability)
 
 ---
 
@@ -55,18 +54,18 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | Field | Detail |
 |---|---|
 | **How** | User |
-| **I want** | a main menu with five buttons: New Game, Continue, Options, Stats, and Credits |
+| **I want** | a main menu with four buttons: New Game, Continue, Options, and Credits |
 | **For** | Access all sections of the game from a single entry point |
 | **Priority** | 1 |
 | **Estimated time** | 5h |
 
 **Validation criteria:**
-- The screen shows the title of the game, a background according to the aesthetics and the five buttons.
+- The screen shows the title of the game, a background according to the aesthetics and the four buttons.
 - **New Game** starts the saved game creation or selection flow.
 - **Continue** redirects to the saved games menu if at least one is present; if not, the button is disabled or displays a message.
-- **Options** opens the settings menu (music, SFX, language, clear progress).
-- **Statistics** shows the user's accumulated statistics.
+- **Options** opens the settings menu (music and SFX).
 - **Credits** shows the game's credits.
+- Accumulated statistics are available from the **Statistics** section of the website (not from the in-game menu).
 - All buttons provide visual feedback when hovering.
 - The user can return from any submenu to the title screen.
 
@@ -543,7 +542,6 @@ Each requirement is expressed in **User Story** format  with validation criteria
 - SQL injection attacks are prevented.
 - Excessive traffic is handled to prevent DoS attacks.
 - Environment variables are not stored in the repository.
-- MFA is used to strengthen security.
 - Maximum 5 failed attempts before temporary blocking.
 - Sessions expire automatically after 30 minutes of inactivity.
 
@@ -752,29 +750,22 @@ Each requirement is expressed in **User Story** format  with validation criteria
 
 | ID | Request |
 |---|---|
-| **RNF13** | The tutorial text boxes should **disappear in subsequent runs** to the first one without any user action. |
-| **RNF14** | Buttons and interactive elements must provide **visual feedback** when hovering over them. |
+| **RNF12** | The tutorial text boxes should **disappear in subsequent runs** to the first one without any user action. |
+| **RNF13** | Buttons and interactive elements must provide **visual feedback** when hovering over them. |
 
 ### 3.5 Persistence and Data
 
 | ID | Request |
 |---|---|
-| **RNF15** | The player's progress (cards, XP, attributes) must be **automatically** saved  in the database at the end of each battle, without manual user action. |
-| **RNF16** | Administrative statistics and user-visible statistics shall be stored in **separate tables** in the database. |
+| **RNF14** | The player's progress (cards, XP, attributes) must be **automatically** saved  in the database at the end of each battle, without manual user action. |
+| **RNF15** | Administrative statistics and user-visible statistics shall be stored in **separate tables** in the database. |
 
-### 3.6 Location
-
-| ID | Request |
-|---|---|
-| **RNF17** | All game texts must be **externalized in separate language files** to facilitate the addition of new languages without modifying the source code. |
-| **RNF18** | The language change from the options menu must be applied **immediately**, without requiring a game restart. |
-
-### 3.7 Maintainability
+### 3.6 Maintainability
 
 | ID | Request |
 |---|---|
-| **RNF19** | The source code shall follow the **class architecture defined in the GDD** (section 4): base classes ('GameObject', 'Character'), derived classes ('Player', 'Enemy', 'NPC') and support classes ('Action', 'ItemCard', 'User'). |
-| **RNF20** | Graphic assets must follow the **watercolor style** defined in section 5 of the GDD without exceptions to maintain visual consistency. |
+| **RNF16** | The source code shall follow the **class architecture defined in the GDD** (section 4): base classes ('GameObject', 'Character'), derived classes ('Player', 'Enemy', 'NPC') and support classes ('Action', 'ItemCard', 'User'). |
+| **RNF17** | Graphic assets must follow the **watercolor style** defined in section 5 of the GDD without exceptions to maintain visual consistency. |
 
 ---
 
