@@ -129,6 +129,10 @@ dmypy.json
 .DS_Store
 Thumbs.db
 
+# Office / Word temp & lock files
+~$*
+*.tmp
+
 # Custom
 CLAUDE.md
 .claude/

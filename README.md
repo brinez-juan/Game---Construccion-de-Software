@@ -30,6 +30,23 @@ Videojuego/
   statistics.js             Statistics page logic
 ```
 
+## Documentation
+
+Design and process documents for *Return* live in [`Documents/`](Documents/):
+
+| Document | What it is |
+| --- | --- |
+| [Software Requirements Specification (SRS)](Documents/SRS_Return_V2.md) | Full functional & non-functional requirements — 35 user stories with validation criteria |
+| [Game Design Document (GDD)](Documents/Game%20Design%20Document-FINAL.pdf) | Story, mechanics, art direction and class architecture |
+| [Pitch presentation](Presentation/Return-Pitch%20presentation.pdf) | Project pitch deck |
+| [Database ER/UML diagram](Documents/return_game%20DB%20UML%20diagram.svg) | `return_game` schema diagram |
+| [Database normalization notes](Documents/Database%20Normalization%20for%20the%20Project%20Supported%20by%20Generative%20AI%20Resources.pdf) | 1NF–3NF justification for the schema |
+| [Use-case diagrams](Documents/) | `Use_Case_Diagram_1.jpeg`, `Use_Case_Diagram_2.jpeg`, `UML_usecase_return.docx` |
+| [Completed issues report](extras/issues/issues.md) | The GitHub Project issues delivered, mapped to user stories |
+
+Database scripts to recreate the schema (`schema_structure.sql`, `seed_data.sql`, dump, `.dbml`) are in
+[`Videojuego/Database/`](Videojuego/Database/).
+
 ## How to run the game
 
 The game is served by the Express backend and persists everything in MySQL, so you log in through the

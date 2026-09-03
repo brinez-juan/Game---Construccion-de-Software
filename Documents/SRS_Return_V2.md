@@ -1,4 +1,4 @@
- Requirements Specification — *Return*
+# Requirements Specification — *Return*
 
 **Institution:** Tecnológico de Monterrey, Santa Fe Campus  
 **Materia:** Software Construction and Decision Making  
@@ -17,10 +17,10 @@
 
 ## Table of Contents
 
-1. [Introduction](#1-Introduction)
+1. [Introduction](#1-introduction)
 2. [Functional Requirements](#2-functional-requirements)
    - [User Stories](#21-user-stories)
-3. [Non-Functional Requirements](#3-Non-Functional Requirements)
+3. [Non-Functional Requirements](#3-non-functional-requirements)
    - [Performance](#31-performance)
    - [Compatibility](#32-compatibility)
    - [Security](#33-security)
@@ -99,7 +99,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 |---|---|
 | **How** | User |
 | **I want** | Be able to access an options menu available |
-| **For** | being able to access music and sfx options in case I want to deactivvate them|
+| **For** | being able to access music and sfx options in case I want to deactivate them|
 | **Priority** | 1 |
 | **Estimated time** | 4h |
 
@@ -236,7 +236,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 - The player has a visible stamina bar in the upper left corner.
 - Each card has a stamina cost; the player cannot use it without enough stamina.
 - Defense cards recover stamina if they match the enemy attack type
-- Recovery according to type of parry: perfect → moderate stamine; normal → small stamine; bad → no recovery.
+- Recovery according to type of parry: perfect → moderate stamina; normal → small stamina; bad → no recovery.
 - Users understand the mechanics of use and retrieval.
 
 ---
@@ -268,7 +268,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | **I want** | A map showing available floors and rooms |
 | **For** | Visualize my progress and understand the structure of the game |
 | **Priority** | 1 |
-| **Estimated time** | 9am |
+| **Estimated time** | 9h |
 
 **Validation criteria:**
 - The map shows all floors and rooms.
@@ -287,7 +287,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | **I want** | Quarters have randomized enemies from a set corresponding to the floor |
 | **For** | Make every run different and reinforce the roguelite element |
 | **Priority** | 2 |
-| **Estimated time** | 9am |
+| **Estimated time** | 9h |
 
 **Validation criteria:**
 - Sets of enemies are created for each floor.
@@ -305,7 +305,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | **I want** | requiring my password when logging in |
 | **For** | Have a layer of security on my account |
 | **Priority** | 2 |
-| **Estimated time** | 9am |
+| **Estimated time** | 9h |
 
 **Validation criteria:**
 - Login screen that asks for username (or email) and password.
@@ -341,7 +341,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | **I want** | An in-game experience system |
 | **For** | Grow throughout the game and improve my stats |
 | **Priority** | 1 |
-| **Estimated time** | 9am |
+| **Estimated time** | 9h |
 
 **Validation criteria:**
 - The XP thresholds for each level and the attribute points awarded when leveling up are defined.
@@ -360,7 +360,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | **I want** | An Attribute System That Can Be Upgraded with Attribute Points |
 | **For** | Customize My Character And Boost Certain Cards In My Deck |
 | **Priority** | 2 |
-| **Estimated time** | 9am |
+| **Estimated time** | 9h |
 
 **Validation criteria:**
 - The five attributes are implemented: **Strength, Vigor, Endurance, Intelligence, and Dexterity**.
@@ -380,7 +380,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | **I want** | Get Reward Cards for Defeating Enemies and Bosses |
 | **For** | Expand my variety of cards and try different strategies in each run |
 | **Priority** | 1 |
-| **Estimated time** | 9am |
+| **Estimated time** | 9h |
 
 **Validation criteria:**
 - Regular enemies and bosses reward a card related with their attacks/model. 
@@ -416,7 +416,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | **I want** | Have the tutorial explain the mechanics using text boxes with arrows |
 | **For** | Learning to play progressively and intuitively |
 | **Priority** | 1 |
-| **Estimated time** | 10am |
+| **Estimated time** | 10h |
 
 **Validation criteria:**
 - The tutorial occurs during the first quarter of the game (forest/tutorial stage).
@@ -535,7 +535,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | **I want** | Make the game as safe as possible |
 | **For** | Prevent Data Breaches and Cyberattacks |
 | **Priority** | 3 |
-| **Estimated time** | 10am |
+| **Estimated time** | 10h |
 
 **Validation criteria:**
 - Passwords are hashed before being stored in the database.
@@ -612,7 +612,7 @@ Each requirement is expressed in **User Story** format  with validation criteria
 | **I want** | A prep menu before each battle where you can select cards and spend Attribute Points |
 | **For** | Going into each fight with the strategy that best suits my needs |
 | **Priority** | 1 |
-| **Estimated time** | 9am |
+| **Estimated time** | 9h |
 
 **Validation criteria:**
 - The Battle Lobby displays: player name, character photo, Battle Deck (5 slots), My Deck (full inventory), current level with XP bar, and attribute section with available points.
